@@ -158,5 +158,20 @@ Everything stays on your computer and in your Drive folder. The app binds to `12
 - Bulk buy costs count against profit in the period you **bought** the lot. Use the Bulk buys page to see each lot's lifetime profit.
 - Options: `--port 9000`, `--no-https` (only if your RuName accepts http), `--no-browser`.
 
+## Licence
+Flip for Free is **free to use**, including for running your own reselling business, under the
+[Functional Source License 1.1, MIT Future License](LICENSE) (FSL-1.1-MIT).
+
+- **Free:** use it for your own selling, change it, share it, and run it on your own computer or server.
+- **Not allowed without a separate commercial licence:** selling Flip for Free, rebranding it, or offering it
+  (or something built from it) as a paid or commercial product or hosted service that competes with it.
+- **Every version becomes MIT** two years after it is published, with no restrictions.
+
+Want to sell, rebrand or host Flip for Free commercially? Open an issue titled **"Commercial licence"** on
+[GitHub](https://github.com/JosephsStuff/Flip-For-Free/issues) to agree terms.
+
+Versions 1.0.0 and 1.1.0 were published under the MIT licence and stay under it. Bundled libraries keep their
+own licences: Chart.js (MIT), Leaflet (BSD-2-Clause), and the website's tasteskill kit (MIT).
+
 ## Files
 `app.py` core pages · `features.py` inventory, insights, automations, tax · `automation.py` relist/promote engine · `taxcalc.py` SA103S figures · `ebay_api.py` OAuth, signing and eBay APIs · `sync.py` downloads data · `profit.py` deduction and cost maths · `db.py` storage · `api.py` JSON API · `mcp_server.py` Claude connector · `demo.py` fake data.

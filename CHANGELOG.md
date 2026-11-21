@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.1.1
+- New licence: the Functional Source License 1.1 (MIT Future License). Free to use, including for your own
+  reselling business; selling, rebranding or hosting Flip for Free commercially needs a commercial licence.
+  Each version becomes MIT two years after release. Versions up to 1.1.0 stay MIT.
+
 ## 1.1.0
 - New Flip for Free logo: three Fs mid-flip, each one bigger and stronger than the last.
 - New look: mint on grey, in light and dark mode.
