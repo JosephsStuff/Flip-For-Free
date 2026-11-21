@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.1.0
+- New Flip for Free logo: three Fs mid-flip, each one bigger and stronger than the last.
+- New look: mint on grey, in light and dark mode.
+- New icons for the browser tab, home screen and installed app.
+
 ## 1.0.0
 - First public release of Flip for Free: eBay sync with every fee and refund, true profit per sale, inventory,
   bulk buys, automations (relist, repricing, delayed promotion), insights, UK Self Assessment, mileage,

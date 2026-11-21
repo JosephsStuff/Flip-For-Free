@@ -840,5 +840,8 @@ def register(app):  # noqa: C901
     def manifest():
         return jsonify({
             "name": "Flip for Free", "short_name": "Flip", "start_url": "/", "display": "standalone",
-            "background_color": "#f5f5f0", "theme_color": "#146c43",
-            "icons": [{"src": url_for("static", filename="icon.svg"), "sizes": "any", "type": "image/svg+xml"}]})
+            "background_color": "#2b2f2d", "theme_color": "#3ecf8e",
+            "icons": [{"src": url_for("static", filename="icon.svg"), "sizes": "any", "type": "image/svg+xml"},
+                      {"src": url_for("static", filename="icon-192.png"), "sizes": "192x192", "type": "image/png"},
+                      {"src": url_for("static", filename="icon-512.png"), "sizes": "512x512", "type": "image/png"},
+                      {"src": url_for("static", filename="maskable-512.png"), "sizes": "512x512", "type": "image/png", "purpose": "maskable"}]})
