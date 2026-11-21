@@ -46,8 +46,13 @@ if ! command -v tailscale >/dev/null; then
   curl -fsSL https://tailscale.com/install.sh | sh
 fi
 if ! tailscale status >/dev/null 2>&1; then
-  echo "   Open the link below in your browser and sign in to Tailscale to add this server:"
-  sudo tailscale up --hostname=flip
+  if [ -n "${TS_AUTHKEY:-}" ]; then
+    # unattended (e.g. Oracle cloud-init): a one-off auth key from Tailscale's admin console
+    sudo tailscale up --hostname=flip --auth-key="$TS_AUTHKEY"
+  else
+    echo "   Open the link below in your browser and sign in to Tailscale to add this server:"
+    sudo tailscale up --hostname=flip
+  fi
 fi
 TS_NAME="$(tailscale status --json | "$APP_DIR/.venv/bin/python" -c 'import json,sys; print(json.load(sys.stdin)["Self"]["DNSName"].rstrip("."))')"
 PUBLIC_URL="https://$TS_NAME"
