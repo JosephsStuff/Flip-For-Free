@@ -6,8 +6,17 @@ You get Flip for Free running 24/7 on a free Oracle server, reachable only from 
 through Tailscale, at a proper https address. That address also fixes eBay sign-in, so there's
 no relay page and no certificate warning. Cost: £0.
 
-What you need: a debit/credit card (Oracle uses it to verify you; Always Free resources stay free),
+What you need: an approved eBay developer account (step 0), a debit/credit card (Oracle uses it to verify you; Always Free resources stay free),
 and about 45 minutes.
+
+## 0. Before you start: get an eBay developer account
+Flip for Free uses **your own** free eBay developer keys, and eBay has to **approve** your developer account
+before you can create them. Sign up first; you can do the Oracle steps while you wait.
+1. Register at **developer.ebay.com** (Register), accept the API License Agreement and confirm your email.
+2. Wait for approval: eBay says about **1 business day**, sometimes longer. If it's rejected, use eBay's
+   developer support form to ask for a manual review.
+3. Once approved, create a **Production** keyset under **Application Keysets**. If it says the keyset is disabled,
+   open the *Marketplace account deletion* notice and choose the exemption.
 
 ---
 

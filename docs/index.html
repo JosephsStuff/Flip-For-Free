@@ -34,6 +34,8 @@ nav.toc{margin:28px 0 0;display:flex;flex-wrap:wrap;gap:6px 14px;font-size:14px}
 nav.toc a{color:var(--muted);text-decoration:none}
 nav.toc a:hover{color:var(--accent)}
 main{padding:24px 0 64px}
+.prereq{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:12px;padding:20px 22px;margin:24px 0 8px}
+.prereq h2{margin-top:0}
 section.step{display:grid;grid-template-columns:44px minmax(0,1fr);gap:0 18px;padding:28px 0;border-bottom:1px solid var(--line)}
 .num{width:44px;height:44px;border-radius:50%;background:var(--accent);color:#fff;display:grid;place-items:center;font-weight:700;font-size:18px}
 @media (prefers-color-scheme: dark){.num{color:#0b1a14}}
@@ -74,10 +76,11 @@ footer{border-top:1px solid var(--line);padding:24px 0 48px;color:var(--muted);f
     <ul class="facts">
       <li>Cost <b>£0</b></li>
       <li>Time <b>about 45 minutes</b></li>
+      <li>Need <b>an approved eBay developer account</b> (about 1 business day)</li>
       <li>Need <b>a debit/credit card</b> (Oracle verifies you with it)</li>
     </ul>
     <nav class="toc" aria-label="Steps">
-      <a href="#s1">1 Oracle account</a><a href="#s2">2 Server</a><a href="#s3">3 Connect</a><a href="#s4">4 Install</a>
+      <a href="#s0">0 eBay developer account</a><a href="#s1">1 Oracle account</a><a href="#s2">2 Server</a><a href="#s3">3 Connect</a><a href="#s4">4 Install</a>
       <a href="#s5">5 HTTPS</a><a href="#s6">6 Your devices</a><a href="#s7">7 eBay sign-in</a><a href="#s8">8 Claude</a>
       <a href="#daily">Day to day</a><a href="#backups">Backups</a><a href="#free">Keeping it free</a>
     </nav>
@@ -111,6 +114,18 @@ footer{border-top:1px solid var(--line);padding:24px 0 48px;color:var(--muted);f
       <text x="540" y="164" fill="var(--muted)" font-size="12" text-anchor="middle">nightly, optional</text>
     </svg>
   </div>
+
+  <section class="prereq" id="s0">
+    <h2>Before you start: get an eBay developer account</h2>
+    <p>Flip for Free talks to eBay with <strong>your own</strong> free eBay developer keys, so you need an eBay Developers Program account. It has to be <strong>approved by eBay</strong> before you can create keys, so sign up first: you can do the Oracle steps while you wait.</p>
+    <ol>
+      <li>Go to <a href="https://developer.ebay.com/signin?tab=register">developer.ebay.com</a> and click <strong>Register</strong>. Use a business email address if you have one, accept the API License Agreement and click <strong>Join</strong>.</li>
+      <li>Confirm your email address from the email eBay sends.</li>
+      <li><strong>Wait for approval.</strong> eBay says this takes about <strong>1 business day</strong>, but it can take longer. If your registration is rejected, use eBay's developer support form to ask for a manual review and explain you're a seller tracking your own sales.</li>
+      <li>Once approved, go to <a href="https://developer.ebay.com/my/keys">Application Keysets</a> and create a <strong>Production</strong> keyset. If it says the keyset is disabled, open the <em>Marketplace account deletion</em> notice and choose the exemption (Flip for Free doesn't store other people's eBay accounts).</li>
+    </ol>
+    <p class="note">You'll copy the <strong>App ID</strong>, <strong>Dev ID</strong>, <strong>Cert ID</strong> and set up a <strong>RuName</strong> in <a href="#s7">step 7</a>. Nothing goes through anyone else's account.</p>
+  </section>
 
   <section class="step" id="s1">
     <div class="num">1</div>
@@ -211,7 +226,7 @@ scp -i $env:USERPROFILE\.ssh\flip.key "$env:USERPROFILE\Downloads\flip-for-free-
       <p>On <a href="https://developer.ebay.com/my/keys">developer.ebay.com → Application Keys</a> → <strong>User Tokens</strong>, edit your RuName and set <strong>both</strong> <em>Your auth accepted URL</em> and <em>Your auth declined URL</em> to:</p>
 <pre><code>https://flip.&lt;your-tailnet&gt;.ts.net/auth/callback</code></pre>
       <p>The installer prints the exact address. eBay only redirects <em>your browser</em> there, so it works even though the server isn't public. Then click <strong>Sign in with eBay</strong> in Flip for Free.</p>
-      <p>If you uploaded your database, your keys, costs and bulk buys are already there. If not, the setup page asks for your own eBay developer keys. The database is already set to <code>~/flip-data</code>.</p>
+      <p>If you uploaded your database, your keys, costs and bulk buys are already there. If not, the setup page asks for your own eBay developer keys (from <a href="#s0">before you start</a>). The database is already set to <code>~/flip-data</code>.</p>
     </div>
   </section>
 

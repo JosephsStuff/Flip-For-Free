@@ -96,6 +96,7 @@ Want to look around first? Run `python app.py --demo` to use fake data without a
 ## First-time setup
 1. **Database location**: pick a folder inside Google Drive (e.g. `G:\My Drive\eBay` on Windows, or `~/Library/CloudStorage/GoogleDrive-…/My Drive/eBay` on Mac). The app creates `ebay_profit_tracker.db` there.
 2. **eBay developer keys** (free, one-off). The field names in the app match eBay's labels:
+   - **First you need an eBay developer account.** Register at https://developer.ebay.com (click *Register*). eBay reviews new accounts, which takes about 1 business day, and you can't create keys until it's approved. If it's rejected, use eBay's developer support form to request a manual review.
    - Go to https://developer.ebay.com/my/keys (*Application Keysets*) and create a **Production** keyset. If it says the keyset is disabled, open the *Marketplace account deletion* notice and choose the exemption.
    - Copy **App ID (Client ID)**, **Dev ID** and **Cert ID (Client Secret)** from the **Production** box into the fields with the same names.
    - Next to the keyset: *User Tokens → Get a Token from eBay via Your Application → Add eBay Redirect URL*. Set *Your auth accepted URL* and *Your auth declined URL* to `https://localhost:8765/auth/callback`, tick *OAuth Enabled* and save. If eBay won't accept a localhost URL, see **If eBay won't accept localhost** below.
