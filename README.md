@@ -80,7 +80,7 @@ This is a record-keeping aid, not tax advice.
 ```
 curl -fsSL https://raw.githubusercontent.com/JosephsStuff/flip-for-free/main/deploy/install.sh | bash
 ```
-Follow the step-by-step guide at **https://josephsstuff.github.io/flip-for-free/** (also in `deploy/DEPLOY_ORACLE.md`).
+Follow the step-by-step guide at **https://josephsstuff.github.io/Flip-For-Free/** (also in `deploy/DEPLOY_ORACLE.md`).
 
 ## Updating
 **Settings → Updates → Update now** downloads the latest version from GitHub, backs up your database first, and restarts.
@@ -136,7 +136,7 @@ Check the connection any time with `python mcp_server.py --check`.
 **The API directly:** send `Authorization: Bearer <key>` to `https://localhost:8765/api/v1`. `GET /api/v1` lists every endpoint. Revoke a key in Settings and it stops working straight away.
 
 ## Run it 24/7 on a free server
-See the [Oracle deployment guide](https://josephsstuff.github.io/flip-for-free/) (or **deploy/DEPLOY_ORACLE.md**): Oracle Cloud's Always Free server plus Tailscale gives you Flip for Free running all the time,
+See the [Oracle deployment guide](https://josephsstuff.github.io/Flip-For-Free/) (or **deploy/DEPLOY_ORACLE.md**): Oracle Cloud's Always Free server plus Tailscale gives you Flip for Free running all the time,
 private to your own devices, at a real https address (which also fixes eBay sign-in). `deploy/install.sh` does the
 setup, including automatic restarts and nightly backups. Server mode is `python app.py --public-url https://…`.
 
