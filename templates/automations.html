@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+{% block title %}Automations · Flip for Free{% endblock %}
+{% block content %}
+<div class="pagehead">
+  <div>
+    <h1>Automations</h1>
+    <p class="muted">These run by themselves every 30 minutes while the app is open, and change your live eBay listings. Every action is logged below and on each item's timeline.</p>
+  </div>
+  <form method="post" action="{{ url_for('automation_pause') }}">
+    <input type="hidden" name="paused" value="{{ '0' if paused else '1' }}">
+    <button class="btn {{ '' if paused else 'ghost' }}">{{ '▶ Resume automations' if paused else '⏸ Pause all' }}</button>
+  </form>
+</div>
+{% if paused %}<div class="flash warn">All automations are paused. Nothing will change on eBay until you resume.</div>{% endif %}
+{% if runner %}<p class="hint">Automations run on one device at a time. Last run on <b>{{ runner }}</b>{% if state.last %} · {{ state.last|ago }}{% endif %}{% if state.message %}: {{ state.message }}{% endif %}</p>{% endif %}
+
+{% for r in rules %}
+<section class="card rulecard {{ 'on' if r.enabled }}">
+  <form method="post" action="{{ url_for('automation_save', rule_id=r.id) }}">
+    <div class="cardhead">
+      <h2>{{ labels[r.kind] }}</h2>
+      <label class="switch"><input type="checkbox" name="enabled" value="1" {{ 'checked' if r.enabled }}> {{ 'On' if r.enabled else 'Off' }}</label>
+    </div>
+    {% if r.kind == 'relist' %}
+      <p class="muted small">Ends fixed-price "Good 'Til Cancelled" listings and relists them. Each relist gets a new item ID and a fresh start date, which can help search placement, while keeping the same inventory record. You can step the price down a little each time. eBay's normal listing limits and fees still apply.</p>
+      <div class="grid3">
+        <label>When to relist
+          <select name="mode" onchange="this.closest('form').querySelectorAll('[data-mode]').forEach(e => e.hidden = e.dataset.mode !== this.value)">
+            <option value="renewal" {{ 'selected' if r.cfg.mode != 'age' }}>Just before eBay's 30-day auto-renew</option>
+            <option value="age" {{ 'selected' if r.cfg.mode == 'age' }}>Once a listing is a set number of days old</option>
+          </select></label>
+        <label data-mode="renewal" {{ 'hidden' if r.cfg.mode == 'age' }}>Hours before renewal<input name="hours_before_renew" inputmode="decimal" value="{{ r.cfg.hours_before_renew }}"></label>
+        <label data-mode="age" {{ 'hidden' if r.cfg.mode != 'age' }}>Relist after (days)<input name="relist_after_days" inputmode="numeric" value="{{ r.cfg.relist_after_days }}"></label>
+        <label>Preferred hour
+          <select name="relist_hour"><option value="-1">Any time</option>{% for h in range(24) %}<option value="{{ h }}" {{ 'selected' if r.cfg.relist_hour == h }}>From {{ '%02d'|format(h) }}:00</option>{% endfor %}</select></label>
+        <label>Cut price by (% each relist)<input name="price_drop_pct" inputmode="decimal" value="{{ r.cfg.price_drop_pct }}"><small class="muted">0 = keep the price</small></label>
+        <label>Stop cutting after (relists)<input name="max_cycles" inputmode="numeric" value="{{ r.cfg.max_cycles }}"><small class="muted">up to 20; it keeps relisting at the last price</small></label>
+        <label>Never more than (% below original)<input name="max_total_drop_pct" inputmode="decimal" value="{{ r.cfg.max_total_drop_pct }}"></label>
+        <label>Floor price (£)<input name="min_price" class="money" inputmode="decimal" value="{{ r.cfg.min_price }}"><small class="muted">0 = none. Items can have their own floor.</small></label>
+        <label>Most relists per day<input name="max_per_day" inputmode="numeric" value="{{ r.cfg.max_per_day }}"><small class="muted">max 200 · {{ today_count }} done today</small></label>
+        <label>Only listings older than (days)<input name="min_age_days" inputmode="numeric" value="{{ r.cfg.min_age_days }}"></label>
+        <label>Skip if watched by at least<input name="skip_watchers_at" inputmode="numeric" value="{{ r.cfg.skip_watchers_at }}"><small class="muted">0 = don't skip</small></label>
+        <label class="check"><input type="checkbox" name="never_below_cost" value="1" {{ 'checked' if r.cfg.never_below_cost }}> Never below what I paid</label>
+        <label class="check span2"><input type="checkbox" name="skip_with_sales" value="1" {{ 'checked' if r.cfg.skip_with_sales }}> Skip multi-quantity listings that already have sales (keeps the "X sold" count)</label>
+        <label class="check span3"><input type="checkbox" name="require_approval" value="1" {{ 'checked' if r.cfg.require_approval }}> <b>Review before relisting:</b> queue due relists for me to approve instead of doing them straight away</label>
+      </div>
+    {% else %}
+      <p class="muted small">Adds a Promoted Listings (general, cost per sale) ad only once an item has gone unsold for a while, so you don't pay ad fees on things that would sell anyway. Days count from when the item was first listed, so relists don't reset the clock.</p>
+      {% if not can_promote %}<div class="flash warn">This needs permission to manage Promoted Listings. <b>Sign out and sign in with eBay again</b> to allow it.</div>{% endif %}
+      <div class="grid3">
+        <label>Promote after (days unsold)<input name="after_days" inputmode="numeric" value="{{ r.cfg.after_days }}"></label>
+        <label>Ad rate (%)<input name="ad_rate" inputmode="decimal" value="{{ r.cfg.ad_rate }}"><small class="muted">Charged only if it sells via the ad (2–100%)</small></label>
+        <label>Most new ads per run<input name="max_per_run" inputmode="numeric" value="{{ r.cfg.max_per_run }}"></label>
+        <label class="span3">eBay campaign name<input name="campaign_name" value="{{ r.cfg.campaign_name }}"></label>
+      </div>
+    {% endif %}
+    <div class="row" style="margin-top:12px">
+      <button class="btn">Save</button>
+      {% if r.last_run %}<span class="muted small" style="align-self:center">Last run {{ r.last_run|ago }}</span>{% endif %}
+    </div>
+  </form>
+  <form method="post" action="{{ url_for('automation_run') }}" class="inline" style="float:right; margin-top:-38px">
+    <input type="hidden" name="rule_id" value="{{ r.id }}">
+    <button class="btn small ghost" onclick="return confirm('Run this now? It will change live eBay listings that are due.')">Run now</button>
+  </form>
+
+  <h3>{{ 'Coming up in the next 7 days' if r.kind == 'relist' else 'Due or due within 7 days' }} ({{ r.upcoming|length }})</h3>
+  {% if r.upcoming %}
+  <div class="tablewrap">
+  <table class="data compact">
+    {% if r.kind == 'relist' %}
+    <thead><tr><th>Listing</th><th>Relist</th><th class="num">Price now</th><th class="num">New price</th><th class="num">Floor</th><th>Note</th></tr></thead>
+    <tbody>{% for c in r.upcoming %}
+      <tr><td class="title">{% if c.item_id %}<a href="{{ url_for('item_detail', item_id=c.item_id) }}">{{ c.title }}</a>{% else %}{{ c.title }}{% endif %}</td>
+        <td class="nowrap">{% if c.due %}<span class="pill warn">due now</span>{% else %}in {{ '%.0f'|format(c.hours_left) }} h{% endif %}</td>
+        <td class="num">{{ c.price|gbp }}</td><td class="num">{{ c.new_price|gbp if c.new_price else 'same' }}</td><td class="num muted">{{ c.floor|gbp }}</td>
+        <td>{% if c.skip %}<span class="pill">skip: {{ c.skip }}</span>{% elif c.status == 'relist_failed' %}<span class="pill err">retrying failed relist</span>{% endif %}</td></tr>
+    {% endfor %}</tbody>
+    {% else %}
+    <thead><tr><th>Listing</th><th class="num">Days unsold</th><th class="num">Price</th><th>When</th></tr></thead>
+    <tbody>{% for c in r.upcoming %}
+      <tr><td class="title">{% if c.item_id %}<a href="{{ url_for('item_detail', item_id=c.item_id) }}">{{ c.title }}</a>{% else %}{{ c.title }}{% endif %}</td>
+        <td class="num">{{ c.unsold_days }}</td><td class="num">{{ c.price|gbp }}</td>
+        <td>{% if c.due %}<span class="pill warn">next run</span>{% else %}in {{ r.cfg.after_days - c.unsold_days }} d{% endif %}</td></tr>
+    {% endfor %}</tbody>
+    {% endif %}
+  </table>
+  </div>
+  {% else %}<p class="muted small">Nothing due{{ '' if active else ' — sync first so your listings come in' }}.</p>{% endif %}
+  {% if r.kind == 'relist' and queue %}
+  <h3>Waiting for your approval ({{ queue|length }})</h3>
+  <form method="post" action="{{ url_for('automation_queue') }}">
+    <input type="hidden" name="rule_id" value="{{ r.id }}">
+    <table class="data compact">
+      <thead><tr><th class="cb"></th><th>Listing</th><th class="num">Price now</th><th class="num">New price</th><th>Status</th></tr></thead>
+      <tbody>{% for q in queue %}
+        <tr><td class="cb">{% if q.status == 'pending' %}<input type="checkbox" name="ids" value="{{ q.id }}">{% endif %}</td>
+          <td class="title">{% if q.item_id %}<a href="{{ url_for('item_detail', item_id=q.item_id) }}">{{ q.title }}</a>{% else %}{{ q.title }}{% endif %}</td>
+          <td class="num">{{ q.price|gbp }}</td><td class="num">{{ q.new_price|gbp if q.new_price else 'same' }}</td>
+          <td><span class="pill {{ 'ok' if q.status == 'approved' else 'warn' }}">{{ q.status }}</span></td></tr>
+      {% endfor %}</tbody>
+    </table>
+    <div class="row" style="margin-top:8px"><button class="btn small" name="action" value="approve">Approve ticked (or all if none ticked)</button>
+      <button class="btn small ghost" name="action" value="reject">Skip ticked</button></div>
+  </form>
+  {% endif %}
+</section>
+{% endfor %}
+
+<section class="card">
+  <h2>Activity log</h2>
+  <table class="data compact">
+    <thead><tr><th>When</th><th>Action</th><th>Listing</th><th>Result</th><th>Detail</th></tr></thead>
+    <tbody>{% for l in log %}
+      <tr><td class="nowrap">{{ l.at|ago }}</td><td>{{ l.action }}</td><td class="title">{{ l.title or ('#' ~ l.legacy_item_id) }}</td>
+        <td><span class="pill {{ 'ok' if l.result == 'ok' else 'err' if l.result == 'error' else '' }}">{{ l.result }}</span></td><td class="small">{{ l.detail }}</td></tr>
+    {% else %}<tr><td colspan="5" class="empty-row">Nothing has run yet.</td></tr>{% endfor %}</tbody>
+  </table>
+</section>
+{% endblock %}

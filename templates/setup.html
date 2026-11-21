@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+{% block title %}Set up · Flip for Free{% endblock %}
+{% block mainclass %}narrow{% endblock %}
+{% block content %}
+<div class="hero">
+  <span class="logo big">£</span>
+  <h1>Flip for Free</h1>
+  <p class="muted">Two quick steps: choose where your data lives, then connect your eBay developer keys.</p>
+</div>
+
+<section class="card">
+  <div class="step"><span class="num {{ 'done' if ready }}">1</span><h2>Database location</h2></div>
+  {% if ready %}
+    <p>Using <code class="path">{{ db_path }}</code></p>
+    <details><summary>Change location</summary>
+  {% else %}
+    <p class="muted">Pick a folder inside Google Drive (or OneDrive / Dropbox) to use the same data on every device. On another device, choose the same folder and the existing database is opened instead of a new one.</p>
+  {% endif %}
+
+  <form method="post" action="{{ url_for('setup_db') }}" id="dbForm">
+    <input type="hidden" name="mode" value="folder" id="dbMode">
+    <label>Folder
+      <div class="row">
+        <input name="path" id="dbPath" placeholder="e.g. G:\My Drive\eBay" value="{{ current_folder }}" required>
+        <button type="button" class="btn ghost" id="browseBtn">Browse…</button>
+      </div>
+    </label>
+    <div class="chips">
+      {% for s in suggestions %}<button type="button" class="chip" data-path="{{ s.path }}">{{ s.label }} <small>{{ s.path }}</small></button>{% endfor %}
+      {% for p in cfg.recent_db_paths %}<button type="button" class="chip" data-file="{{ p }}">Recent <small>{{ p }}</small></button>{% endfor %}
+    </div>
+    <div id="browser" class="browser" hidden>
+      <div class="browser-head"><button type="button" class="btn small ghost" id="upBtn">↑ Up</button><code id="curPath"></code></div>
+      <ul id="dirList"></ul>
+      <div class="browser-foot"><button type="button" class="btn small" id="useBtn">Use this folder</button></div>
+    </div>
+    <p class="hint">The file will be called <code>{{ default_name }}</code>. If it already exists in that folder it is opened, not overwritten.</p>
+    <button class="btn">{{ 'Switch database' if ready else 'Use this folder' }}</button>
+  </form>
+  {% if ready %}</details>{% endif %}
+</section>
+
+<section class="card {{ 'disabled' if not ready }}">
+  <div class="step"><span class="num {{ 'done' if ebay.get('client_id') }}">2</span><h2>eBay developer keys</h2></div>
+  {% if not ready %}<p class="muted">Choose a database first.</p>{% else %}
+  <p class="muted">Sign-in uses eBay's own login page (OAuth). The tool needs an eBay developer app — it's free and takes about 10 minutes.</p>
+  <details class="howto" {% if not ebay.get('client_id') %}open{% endif %}>
+    <summary>How to get these keys</summary>
+    <ol>
+      <li>Sign in at <a href="https://developer.ebay.com/my/keys" target="_blank" rel="noopener">developer.ebay.com/my/keys</a> (<b>Application Keysets</b>) and create a <b>Production</b> keyset.
+        <br><small class="muted">If it says the keyset is disabled, click through the <b>Marketplace account deletion</b> notice and choose the exemption option (you don't store other people's data). The keyset won't work until you do.</small></li>
+      <li>Copy the three values from the <b>Production</b> box into the fields with the same names below: <b>App ID (Client ID)</b>, <b>Dev ID</b> and <b>Cert ID (Client Secret)</b> (click the eye icon to reveal it).</li>
+      <li>In the Production box, under App ID, click <b>User Tokens</b>. Under <b>Get a Token from eBay via Your Application</b>, click <b>Add eBay Redirect URL</b>. eBay first asks you to confirm your legal address, then you can fill in:
+        <ul>
+          <li><b>Display Title</b>: anything, e.g. <code>Flip for Free</code></li>
+          <li><b>Your privacy policy URL</b>: any https page of yours (required by eBay)</li>
+          <li><b>Your auth accepted URL</b>: <code class="copy">{{ callback }}</code><br>
+            <small class="muted">If eBay won't save a localhost address, use the relay page instead (see the README: "If eBay won't accept localhost"). It sends you straight back here, so sign-in stays automatic.</small></li>
+          <li><b>Your auth declined URL</b>: the same as the accepted URL</li>
+          <li>Tick <b>OAuth Enabled</b>, then <b>Save</b>.</li>
+        </ul>
+      </li>
+      <li>Copy the value in the <b>RuName (eBay Redirect URL name)</b> column. It looks like <code>Your_Name-YourApp-PRD-abcdefgh</code>.</li>
+    </ol>
+    <p class="hint">Your keys and eBay sign-in token are saved inside the database file so other devices pointed at it work straight away. Keep that folder private.</p>
+  </details>
+  <form method="post" action="{{ url_for('setup_ebay') }}" class="grid2">
+    <label>Environment
+      <select name="ebay_env">
+        <option value="production" {{ 'selected' if ebay.get('ebay_env', 'production') == 'production' }}>Production (real account)</option>
+        <option value="sandbox" {{ 'selected' if ebay.get('ebay_env') == 'sandbox' }}>Sandbox (testing)</option>
+      </select>
+    </label>
+    <label>Marketplace
+      <select name="marketplace_id">
+        {% for m, l in [('EBAY_GB','eBay UK'),('EBAY_US','eBay US'),('EBAY_DE','eBay DE'),('EBAY_IE','eBay IE'),('EBAY_AU','eBay AU')] %}
+        <option value="{{ m }}" {{ 'selected' if ebay.get('marketplace_id', 'EBAY_GB') == m }}>{{ l }}</option>{% endfor %}
+      </select>
+    </label>
+    <label class="span2">App ID (Client ID)<input name="client_id" value="{{ ebay.get('client_id', '') }}" required autocomplete="off" placeholder="e.g. YourName-YourApp-PRD-1a2b3c4d5-6e7f8a9b"></label>
+    <label>Dev ID <small class="muted">(optional, not used for sign-in)</small><input name="dev_id" value="{{ ebay.get('dev_id', '') }}" autocomplete="off"></label>
+    <label>Cert ID (Client Secret)<input name="client_secret" type="password" placeholder="{{ '•••••••• (saved — leave blank to keep)' if ebay.get('client_id') else 'starts with PRD-' }}" autocomplete="off"></label>
+    <label class="span2">RuName (eBay Redirect URL name)<input name="ru_name" value="{{ ebay.get('ru_name', '') }}" required autocomplete="off"><small class="muted">Not the URL itself: the RuName column from the User Tokens page.</small></label>
+    <div class="span2"><button class="btn">Save and continue</button></div>
+  </form>
+  {% endif %}
+</section>
+{% endblock %}
+{% block scripts %}<script>initSetup();</script>{% endblock %}

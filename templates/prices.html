@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% from "macros.html" import spark %}
+{% block title %}Sold prices · Flip for Free{% endblock %}
+{% block mainclass %}wide{% endblock %}
+{% block content %}
+<div class="pagehead">
+  <h1>Sold prices</h1>
+  <form method="get" class="filters">
+    <input type="search" name="q" value="{{ q }}" placeholder="Search items">
+    <select name="sort" onchange="this.form.submit()">
+      {% for k, l in [('recent','Recently sold'),('sold','Most sold'),('avg','Highest price'),('title','A–Z')] %}<option value="{{ k }}" {{ 'selected' if sort == k }}>{{ l }}</option>{% endfor %}
+    </select>
+  </form>
+</div>
+<p class="muted">Every listing you've sold, with the prices it went for. Prices are per unit, excluding postage.</p>
+<div class="tablewrap">
+<table class="data">
+  <thead><tr><th>Item</th><th class="num">Sold</th><th class="num">Last price</th><th class="num">Average</th><th class="num">Low – High</th><th class="num">Avg money made</th><th>Trend</th><th>Last sold</th></tr></thead>
+  <tbody>
+  {% for r in rows %}
+    <tr>
+      <td class="title"><a href="{{ url_for('price_detail', key=r.key) }}">{{ r.title }}</a></td>
+      <td class="num">{{ r.units }}</td>
+      <td class="num"><b>{{ r.last|gbp }}</b></td>
+      <td class="num">{{ r.avg|gbp }}</td>
+      <td class="num muted nowrap">{{ r.min|gbp }} – {{ r.max|gbp }}</td>
+      <td class="num">{{ r.avg_made|gbp }}</td>
+      <td class="trend">{{ spark(r.spark) }}</td>
+      <td class="nowrap muted">{{ r.last_at|d }}</td>
+    </tr>
+  {% else %}<tr><td colspan="8" class="empty-row">Nothing sold yet.</td></tr>{% endfor %}
+  </tbody>
+</table>
+</div>
+{% endblock %}

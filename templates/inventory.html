@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+{% from "macros.html" import cls %}
+{% block title %}Inventory · Flip for Free{% endblock %}
+{% block mainclass %}wide{% endblock %}
+{% block content %}
+<div class="pagehead">
+  <div>
+    <h1>Inventory</h1>
+    <p class="muted">Everything you've bought: what it cost, where it's stored and whether it's listed. Active eBay listings are added automatically.</p>
+  </div>
+  <div class="row">
+    <a class="btn ghost" href="{{ url_for('import_page') }}">Import CSV</a>
+    <button class="btn" onclick="document.getElementById('addItem').hidden=false; document.getElementById('addTitle').focus()">+ Add stock</button>
+  </div>
+</div>
+
+<section class="card" id="addItem" hidden>
+  <h2>Add stock you've bought</h2>
+  <form method="post" action="{{ url_for('inventory_new') }}" class="grid3">
+    <input type="hidden" name="back" value="{{ request.full_path }}">
+    <label class="span2">Title<input name="title" id="addTitle" placeholder="e.g. Nintendo DS Lite – Cobalt Blue"></label>
+    <label>Quantity<input name="quantity" inputmode="numeric" value="1"></label>
+    <label>Price paid each (£)<input name="cost" class="money" inputmode="decimal" placeholder="0.00"></label>
+    <label>Bought from<input name="source" list="sourceList" placeholder="Car boot, Facebook, charity shop…"></label>
+    <label>Bought on<input type="date" name="purchased_at" value="{{ today }}"></label>
+    <label>Stored at<input name="location" list="locList" placeholder="Shelf B2, Box 4…"></label>
+    <label>Bulk buy
+      <select name="bulk_buy_id"><option value="">— None —</option>{% for b in bulks %}<option value="{{ b.id }}">{{ b.name }}</option>{% endfor %}</select>
+    </label>
+    <label>SKU <small class="muted">(optional, matches eBay Custom label)</small><input name="sku"></label>
+    <details class="span3"><summary>Adding lots of things? Enter one title per line</summary>
+      <textarea name="titles" rows="5" placeholder="Pot of Greed LOB-119&#10;Dark Magician SDY-006&#10;…"></textarea>
+      <small class="muted">Each line becomes its own item with the details above.</small>
+    </details>
+    <label class="check span3"><input type="checkbox" name="cost_locked" value="1"> In a bulk buy, give this item its own fixed cost (the rest of the lot's cost is split evenly)</label>
+    <div><button class="btn">Add to inventory</button></div>
+  </form>
+</section>
+<datalist id="sourceList">{% for s in sources %}<option value="{{ s }}">{% endfor %}</datalist>
+<datalist id="locList">{% for l in locations %}<option value="{{ l }}">{% endfor %}</datalist>
+
+<div class="kpis three">
+  <div class="kpi"><span class="label">In stock</span><span class="value">{{ counts.instock }}</span><span class="sub">{{ counts.listed }} listed · {{ counts.unlisted }} not listed</span></div>
+  <div class="kpi"><span class="label">Stock cost</span><span class="value">{{ stock_value|gbp }}</span><span class="sub">what's unsold cost you</span></div>
+  <div class="kpi"><span class="label">Listed value</span><span class="value">{{ list_value|gbp }}</span><span class="sub">at current eBay prices</span></div>
+</div>
+
+<nav class="tabs">
+  {% for k, l in [('instock','In stock'),('listed','Listed'),('unlisted','Not listed'),('sold','Sold'),('written off','Written off'),('all','All')] %}
+  <a href="{{ url_for('inventory', status=k, q=q, location=loc, source=src) }}" class="{{ 'on' if status == k }}">{{ l }}<span class="count">{{ counts[k] or 0 }}</span></a>
+  {% endfor %}
+</nav>
+
+<form method="get" class="filters">
+  <input type="hidden" name="status" value="{{ status }}">
+  <input type="search" name="q" value="{{ q }}" placeholder="Search title, SKU, notes">
+  <select name="location" onchange="this.form.submit()"><option value="">Any location</option>{% for l in locations %}<option {{ 'selected' if l == loc }}>{{ l }}</option>{% endfor %}</select>
+  <select name="source" onchange="this.form.submit()"><option value="">Any source</option>{% for s in sources %}<option {{ 'selected' if s == src }}>{{ s }}</option>{% endfor %}</select>
+  <select name="filter" onchange="this.form.submit()">
+    <option value="">All items</option>
+    <option value="no_cost" {{ 'selected' if filter == 'no_cost' }}>Missing price paid</option>
+    <option value="no_date" {{ 'selected' if filter == 'no_date' }}>Missing purchase date</option>
+  </select>
+  <button class="btn small ghost">Search</button>
+</form>
+
+<form method="post" action="{{ url_for('inventory_bulk_edit') }}" id="invForm">
+  <input type="hidden" name="back" value="{{ request.full_path }}">
+  <div class="actionbar" id="actionBar" hidden>
+    <span id="selCount">0 selected</span><span class="sep"></span>
+    <input name="value" placeholder="Location / source / £ amount">
+    <button class="btn small ghost" name="action" value="location">Set location</button>
+    <button class="btn small ghost" name="action" value="source">Set source</button>
+    <button class="btn small ghost" name="action" value="cost">Set price paid</button>
+    <button class="btn small ghost" name="action" value="packaging">Set packaging</button>
+    <button class="btn small ghost" name="action" value="handling">Set handling</button>
+    <span class="sep"></span>
+    <select name="bulk_buy_id"><option value="">— No bulk buy —</option>{% for b in bulks %}<option value="{{ b.id }}">{{ b.name }}</option>{% endfor %}</select>
+    <button class="btn small" name="action" value="bulk">Set bulk buy</button>
+  </div>
+  <div class="tablewrap">
+  <table class="data">
+    <thead><tr><th class="cb"><input type="checkbox" id="checkAll" aria-label="Select all"></th><th></th><th>Item</th><th>Status</th><th>Stored at</th><th>Bought from</th><th class="num">Cost each</th><th class="num">Listed at</th><th class="num">Days listed</th><th>Bulk buy</th></tr></thead>
+    <tbody>
+    {% for it in items %}
+      <tr>
+        <td class="cb"><input type="checkbox" name="ids" value="{{ it.id }}"></td>
+        <td style="width:46px">{% if it.image_url %}<img class="thumb" src="{{ it.image_url }}" alt="" loading="lazy" referrerpolicy="no-referrer">{% else %}<span class="thumb"></span>{% endif %}</td>
+        <td class="title"><a href="{{ url_for('item_detail', item_id=it.id) }}">{{ it.title }}</a>
+          {% if it.restock_url %}<a class="tag green" href="{{ it.restock_url }}" target="_blank" rel="noopener noreferrer" title="Restock: {{ it.restock_url }}">↻ restock</a>{% endif %}
+          {% if (it.quantity or 1) > 1 %}<span class="tag">{{ it.remaining }}/{{ it.quantity }} left</span>{% endif %}
+          {% if it.promoted %}<span class="tag green">promoted</span>{% endif %}</td>
+        <td><span class="status {{ it.status|replace(' ', '-') }}">{{ 'not listed' if it.status == 'unlisted' else it.status }}</span></td>
+        <td>{{ it.location or '' }}{% if not it.location and it.status != 'sold' %}<span class="muted small">—</span>{% endif %}</td>
+        <td class="muted">{{ it.source or '' }}</td>
+        <td class="num">{% if it.unit_cost is not none %}{{ it.unit_cost|gbp }}{% if it.bulk_buy_id and not it.cost_locked %}<small class="muted"> share</small>{% endif %}{% else %}<a class="addcost" href="{{ url_for('item_detail', item_id=it.id) }}">+ add</a>{% endif %}</td>
+        <td class="num">{{ it.list_price|gbp('') }}</td>
+        <td class="num">{{ it.days_listed if it.days_listed is not none and it.status == 'listed' else '' }}</td>
+        <td>{% if it.bulk_name %}<a class="tag green" href="{{ url_for('bulk_detail', bulk_id=it.bulk_buy_id) }}">{{ it.bulk_name }}</a>{% endif %}</td>
+      </tr>
+    {% else %}
+      <tr><td colspan="10" class="empty-row">Nothing here yet. Add stock you've bought, import a spreadsheet, or sync to pull in your eBay listings.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  </div>
+</form>
+{% endblock %}
+{% block scripts %}<script>initSelectable('invForm');</script>{% endblock %}

@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block title %}Calculators · Flip for Free{% endblock %}
+{% block content %}
+<p class="crumbs"><a href="{{ url_for('performance') }}">← Performance</a></p>
+<h1>Calculators</h1>
+<div class="cols">
+  <section class="card" id="calc">
+    <h2>Should I buy it?</h2>
+    <p class="muted small">Estimate profit before you buy.{% if your_fee is not none %} The fee rates are filled in from your own eBay sales over the last 6 months.{% endif %}</p>
+    <div class="grid2">
+      <label>Buy price (£)<input data-k="buy" inputmode="decimal" value="5"></label>
+      <label>Expected sale price (£)<input data-k="sale" inputmode="decimal" value="25"></label>
+      <label>Postage charged to buyer (£)<input data-k="pin" inputmode="decimal" value="0"></label>
+      <label>Postage you'll pay (£)<input data-k="pout" inputmode="decimal" value="3.20"></label>
+      <label>eBay fee (% of sale + postage)<input data-k="fee" inputmode="decimal" value="{{ '%.2f'|format(your_fee) if your_fee else '12.80' }}"></label>
+      <label>Per-order fee (£)<input data-k="fixed" inputmode="decimal" value="0.40"><small class="muted">eBay UK: £0.30 up to £10, £0.40 above</small></label>
+      <label>Promoted listing ad rate (%)<input data-k="ad" inputmode="decimal" value="{{ '%.1f'|format(your_promo) if your_promo else '0' }}"></label>
+      <label>Packaging (£)<input data-k="pack" inputmode="decimal" value="{{ '%.2f'|format(defaults.packaging) if defaults.packaging else '0.30' }}"></label>
+      <label>Handling (labour) (£)<input data-k="labour" inputmode="decimal" value="{{ '%.2f'|format(defaults.handling) if defaults.handling else '0' }}"></label>
+    </div>
+    <table class="waterfall" style="margin-top:14px">
+      <tr><td>eBay fees</td><td class="num neg" id="o_fees"></td></tr>
+      <tr><td>Ad fee</td><td class="num neg" id="o_ad"></td></tr>
+      <tr class="sub"><td>You receive</td><td class="num" id="o_net"></td></tr>
+      <tr class="total"><td>Profit</td><td class="num" id="o_profit"></td></tr>
+      <tr><td>Margin · ROI</td><td class="num" id="o_ratio"></td></tr>
+      <tr><td>Most you should pay to break even</td><td class="num" id="o_be"></td></tr>
+    </table>
+    <p class="hint">Private sellers on eBay UK don't pay final value fees on most categories. Set the fee to 0 if that's you.</p>
+  </section>
+
+  <div>
+    <section class="card" id="str">
+      <h2>Sell-through rate</h2>
+      <div class="grid2">
+        <label>Items sold<input data-s="sold" inputmode="numeric" value="{{ sold90 }}"></label>
+        <label>Still listed<input data-s="active" inputmode="numeric" value="{{ active }}"></label>
+      </div>
+      <p style="font-size:1.6rem; font-weight:700; margin:.6rem 0 0" id="o_str"></p>
+      <p class="muted small" id="o_str_note"></p>
+      <p class="hint">Pre-filled with your last 90 days. Under about 20% usually means too much stock for how fast it sells; over 60% can mean you're pricing too low.</p>
+    </section>
+    <section class="card">
+      <h2>Goal planner</h2>
+      <p class="muted small">Turn an income target into daily sales and listing targets.</p>
+      <a class="btn small" href="{{ url_for('performance', tab='goals') }}">Open goal planner</a>
+    </section>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}<script>
+(function () {
+  const v = k => parseFloat(document.querySelector('[data-k=' + k + ']').value) || 0;
+  const f = n => (n < 0 ? '-£' : '£') + Math.abs(n).toFixed(2);
+  const set = (id, t, cls) => { const e = document.getElementById(id); e.textContent = t; if (cls !== undefined) e.className = 'num ' + cls; };
+  function calc() {
+    const sale = v('sale'), pin = v('pin'), base = sale + pin;
+    const fees = base * v('fee') / 100 + (base > 0 ? v('fixed') : 0), ad = base * v('ad') / 100;
+    const net = base - fees - ad, profit = net - v('pout') - v('pack') - v('labour') - v('buy');
+    set('o_fees', f(-fees)); set('o_ad', f(-ad)); set('o_net', f(net));
+    set('o_profit', f(profit), profit >= 0 ? 'pos' : 'neg');
+    set('o_ratio', (base ? (profit / base * 100).toFixed(0) : 0) + '% · ' + (v('buy') ? (profit / v('buy') * 100).toFixed(0) + '%' : '—'));
+    set('o_be', f(Math.max(net - v('pout') - v('pack') - v('labour'), 0)));
+  }
+  function str() {
+    const s = parseFloat(document.querySelector('[data-s=sold]').value) || 0, a = parseFloat(document.querySelector('[data-s=active]').value) || 0;
+    const r = (s + a) ? s / (s + a) * 100 : 0;
+    document.getElementById('o_str').textContent = r.toFixed(0) + '%';
+    document.getElementById('o_str_note').textContent = s + a ? `${s} sold out of ${s + a} items available` : '';
+  }
+  document.getElementById('calc').addEventListener('input', calc); document.getElementById('str').addEventListener('input', str);
+  calc(); str();
+})();
+</script>{% endblock %}

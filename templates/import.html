@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}Import · Flip for Free{% endblock %}
+{% block content %}
+<p class="crumbs"><a href="{{ url_for('inventory') }}">← Inventory</a></p>
+<h1>Import from a spreadsheet</h1>
+<p class="muted">Bring in your history from Excel, Google Sheets or another reseller tool. Save it as CSV, upload it, then match your columns to ours on the next screen. eBay sales and listings sync on their own, so don't import those.</p>
+<section class="card">
+  <form method="post" enctype="multipart/form-data" class="stack">
+    <label>What's in the file?
+      <select name="kind">{% for k, l in kinds.items() %}<option value="{{ k }}">{{ l }}</option>{% endfor %}</select></label>
+    <label>CSV file<input type="file" name="file" accept=".csv,text/csv" required></label>
+    <div><button class="btn">Next: match columns →</button></div>
+  </form>
+</section>
+<section class="card">
+  <h2>What each import can contain</h2>
+  <div class="grid2">
+    {% for k, l in kinds.items() %}
+      <div><b>{{ l }}</b><p class="small muted">{% for f, label, need in fields[k] %}{{ label }}{{ '*' if need }}{{ ', ' if not loop.last }}{% endfor %}</p></div>
+    {% endfor %}
+  </div>
+  <p class="hint">* required. Dates can be 2026-10-31, 31/10/2026 or 31 Oct 2026.</p>
+</section>
+{% endblock %}

@@ -1,0 +1,169 @@
+{% extends "base.html" %}
+{% block title %}Settings · Flip for Free{% endblock %}
+{% block content %}
+<h1>Settings</h1>
+
+<div class="cols">
+<section class="card">
+  <h2>Database</h2>
+  <p><code class="path">{{ db_path }}</code></p>
+  <p class="muted small">{{ counts.sales }} sales · {{ counts.orders }} orders · {{ counts.transactions }} eBay money movements · {{ counts.bulk }} bulk buys</p>
+  <p class="hint">To use this on another device: install the app there, choose the same folder on the setup screen, and sign in with eBay. Avoid having it open on two devices at the same time.</p>
+  <div class="row"><a class="btn ghost" href="{{ url_for('setup') }}">Change database location / eBay keys</a>
+  <a class="btn ghost" href="{{ url_for('phone') }}">📱 Use on your phone</a></div>
+  <p class="muted small" style="margin-top:1rem">This device: <b>{{ device }}</b> · local config in <code>{{ config_dir }}</code></p>
+</section>
+
+<section class="card">
+  <h2>eBay connection</h2>
+  <table class="kv">
+    <tr><td>Account</td><td><b>{{ s.owner_username or '—' }}</b></td></tr>
+    <tr><td>Environment</td><td>{{ s.ebay_env or 'production' }} · {{ s.marketplace_id or 'EBAY_GB' }}</td></tr>
+    <tr><td>App ID</td><td><code>{{ (s.client_id or '')[:18] }}…</code></td></tr>
+    <tr><td>Sign-in valid until</td><td>{{ s.refresh_token_expiry|d or '—' }}</td></tr>
+    <tr><td>UK/EU signing key</td><td>{{ 'Created' if s.signing_jwe else 'Created on first sync' }}</td></tr>
+    <tr><td>Orders synced</td><td>{{ s.last_sync_orders|ago }}</td></tr>
+    <tr><td>Fees synced</td><td>{{ s.last_sync_finances|ago }}</td></tr>
+  </table>
+  <form id="fullSyncForm" class="inline"><button type="button" class="btn ghost small" id="fullSyncBtn" {% if demo %}disabled{% endif %}>Re-download everything</button></form>
+</section>
+</div>
+
+<section class="card">
+  <h2>Preferences</h2>
+  <form method="post" class="stack">
+    <label class="check"><input type="checkbox" name="include_account_fees" value="1" {{ 'checked' if (s.include_account_fees or '1') == '1' }}>
+      Deduct account-level charges (shop subscription, unlinked ad fees…) from true profit</label>
+    <label>Count bulk buy costs on the dashboard
+      <select name="profit_basis">
+        <option value="bought" {{ 'selected' if (s.profit_basis or 'bought') == 'bought' }}>When I buy the lot (cash in / cash out)</option>
+        <option value="sold" {{ 'selected' if s.profit_basis == 'sold' }}>As each item sells (cost of goods sold)</option>
+      </select></label>
+    <div class="grid2">
+      <label>Financial year starts on
+        <span class="row">
+          {% set fy = (s.fy_start or '04-06').split('-') %}
+          <select name="fy_day">{% for d in range(1, 32) %}<option value="{{ d }}" {{ 'selected' if d == fy[1]|int }}>{{ d }}</option>{% endfor %}</select>
+          <select name="fy_month">{% for m in ['January','February','March','April','May','June','July','August','September','October','November','December'] %}<option value="{{ loop.index }}" {{ 'selected' if loop.index == fy[0]|int }}>{{ m }}</option>{% endfor %}</select>
+        </span><small class="muted">UK sole traders: 6 April (the tax year). Used for "Financial year" views and the P&amp;L.</small></label>
+      <label>Accountant's email<input type="email" name="accountant_email" value="{{ s.accountant_email or '' }}" placeholder="for emailing your P&amp;L"></label>
+    </div>
+    <div class="grid2">
+      <label>Sync with eBay
+        <select name="sync_interval_minutes">{% for m, l in sync_choices %}<option value="{{ m }}" {{ 'selected' if m == sync_minutes }}>{{ l }}</option>{% endfor %}</select>
+        <small class="muted">Pulls new orders, fees and listings{{ ' while the app is running' if not server_mode }}. Each sync only fetches what's changed. On Oracle's free tier this doesn't stop a server being treated as idle, so keep backups on.</small></label>
+      <label>First sync looks back (days)<input name="first_sync_days" inputmode="numeric" value="{{ s.first_sync_days or 730 }}"><small class="muted">eBay keeps about 2 years of orders.</small></label>
+    </div>
+    <div><button class="btn">Save</button></div>
+  </form>
+</section>
+
+<section class="card" id="packing">
+  <h2>Packing costs</h2>
+  <p class="muted small">Default costs taken off every sale that's posted. Set a different amount on any listing (Inventory → the item), or on a single sale. Car boot and in-person sales are skipped.</p>
+  <form method="post" class="stack">
+    {# keep the other preferences when saving this card #}
+    <input type="hidden" name="include_account_fees" value="{{ '1' if (s.include_account_fees or '1') == '1' else '' }}">
+    <input type="hidden" name="profit_basis" value="{{ s.profit_basis or 'bought' }}">
+    {% set fy = (s.fy_start or '04-06').split('-') %}
+    <input type="hidden" name="fy_month" value="{{ fy[0]|int }}"><input type="hidden" name="fy_day" value="{{ fy[1]|int }}">
+    <input type="hidden" name="accountant_email" value="{{ s.accountant_email or '' }}">
+    <input type="hidden" name="sync_interval_minutes" value="{{ sync_minutes }}">
+    <input type="hidden" name="auto_update" value="{{ '1' if s.auto_update == '1' else '' }}">
+    <input type="hidden" name="first_sync_days" value="{{ s.first_sync_days or 730 }}">
+    <div class="grid3">
+      <label>Packaging per sale (£)<input name="default_packaging" class="money" inputmode="decimal" value="{{ s.default_packaging or '' }}" placeholder="e.g. 0.45"><small class="muted">Mailer, box, tape, labels, toploaders…</small></label>
+      <label>Handling (labour) per sale (£)<input name="default_handling" id="defHandling" class="money" inputmode="decimal" value="{{ s.default_handling or '' }}" placeholder="e.g. 1.00"><small class="muted">What you'd pay someone to pick, pack and label one sale.</small></label>
+      <label>Apply defaults to sales from<input type="date" name="packing_defaults_from" value="{{ s.packing_defaults_from or today }}"><small class="muted">Pick an early date to apply them to past sales too.</small></label>
+    </div>
+    <div class="row" style="flex-wrap:wrap; align-items:flex-end; gap:8px">
+      <label>Minutes per parcel<input name="labour_minutes" id="labMin" inputmode="decimal" value="{{ s.labour_minutes or '' }}" placeholder="5" style="width:110px"></label>
+      <span style="padding-bottom:8px">×</span>
+      <label>Hourly rate (£)<input name="labour_rate" id="labRate" inputmode="decimal" value="{{ s.labour_rate or '' }}" placeholder="12.71" style="width:110px"></label>
+      <button type="button" class="btn small ghost" onclick="(function(){const m=parseFloat(labMin.value)||0,r=parseFloat(labRate.value)||0;if(m&&r){defHandling.value=(m/60*r).toFixed(2);}})()">= Use as handling per sale</button>
+    </div>
+    <p class="hint">UK National Living Wage is £12.71 an hour (age 21+, from April 2026). 5 minutes a parcel at that rate is £1.06.</p>
+    <label class="check"><input type="checkbox" name="labour_paid" value="1" {{ 'checked' if s.labour_paid == '1' }}> I actually pay someone to pack, so count handling as a business expense for tax (SA103S box 13)</label>
+    <p class="hint">If you pack yourself, handling still comes off your profit so you can see what each sale would make with paid help, but it's left out of your tax figures: your own time isn't an allowable expense. Packaging always counts (box 18).</p>
+    <div><button class="btn">Save packing costs</button></div>
+  </form>
+</section>
+
+<div class="cols">
+<section class="card" id="updates">
+  <h2>Updates</h2>
+  <p>You have version <b>{{ version }}</b>{% if upd.latest %} · latest on GitHub: <b>{{ upd.latest }}</b>{% endif %}.</p>
+  {% if update_available %}
+    <div class="flash ok"><b>Version {{ upd.latest }} is available.</b>{% if upd.notes %}<br><span class="small" style="white-space:pre-line">{{ upd.notes }}</span>{% endif %}</div>
+    <form method="post" action="{{ url_for('update_apply') }}"><button class="btn" onclick="return confirm('Update Flip for Free now? Your database is backed up first and nothing in it is changed. The app restarts in a few seconds.')">Update now</button></form>
+  {% endif %}
+  <form method="post" action="{{ url_for('update_check') }}" class="row" style="margin-top:8px"><button class="btn small ghost">Check for updates</button>
+    {% if upd.checked_at %}<span class="muted small" style="align-self:center">Checked {{ upd.checked_at|replace('T', ' ') }}</span>{% endif %}</form>
+  <form method="post" class="stack" style="margin-top:10px">
+    {% set fy = (s.fy_start or '04-06').split('-') %}
+    <input type="hidden" name="include_account_fees" value="{{ '1' if (s.include_account_fees or '1') == '1' else '' }}">
+    <input type="hidden" name="profit_basis" value="{{ s.profit_basis or 'bought' }}">
+    <input type="hidden" name="fy_month" value="{{ fy[0]|int }}"><input type="hidden" name="fy_day" value="{{ fy[1]|int }}">
+    <input type="hidden" name="accountant_email" value="{{ s.accountant_email or '' }}">
+    <input type="hidden" name="sync_interval_minutes" value="{{ sync_minutes }}">
+    <input type="hidden" name="first_sync_days" value="{{ s.first_sync_days or 730 }}">
+    <input type="hidden" name="default_packaging" value="{{ s.default_packaging or '' }}"><input type="hidden" name="default_handling" value="{{ s.default_handling or '' }}">
+    <input type="hidden" name="labour_minutes" value="{{ s.labour_minutes or '' }}"><input type="hidden" name="labour_rate" value="{{ s.labour_rate or '' }}">
+    <input type="hidden" name="labour_paid" value="{{ '1' if s.labour_paid == '1' else '' }}"><input type="hidden" name="packing_defaults_from" value="{{ s.packing_defaults_from or today }}">
+    <label class="check"><input type="checkbox" name="auto_update" value="1" {{ 'checked' if s.auto_update == '1' }} onchange="this.form.submit()"> Install new versions automatically (checked once a day)</label>
+  </form>
+  <p class="hint">Updates come from <a href="https://github.com/{{ repo }}" target="_blank" rel="noopener">github.com/{{ repo }}</a>. Only the app's code is replaced: your database, receipts and settings live outside the app folder and are backed up before every update.</p>
+  {% if upd.error %}<p class="neg small">{{ upd.error }}</p>{% endif %}
+</section>
+
+<section class="card" id="database">
+  <h2>Your data</h2>
+  <p class="muted small">Download a complete copy of your database (sales, costs, bulk buys, settings, eBay keys and sign-in) to keep somewhere safe or to move Flip for Free between your computer and a server.</p>
+  <a class="btn" href="{{ url_for('database_download') }}">⬇ Download database</a>
+  <p class="hint">Keep the file private: it contains your eBay keys and sign-in. Receipts are separate files in the "Profit Tracker receipts" folder next to the database.</p>
+  <h3>Restore from a downloaded copy</h3>
+  <form method="post" action="{{ url_for('database_restore') }}" enctype="multipart/form-data" class="row" style="flex-wrap:wrap">
+    <input type="file" name="file" accept=".db" required>
+    <button class="btn ghost" onclick="return confirm('Replace ALL current data with this file? Your current data is backed up first.')">Restore</button>
+  </form>
+  <p class="hint">Your current data is saved to the backups folder first, so a restore can be undone.</p>
+</section>
+</div>
+
+<section class="card" id="api">
+  <h2>API keys <small class="muted">for Claude and other tools</small></h2>
+  <p class="muted small">An API key lets Claude (or a script) read and update Flip for Free for you: add stock, fill in costs, record sales, log expenses and mileage, check profit and tax. Anyone with a key can change your data, so keep keys private and revoke any you don't use.</p>
+  {% if new_key %}
+    <div class="flash ok"><b>Your new key (copy it now, it won't be shown again):</b><br>
+      <code class="copy" style="font-size:.95rem; user-select:all">{{ new_key }}</code></div>
+  {% endif %}
+  {% if api_keys %}
+  <table class="data compact">
+    <thead><tr><th>Name</th><th>Key</th><th>Created</th><th>Last used</th><th></th></tr></thead>
+    <tbody>{% for k in api_keys %}
+      <tr><td>{{ k.name }}</td><td><code>{{ k.hint }}</code></td><td>{{ k.created|d }}</td><td>{{ k.last_used|ago if k.last_used else 'never' }}</td>
+        <td><form method="post" action="{{ url_for('api_keys') }}" class="inline"><input type="hidden" name="revoke" value="{{ k.id }}"><button class="linkbtn" onclick="return confirm('Revoke this key?')">Revoke</button></form></td></tr>
+    {% endfor %}</tbody>
+  </table>
+  {% endif %}
+  <form method="post" action="{{ url_for('api_keys') }}" class="row" style="margin-top:10px">
+    <input name="name" placeholder="What's it for? e.g. Claude desktop" maxlength="40" style="flex:1">
+    <button class="btn">Create API key</button>
+  </form>
+  <p class="hint">API address: <code class="copy">{{ api_base }}</code>. To connect Claude, see "Let Claude run it for you" in the README.</p>
+</section>
+
+<section class="card">
+  <h2>Sync history</h2>
+  <table class="data compact">
+    <thead><tr><th>Started</th><th>Device</th><th>Result</th><th>Message</th></tr></thead>
+    <tbody>
+    {% for l in log %}
+      <tr><td class="nowrap">{{ l.started_at|ago }}</td><td>{{ l.device }}</td>
+        <td><span class="tag {{ 'green' if l.status == 'ok' else 'red' if l.status == 'error' else '' }}">{{ l.status }}</span></td>
+        <td class="small">{{ l.message or '' }}</td></tr>
+    {% else %}<tr><td colspan="4" class="empty-row">No syncs yet.</td></tr>{% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endblock %}

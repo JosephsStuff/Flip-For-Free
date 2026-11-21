@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+{% from "macros.html" import cls, period_picker with context %}
+{% block title %}Insights · Flip for Free{% endblock %}
+{% block content %}
+<div class="pagehead">
+  <h1>Insights</h1>
+  {{ period_picker(periods, period, start, end) }}
+</div>
+<div class="subnav"><a class="btn small ghost" href="{{ url_for('prices') }}">Sold price history →</a></div>
+
+<div class="kpis five">
+  <div class="kpi"><span class="label">Net profit</span><span class="value {{ cls(kpi.net_profit) }}">{{ kpi.net_profit|gbp }}</span><span class="sub">after cost of goods sold</span></div>
+  <div class="kpi"><span class="label">Margin</span><span class="value">{{ kpi.margin|pct }}</span><span class="sub">of {{ kpi.gross|gbp }} sales</span></div>
+  <div class="kpi"><span class="label">ROI</span><span class="value {{ cls(kpi.roi) }}">{{ kpi.roi|pct }}</span><span class="sub">on {{ kpi.cogs|gbp }} cost of goods</span></div>
+  <div class="kpi"><span class="label">Avg time to sell</span><span class="value">{{ '%.0f'|format(kpi.days_to_sell) ~ ' d' if kpi.days_to_sell is not none else '—' }}</span><span class="sub">listed → sold</span></div>
+  <div class="kpi"><span class="label">Avg time to list</span><span class="value">{{ '%.0f'|format(kpi.days_to_list) ~ ' d' if kpi.days_to_list is not none else '—' }}</span><span class="sub">bought → listed</span></div>
+</div>
+{% if kpi.missing_cost %}<div class="notes"><a class="note warn" href="{{ url_for('sales_list', filter='missing_cost', period=period, start=start, end=end) }}">⚠ {{ kpi.missing_cost }} sales have no cost, so profit, margin and ROI are overstated →</a></div>{% endif %}
+
+<div class="cols">
+  <section class="card">
+    <h2>New listings vs items sold</h2>
+    <div class="chartbox"><canvas id="lvsChart"></canvas></div>
+    <p class="hint">{{ kpi.new_listings }} new listings, {{ kpi.units }} items sold. {{ kpi.active_listings }} live now, worth {{ kpi.list_value|gbp }}.</p>
+  </section>
+  <section class="card">
+    <h2>Sales, profit and margin</h2>
+    <div class="chartbox"><canvas id="trendChart"></canvas></div>
+  </section>
+</div>
+
+<div class="cols">
+  <section class="card">
+    <h2>Where the money went</h2>
+    <table class="waterfall">
+      {% for k, v in breakdown.items() %}<tr><td>{{ k }}</td><td class="num">{{ v|gbp }}</td></tr>{% endfor %}
+    </table>
+    <p class="hint">"Inventory bought" is stock and bulk buys you bought in this period, sold or not.</p>
+  </section>
+  <section class="card">
+    <h2>By marketplace</h2>
+    <table class="data compact">
+      <thead><tr><th>Channel</th><th class="num">Sales</th><th class="num">Buyer paid</th><th class="num">Money made</th><th class="num">Profit</th><th class="num">Margin</th></tr></thead>
+      <tbody>{% for name, c in channels.items() %}
+        <tr><td>{{ name }}</td><td class="num">{{ c.count }}</td><td class="num">{{ c.gross|gbp }}</td><td class="num">{{ c.money|gbp }}</td>
+          <td class="num {{ cls(c.profit) }}">{{ c.profit|gbp }}</td><td class="num">{{ ((c.profit / c.gross * 100) if c.gross else none)|pct }}</td></tr>
+      {% else %}<tr><td colspan="6" class="empty-row">No sales in this period.</td></tr>{% endfor %}</tbody>
+    </table>
+    <p class="hint"><a href="{{ url_for('manual_sale') }}">Record a sale from another marketplace →</a></p>
+  </section>
+</div>
+
+<section class="card">
+  <h2>Sources: where is it worth buying?</h2>
+  <div class="tablewrap">
+  <table class="data">
+    <thead><tr><th>Source</th><th class="num">Bought</th><th class="num">Spent</th><th class="num">Sold</th><th class="num">Sell-through</th><th class="num">Money made</th><th class="num">Profit</th><th class="num">ROI</th><th class="num">Avg days to sell</th></tr></thead>
+    <tbody>{% for r in sources %}
+      <tr><td class="title"><a href="{{ url_for('inventory', source=r.name, status='all') if r.name != 'Unknown' else url_for('inventory', status='all') }}">{{ r.name }}</a></td>
+        <td class="num">{{ r.bought }}</td><td class="num">{{ r.spend|gbp }}</td><td class="num">{{ r.sold }}</td>
+        <td class="num">{{ r.sell_through|pct }}</td><td class="num">{{ r.money|gbp }}</td>
+        <td class="num {{ cls(r.profit) }}"><b>{{ r.profit|gbp }}</b></td><td class="num {{ cls(r.roi) }}">{{ r.roi|pct }}</td>
+        <td class="num">{{ '%.0f'|format(r.avg_days) if r.avg_days is not none else '—' }}</td></tr>
+    {% else %}<tr><td colspan="9" class="empty-row">Add "Bought from" to your inventory items and bulk buys to see this.</td></tr>{% endfor %}</tbody>
+  </table>
+  </div>
+  <p class="hint">Bought and spent cover all time. Sold, money made and profit are for the selected period.</p>
+</section>
+
+<section class="card">
+  <h2>Where your buyers are</h2>
+  {% if geo or countries %}
+    <div class="mapbox" id="buyerMap"></div>
+    <p class="hint">Postcode district only (e.g. "SW1A"). Full addresses are never stored. Map data © OpenStreetMap contributors; postcode locations from postcodes.io.</p>
+    <div class="row" style="flex-wrap:wrap; gap:6px">{% for c, n in countries|dictsort(by='value', reverse=true) %}<span class="pill">{{ c }} · {{ n }}</span>{% endfor %}</div>
+  {% else %}
+    <p class="muted">Buyer locations appear here after your next sync.</p>
+  {% endif %}
+</section>
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='chart.umd.js') }}"></script>
+<link rel="stylesheet" href="{{ url_for('static', filename='leaflet/leaflet.css') }}">
+<script src="{{ url_for('static', filename='leaflet/leaflet.js') }}"></script>
+<script>
+insightsCharts({{ weeks|tojson }});
+buyerMap({{ geo|tojson }}, {{ countries|tojson }});
+</script>
+{% endblock %}

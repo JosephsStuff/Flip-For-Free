@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Match columns · Import{% endblock %}
+{% block mainclass %}wide{% endblock %}
+{% block content %}
+<p class="crumbs"><a href="{{ url_for('import_page') }}">← Start again</a></p>
+<h1>Match your columns</h1>
+<p class="muted">Importing <b>{{ kind_label }}</b>: {{ total }} rows. We've guessed where we could. Check each field and choose "Don't import" for anything you don't have.</p>
+<form method="post">
+  <input type="hidden" name="kind" value="{{ kind }}">
+  <section class="card">
+    <div class="grid3">
+      {% for f, label, need in fields %}
+      <label>{{ label }}{% if need %} <span class="neg">*</span>{% endif %}
+        <select name="map_{{ f }}" {{ 'required' if need }}>
+          <option value="-1">— Don't import —</option>
+          {% for h in header %}<option value="{{ loop.index0 }}" {{ 'selected' if suggested.get(f) == loop.index0 }}>{{ h or ('Column ' ~ loop.index) }}</option>{% endfor %}
+        </select></label>
+      {% endfor %}
+    </div>
+    <div style="margin-top:14px"><button class="btn">Import {{ total }} rows</button></div>
+  </section>
+</form>
+<section class="card">
+  <h2>Preview (first {{ preview|length }} rows)</h2>
+  <div class="tablewrap"><table class="data compact">
+    <thead><tr>{% for h in header %}<th>{{ h }}</th>{% endfor %}</tr></thead>
+    <tbody>{% for r in preview %}<tr>{% for c in r %}<td class="small">{{ c }}</td>{% endfor %}</tr>{% endfor %}</tbody>
+  </table></div>
+</section>
+{% endblock %}

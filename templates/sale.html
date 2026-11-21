@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% from "macros.html" import cls %}
+{% block title %}{{ s.title }} · Flip for Free{% endblock %}
+{% block content %}
+<p class="crumbs"><a href="{{ back or url_for('sales_list') }}">← Sales</a></p>
+<div class="pagehead">
+  <div>
+    <h1 class="h-title">{{ s.title }}</h1>
+    <p class="muted">Sold {{ s.sold_at|d }} · Order <code>{{ s.order_id }}</code>{% if s.legacy_item_id %} · Item <a href="https://www.ebay.co.uk/itm/{{ s.legacy_item_id }}" target="_blank" rel="noopener">{{ s.legacy_item_id }} ↗</a>{% endif %}{% if s.quantity > 1 %} · Qty {{ s.quantity }}{% endif %}
+      {% if s.status %} · <span class="tag red">{{ s.status }}</span>{% endif %}</p>
+    <p class="muted small">{% if s.item_id %}<a href="{{ url_for('item_detail', item_id=s.item_id) }}">Inventory item</a>{% if s.item_location %} · stored at <b>{{ s.item_location }}</b>{% endif %}{% if s.item_source %} · from {{ s.item_source }}{% endif %} · {% endif %}{% if s.ship_city or s.ship_outcode %}Buyer in {{ s.ship_city or '' }} {{ s.ship_outcode or '' }}{% if s.ship_country and s.ship_country != 'GB' %} ({{ s.ship_country }}){% endif %}{% endif %}</p>
+  </div>
+  <div class="bigprofit {{ cls(s.profit) }}">
+    {% if s.in_bulk and s.profit is none %}<span class="label">Counts towards</span><a href="{{ url_for('bulk_detail', bulk_id=s.bulk_buy_id) }}">{{ s.bulk_name }}</a>
+    {% elif s.profit is none %}<span class="label">Profit</span>add price paid
+    {% else %}<span class="label">Profit</span>{{ s.profit|gbp }}{% endif %}
+  </div>
+</div>
+
+<div class="cols">
+  <section class="card">
+    <h2>Breakdown</h2>
+    <table class="waterfall">
+      <tr class="total"><td>Buyer paid</td><td class="num">{{ s.gross|gbp }}</td></tr>
+      <tr><td class="indent muted">Item{% if s.quantity > 1 %} ({{ s.quantity }} × {{ s.unit_price|gbp }}){% endif %}</td><td class="num muted">{{ s.item_price|gbp }}</td></tr>
+      <tr><td class="indent muted">Postage charged</td><td class="num muted">{{ s.delivery_charged|gbp }}</td></tr>
+      {% for k, v in s.ebay_deductions.items() %}
+        <tr><td class="indent">{{ k }}</td><td class="num {{ 'pos' if v < 0 else 'neg' }}">{{ (-v)|gbp }}</td></tr>
+      {% endfor %}
+      <tr class="sub"><td>Net from eBay</td><td class="num">{{ s.net_from_ebay|gbp }}</td></tr>
+      {% for k, v in s.own_costs.items() %}
+        <tr><td class="indent">{{ k }}</td><td class="num neg">{{ (-v)|gbp }}</td></tr>
+      {% endfor %}
+      <tr class="sub"><td>Money made</td><td class="num">{{ s.money_made|gbp }}</td></tr>
+      <tr><td class="indent">{{ 'Share of bulk buy cost' if s.cost_source == 'bulk share' else 'Price paid' }}{% if s.cost_source == 'item' %} <small class="muted">from inventory</small>{% endif %}</td><td class="num neg">{{ (-s.item_cost)|gbp if s.item_cost is not none else '—' }}</td></tr>
+      <tr class="total"><td>Profit</td><td class="num {{ cls(s.profit) }}">{{ s.profit|gbp }}</td></tr>
+    </table>
+    {% if s.estimated %}<p class="hint">Fees are estimated from the order until eBay's Finances data for it is synced.</p>{% endif %}
+    {% if others %}<p class="hint">This order had other items too; order-level charges are split by sale value. Also in this order: {% for o in others %}<a href="{{ url_for('sale_detail', line_id=o.line_item_id) }}">{{ o.title }}</a>{{ ', ' if not loop.last }}{% endfor %}</p>{% endif %}
+  </section>
+
+  <section class="card">
+    <h2>Your costs</h2>
+    <form method="post" class="stack">
+      <input type="hidden" name="back" value="{{ back }}">
+      <label>Bulk buy
+        <select name="bulk_buy_id" id="saleBulk">
+          <option value="">— Not part of a bulk buy —</option>
+          {% for b in bulks %}<option value="{{ b.id }}" {{ 'selected' if s.bulk_buy_id == b.id }}>{{ b.name }}</option>{% endfor %}
+        </select>
+      </label>
+      <label id="costField">Price paid for {{ 'these items' if s.quantity > 1 else 'this item' }} (£)
+        <input name="cost" class="money" inputmode="decimal" value="{{ '%.2f'|format(s.cost) if s.cost is not none else '' }}" placeholder="0.00">
+        <small class="muted">{% if s.in_bulk %}Ignored while the sale is in a bulk buy: it takes its share of the bulk buy's cost.{% elif s.cost_source == 'item' %}Leave blank to use the inventory item's cost ({{ s.item_cost|gbp }}).{% endif %}</small>
+      </label>
+      <div class="grid2">
+        <label>Postage you paid (£)<input name="postage_cost" class="money" inputmode="decimal" value="{{ '%.2f'|format(s.postage_cost) if s.postage_cost is not none else '' }}" placeholder="0.00"></label>
+        <label>Packaging (£)<input name="packaging_cost" class="money" inputmode="decimal" value="{{ '%.2f'|format(s.packaging_cost) if s.packaging_cost is not none else '' }}" placeholder="{{ '%.2f'|format(s.packaging) if s.packaging else '0.00' }}">
+          {% if s.packaging_from in ('listing', 'default') %}<small class="muted">Using {{ s.packaging|gbp }} from the {{ 'listing' if s.packaging_from == 'listing' else 'default in Settings' }}. Type an amount to change it for this sale only.</small>{% endif %}</label>
+        <label>Handling (labour) (£)<input name="handling_cost" class="money" inputmode="decimal" value="{{ '%.2f'|format(s.handling_cost) if s.handling_cost is not none else '' }}" placeholder="{{ '%.2f'|format(s.handling) if s.handling else '0.00' }}">
+          {% if s.handling_from in ('listing', 'default') %}<small class="muted">Using {{ s.handling|gbp }} from the {{ 'listing' if s.handling_from == 'listing' else 'default in Settings' }}.</small>{% endif %}</label>
+        <label>Other (£)<input name="other_cost" class="money" inputmode="decimal" value="{{ '%.2f'|format(s.other_cost) if s.other_cost is not none else '' }}" placeholder="0.00"></label>
+      </div>
+      <p class="hint">Only enter postage here if you bought it outside eBay — eBay postage labels are already deducted above.</p>
+      <label>Notes<textarea name="notes" rows="2">{{ s.notes or '' }}</textarea></label>
+      {% if s.legacy_item_id %}
+      <label class="check"><input type="checkbox" name="apply_listing" value="1" {{ 'checked' if rule }}>
+        Apply bulk buy &amp; price paid (per unit) to every sale of this listing, including future ones{% if same_listing > 1 %} <span class="muted">({{ same_listing }} sales so far)</span>{% endif %}</label>
+      {% endif %}
+      <button class="btn">Save</button>
+    </form>
+  </section>
+</div>
+
+{% if txs %}
+<section class="card">
+  <h2>eBay money movements for this order</h2>
+  <table class="data compact">
+    <thead><tr><th>Date</th><th>Type</th><th>Detail</th><th class="num">Amount</th></tr></thead>
+    <tbody>
+    {% for t in txs %}
+      <tr><td class="nowrap">{{ t.date|d }}</td><td>{{ t.type|replace('_', ' ')|title }}</td>
+        <td class="muted">{{ tx_label(t) if t.type != 'SALE' else 'Payout after selling fees (' ~ (t.total_fee|gbp) ~ ')' }}{% if t.memo %} — {{ t.memo }}{% endif %}</td>
+        <td class="num {{ cls(signed(t)) }}">{{ signed(t)|gbp }}</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endif %}
+{% endblock %}
+{% block scripts %}<script>initSale();</script>{% endblock %}

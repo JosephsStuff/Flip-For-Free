@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+{% from "macros.html" import cls %}
+{% block title %}{{ it.title }} · Inventory{% endblock %}
+{% block content %}
+<p class="crumbs"><a href="{{ url_for('inventory') }}">← Inventory</a></p>
+<div class="pagehead">
+  <div class="row" style="align-items:center; gap:14px">
+    {% if it.image_url %}<img class="thumb" style="width:64px;height:64px" src="{{ it.image_url }}" alt="" referrerpolicy="no-referrer">{% endif %}
+    <div>
+      <h1 class="h-title">{{ it.title }}</h1>
+      <p class="muted"><span class="status {{ it.status|replace(' ', '-') }}">{{ 'not listed' if it.status == 'unlisted' else it.status }}</span>
+        {% if it.location %} · Stored at <b>{{ it.location }}</b>{% endif %}
+        {% if it.source %} · From {{ it.source }}{% endif %}
+        {% if it.purchased_at %} · Bought {{ it.purchased_at|d }}{% endif %}</p>
+    </div>
+  </div>
+  <div class="row">
+    {% if it.restock_url %}<a class="btn ghost" href="{{ it.restock_url }}" target="_blank" rel="noopener noreferrer" title="{{ it.restock_url }}">↻ Restock ↗</a>{% endif %}
+    {% if it.status in ('listed', 'unlisted') %}<a class="btn" href="{{ url_for('manual_sale', item=it.id, channel='Market stall') }}">Sold at a market</a>
+    <a class="btn ghost" href="{{ url_for('manual_sale', item=it.id) }}">Sold elsewhere</a>{% endif %}
+  </div>
+</div>
+
+<div class="cols">
+  <section class="card">
+    <h2>Details</h2>
+    <form method="post" class="grid2">
+      <label class="span2">Title<input name="title" value="{{ it.title }}" required></label>
+      <label>Quantity<input name="quantity" inputmode="numeric" value="{{ it.quantity or 1 }}"></label>
+      <label>SKU<input name="sku" value="{{ it.sku or '' }}"></label>
+      <label>Price paid each (£)<input name="cost" class="money" inputmode="decimal" value="{{ '%.2f'|format(it.cost) if it.cost is not none else '' }}" placeholder="0.00">
+        {% if it.bulk_buy_id and not it.cost_locked %}<small class="muted">Using its share of the bulk buy: {{ it.unit_cost|gbp }}. Tick below to fix its own cost instead.</small>{% endif %}</label>
+      <label>Bought on<input type="date" name="purchased_at" value="{{ it.purchased_at or '' }}"></label>
+      <label>Bought from<input name="source" list="sourceList" value="{{ it.source or '' }}"></label>
+      <label>Stored at<input name="location" list="locList" value="{{ it.location or '' }}"></label>
+      <label class="span2">Bulk buy
+        <select name="bulk_buy_id"><option value="">— Not part of a bulk buy —</option>{% for b in bulks %}<option value="{{ b.id }}" {{ 'selected' if it.bulk_buy_id == b.id }}>{{ b.name }}</option>{% endfor %}</select>
+      </label>
+      <label class="check span2"><input type="checkbox" name="cost_locked" value="1" {{ 'checked' if it.cost_locked }}> Fixed cost inside its bulk buy (e.g. the one valuable card in a binder); the rest of the lot's cost is split evenly</label>
+      {% if unlinked %}
+      <label class="span2">Link to an eBay listing
+        <select name="link_listing"><option value="">— Keep as is —</option>{% for l in unlinked %}<option value="{{ l.legacy_item_id }}">{{ l.title }} · {{ l.price|gbp }}</option>{% endfor %}</select>
+      </label>{% endif %}
+      <label>Packaging per sale (£)<input name="packaging_cost" class="money" inputmode="decimal" value="{{ '%.2f'|format(it.packaging_cost) if it.packaging_cost is not none else '' }}" placeholder="{{ 'default ' ~ defaults.packaging|gbp if defaults.packaging else '0.00' }}"><small class="muted">Box, mailer, tape, toploader… taken off every sale of this listing.</small></label>
+      <label>Handling (labour) per sale (£)<input name="handling_cost" class="money" inputmode="decimal" value="{{ '%.2f'|format(it.handling_cost) if it.handling_cost is not none else '' }}" placeholder="{{ 'default ' ~ defaults.handling|gbp if defaults.handling else '0.00' }}"><small class="muted">What it would cost to pay someone to pick and pack it.</small></label>
+      <label class="span2">Restock link <small class="muted">(where to buy more: supplier page, wholesaler, Amazon, AliExpress…)</small>
+        <input type="url" name="restock_url" value="{{ it.restock_url or '' }}" placeholder="https://…"></label>
+      <label class="span2">Notes<textarea name="notes" rows="2">{{ it.notes or '' }}</textarea></label>
+      <label class="check"><input type="checkbox" name="relist_exclude" value="1" {{ 'checked' if it.relist_exclude }}> Never auto-relist this item</label>
+      <label>Its own relist floor (£)<input name="relist_floor" class="money" inputmode="decimal" value="{{ '%.2f'|format(it.relist_floor) if it.relist_floor else '' }}" placeholder="optional"></label>
+      <div class="span2 row between"><button class="btn">Save</button>
+        <button class="btn ghost danger" formaction="{{ url_for('item_archive', item_id=it.id) }}" onclick="return confirm('Remove this item from inventory? Its sales are kept.')">Remove</button></div>
+    </form>
+    <datalist id="sourceList">{% for s in sources %}<option value="{{ s }}">{% endfor %}</datalist>
+    <datalist id="locList">{% for l in locations %}<option value="{{ l }}">{% endfor %}</datalist>
+  </section>
+
+  <section class="card">
+    <h2>Timeline</h2>
+    <ul class="timeline">
+      {% for e in events %}
+        <li class="{{ e.kind }}">{{ e.detail }}<span class="when">{{ e.at|d }}{% if e.legacy_item_id %} · <a href="https://www.ebay.co.uk/itm/{{ e.legacy_item_id }}" target="_blank" rel="noopener">#{{ e.legacy_item_id }}</a>{% endif %}</span></li>
+      {% else %}<li>No history yet.</li>{% endfor %}
+    </ul>
+  </section>
+</div>
+
+<section class="card">
+  <div class="cardhead"><h2>Restock</h2>{% if it.restock_url %}<a href="{{ it.restock_url }}" target="_blank" rel="noopener noreferrer">Open restock link ↗</a>{% endif %}</div>
+  {% if not it.restock_url %}<p class="muted small">Add a restock link in Details to jump straight to where you buy this.</p>{% endif %}
+  <form method="post" action="{{ url_for('item_restock', item_id=it.id) }}" class="row" style="flex-wrap:wrap; align-items:flex-end">
+    <label>Bought<input name="quantity" inputmode="numeric" value="1" style="width:70px"></label>
+    <label>Price paid each (£)<input name="cost" class="money" inputmode="decimal" value="{{ '%.2f'|format(it.unit_cost) if it.unit_cost is not none else '' }}" style="width:120px"></label>
+    <label>On<input type="date" name="purchased_at" value="{{ today }}"></label>
+    <label>From<input name="source" value="{{ it.source or '' }}" style="width:160px"></label>
+    <button class="btn">Add restock to inventory</button>
+  </form>
+  <p class="hint">Adds a new stock entry with the same title, SKU, location and link, so each batch keeps its own cost.</p>
+</section>
+
+{% if listings %}
+<section class="card">
+  <h2>eBay listings <small class="muted">({{ listings|length }} across relists)</small></h2>
+  <table class="data compact">
+    <thead><tr><th>Listing</th><th>Status</th><th>Started</th><th class="num">Price</th><th class="num">Watchers</th><th>Promoted</th></tr></thead>
+    <tbody>{% for l in listings %}
+      <tr><td><a href="{{ l.url or 'https://www.ebay.co.uk/itm/' ~ l.legacy_item_id }}" target="_blank" rel="noopener">#{{ l.legacy_item_id }} ↗</a>{% if l.relisted_from %} <small class="muted">relist of #{{ l.relisted_from }}</small>{% endif %}</td>
+        <td>{{ l.status|replace('_', ' ') }}</td><td>{{ l.start_time|d }}</td><td class="num">{{ l.price|gbp }}</td>
+        <td class="num">{{ l.watch_count or 0 }}</td><td>{{ 'yes' if l.promoted else '' }}</td></tr>
+    {% endfor %}</tbody>
+  </table>
+</section>
+{% endif %}
+
+{% if it.status in ('listed', 'unlisted', 'written off') %}
+<section class="card">
+  <h2>Write off</h2>
+  {% if it.written_off_at %}
+    <p>Written off on {{ it.written_off_at|d }} ({{ it.write_off_reason }}). Its cost counts as a write-off on your P&L.</p>
+    <form method="post" action="{{ url_for('item_write_off', item_id=it.id) }}"><input type="hidden" name="undo" value="1"><button class="btn small ghost">Undo write-off</button></form>
+  {% else %}
+    <p class="muted small">Damaged, lost, kept, donated or binned? Writing it off takes it out of stock and puts its cost ({{ ((it.unit_cost or 0) * it.remaining)|gbp }}) on your P&L as a write-off.</p>
+    <form method="post" action="{{ url_for('item_write_off', item_id=it.id) }}" class="inline-form">
+      <select name="reason">{% for r in ['Damaged', 'Lost', 'Donated', 'Binned', 'Kept for personal use', 'Other'] %}<option>{{ r }}</option>{% endfor %}</select>
+      <input type="date" name="date" value="{{ today }}">
+      <button class="btn small ghost danger" onclick="return confirm('Write this item off?')">Write off</button>
+    </form>
+  {% endif %}
+</section>
+{% endif %}
+
+{% if sales %}
+<section class="card">
+  <h2>Sales</h2>
+  <table class="data compact">
+    <thead><tr><th>Sold</th><th>Where</th><th class="num">Qty</th><th class="num">Buyer paid</th><th class="num">Money made</th><th class="num">Cost</th><th class="num">Profit</th></tr></thead>
+    <tbody>{% for s in sales %}
+      <tr><td><a href="{{ url_for('sale_detail', line_id=s.line_item_id) }}">{{ s.sold_at|d }}</a></td><td>{{ s.channel or 'eBay' }}</td><td class="num">{{ s.quantity }}</td>
+        <td class="num">{{ s.gross|gbp }}</td><td class="num">{{ s.money_made|gbp }}</td><td class="num">{{ s.item_cost|gbp }}</td>
+        <td class="num {{ cls(s.profit) }}"><b>{{ s.profit|gbp }}</b></td></tr>
+    {% endfor %}</tbody>
+  </table>
+</section>
+{% endif %}
+{% endblock %}

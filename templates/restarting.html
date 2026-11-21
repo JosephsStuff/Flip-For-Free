@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}Updating · Flip for Free{% endblock %}
+{% block mainclass %}narrow{% endblock %}
+{% block content %}
+<section class="card center">
+  <h1>Updating Flip for Free</h1>
+  <p>{{ message }}</p>
+  <p class="muted" id="wait">Waiting for Flip for Free to come back…</p>
+</section>
+{% endblock %}
+{% block scripts %}<script>
+(function poll(n){ setTimeout(() => fetch('/', {cache: 'no-store'}).then(r => { if (r.ok || r.status === 302) location.href = '/settings#updates'; else poll(n + 1); })
+  .catch(() => { if (n > 90) document.getElementById('wait').textContent = 'Taking longer than expected. If it doesn\'t come back, start Flip for Free again.'; poll(n + 1); }), 2000); })(0);
+</script>{% endblock %}

@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% from "macros.html" import cls, progress %}
+{% block title %}Bulk buys · Flip for Free{% endblock %}
+{% block content %}
+<div class="pagehead">
+  <h1>Bulk buys</h1>
+  <button class="btn" onclick="document.getElementById('newBulk').hidden=false; this.hidden=true">+ New bulk buy</button>
+</div>
+
+<section class="card" id="newBulk" hidden>
+  <h2>New bulk buy</h2>
+  <form method="post" action="{{ url_for('bulk_new') }}" class="grid3">
+    <label class="span2">Name<input name="name" required placeholder="e.g. Car boot binder, 12 Oct"></label>
+    <label>Bought on<input type="date" name="purchased_at" value="{{ today }}"></label>
+    <label>Price paid (£)<input name="total_cost" class="money" inputmode="decimal" required placeholder="0.00"></label>
+    <label>Extra costs (£)<input name="extra_costs" class="money" inputmode="decimal" placeholder="fuel, delivery…"></label>
+    <label>Number of items<input name="item_count" inputmode="numeric" placeholder="used to split the cost"></label>
+    <label>Bought from<input name="source" placeholder="Car boot, auction, Facebook…"></label>
+    <label>Stored at<input name="location" placeholder="Garage shelf 2"></label>
+    <label class="span3">Notes<input name="notes"></label>
+    <div><button class="btn">Create</button></div>
+  </form>
+</section>
+
+{% if rows %}
+<div class="summaryline">
+  <span>Spent <b>{{ totals.cost|gbp }}</b></span>
+  <span>Made back <b>{{ totals.money_made|gbp }}</b></span>
+  <span>Profit <b class="{{ cls(totals.profit) }}">{{ totals.profit|gbp }}</b></span>
+</div>
+<div class="tablewrap">
+<table class="data">
+  <thead><tr><th>Bulk buy</th><th>Bought</th><th class="num">Cost</th><th class="num">Sold</th><th class="num">Money made</th><th style="width:22%">Paid back</th><th class="num">Profit</th><th class="num">ROI</th></tr></thead>
+  <tbody>
+  {% for b in rows %}
+    <tr>
+      <td class="title"><a href="{{ url_for('bulk_detail', bulk_id=b.id) }}"><b>{{ b.name }}</b></a></td>
+      <td class="nowrap">{{ b.purchased_at|d }}</td>
+      <td class="num">{{ b.cost|gbp }}</td>
+      <td class="num">{{ b.units }}{% if b.item_count %}<span class="muted">/{{ b.item_count }}</span>{% endif %}</td>
+      <td class="num">{{ b.money_made|gbp }}</td>
+      <td>{{ progress(b.recovered_pct) }}<small class="muted">{{ b.recovered_pct|pct }}{% if b.remaining_to_break_even %} · {{ b.remaining_to_break_even|gbp }} to break even{% endif %}</small></td>
+      <td class="num {{ cls(b.profit) }}"><b>{{ b.profit|gbp }}</b></td>
+      <td class="num {{ cls(b.roi) }}">{{ b.roi|pct }}</td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+{% else %}
+<div class="empty card">
+  <h2>No bulk buys yet</h2>
+  <p class="muted">A bulk buy is a lot you bought in one go — a job lot, a binder, a car boot haul. Create one with its price, then tick its sales on the Sales page and choose <b>Assign to bulk buy</b>. Every sale's money made counts towards paying it back.</p>
+</div>
+{% endif %}
+{% endblock %}

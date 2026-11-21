@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Sign in · Flip for Free{% endblock %}
+{% block mainclass %}narrow{% endblock %}
+{% block content %}
+<div class="hero">
+  <span class="logo big">£</span>
+  <h1>Flip for Free</h1>
+  <p class="muted">See what you actually made after every eBay fee.</p>
+</div>
+<section class="card center">
+  <a class="btn ebay" href="{{ url_for('auth_start', next=request.args.get('next')) }}" id="ebayBtn">Sign in with eBay</a>
+  <p class="muted small">
+    {% if owner %}This database belongs to <b>{{ owner }}</b>.{% else %}The first eBay account to sign in becomes the owner of this database.{% endif %}
+    {% if env == 'sandbox' %}<br><b>Sandbox mode</b>: use a sandbox test user.{% endif %}
+  </p>
+</section>
+
+<p class="small center-text"><a href="{{ url_for('setup') }}">Database &amp; eBay keys</a> · <code class="path">{{ db_path }}</code></p>
+{% endblock %}

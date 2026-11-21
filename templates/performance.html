@@ -1,0 +1,156 @@
+{% extends "base.html" %}
+{% from "macros.html" import cls %}
+{% block title %}Performance · Flip for Free{% endblock %}
+{% macro fmt(v, kind) -%}
+  {%- if v is none -%}—{%- elif kind == 'pct' -%}{{ '%.0f'|format(v) }}%{%- elif kind == 'gbp' -%}{{ v|gbp }}{%- elif kind == 'days' -%}{{ '%.0f'|format(v) }} days{%- else -%}{{ '{:,.0f}'.format(v) }}{%- endif -%}
+{%- endmacro %}
+{% macro ring(pct, label, actual, target, kind) -%}
+  {%- set p = [pct or 0, 100]|min -%}{%- set c = 2 * 3.14159 * 42 -%}
+  <div class="ringbox">
+    <svg viewBox="0 0 100 100" width="120" height="120" role="img" aria-label="{{ label }} {{ '%.0f'|format(pct or 0) }}%">
+      <circle cx="50" cy="50" r="42" fill="none" stroke="var(--chip)" stroke-width="10"/>
+      <circle cx="50" cy="50" r="42" fill="none" stroke="{{ 'var(--accent)' if p >= 100 else 'var(--warn)' }}" stroke-width="10" stroke-linecap="round"
+        stroke-dasharray="{{ (c * p / 100)|round(1) }} {{ c|round(1) }}" transform="rotate(-90 50 50)"/>
+      <text x="50" y="54" text-anchor="middle" font-size="18" font-weight="700" fill="currentColor">{{ '%.0f'|format(pct or 0) }}%</text>
+    </svg>
+    <b>{{ label }}</b><span class="muted small">{{ fmt(actual, kind) }} of {{ fmt(target, kind) }}</span>
+  </div>
+{%- endmacro %}
+{% block content %}
+<div class="pagehead"><h1>Performance</h1><a class="btn small ghost" href="{{ url_for('tools') }}">Calculators →</a></div>
+<nav class="tabs">
+  {% for k, l in [('health', 'Store health'), ('stale', 'Stale stock'), ('growth', 'Growth Lab'), ('goals', 'Goals')] %}
+  <a href="{{ url_for('performance', tab=k) }}" class="{{ 'on' if tab == k }}">{{ l }}{% if k == 'stale' and (h.stale.listed or h.stale.unlisted) %}<span class="count">{{ h.stale.listed|length + h.stale.unlisted|length }}</span>{% endif %}</a>
+  {% endfor %}
+</nav>
+
+{% if tab == 'health' %}
+  <p class="muted">Rolling {{ h.days }} days. Green means you're hitting the target you set; amber means you're not yet.</p>
+  <div class="kpis">
+    {% for m in h.metrics %}
+    <div class="kpi health {{ 'good' if m.ok else 'amber' if m.ok is not none else '' }}">
+      <span class="label">{{ m.name }}</span>
+      <span class="value">{{ fmt(m.value, m.fmt) }}</span>
+      <span class="sub">target {{ '≥' if m.better == 'higher' else '≤' }} {{ fmt(m.target, m.fmt) }}</span>
+      <span class="sub">{{ m.help }}</span>
+    </div>
+    {% endfor %}
+  </div>
+  <div class="cols">
+    <section class="card">
+      <h2>Your targets</h2>
+      <form method="post" class="grid2">
+        <input type="hidden" name="form" value="targets">
+        <label>Sell-through rate at least (%)<input name="str" inputmode="decimal" value="{{ h.targets.str }}"></label>
+        <label>Average sale price at least (£)<input name="asp" inputmode="decimal" value="{{ h.targets.asp }}"></label>
+        <label>Days to sell at most<input name="days" inputmode="decimal" value="{{ h.targets.days }}"></label>
+        <label>Stale listings at most (%)<input name="stale" inputmode="decimal" value="{{ h.targets.stale }}"></label>
+        <label>Counts as stale after (days)<input name="stale_days" inputmode="numeric" value="{{ h.targets.stale_days }}"></label>
+        <div style="align-self:end"><button class="btn small">Save targets</button></div>
+      </form>
+    </section>
+    <section class="card">
+      <h2>Fixing stale stock</h2>
+      <p>{{ h.stale.listed|length }} listings and {{ h.stale.unlisted|length }} unlisted items are older than {{ h.stale.days }} days, tying up <b>{{ h.stale.tied_up|gbp }}</b> at cost.</p>
+      <p class="muted small">Auto relist can refresh old listings and step their price down, and delayed promotion can push them harder.</p>
+      <div class="row"><a class="btn small" href="{{ url_for('performance', tab='stale') }}">See stale stock</a><a class="btn small ghost" href="{{ url_for('automations') }}">Auto relist settings</a></div>
+    </section>
+  </div>
+
+{% elif tab == 'stale' %}
+  <p class="muted">Listings live for {{ h.stale.days }}+ days (counted from first listed, so relists don't hide them) and stock bought {{ h.stale.days }}+ days ago that still isn't listed. <b>{{ h.stale.tied_up|gbp }}</b> is tied up at cost.</p>
+  <section class="card">
+    <h2>Listed but not selling ({{ h.stale.listed|length }})</h2>
+    <div class="tablewrap"><table class="data compact">
+      <thead><tr><th>Item</th><th class="num">Days</th><th class="num">Price</th><th class="num">Cost tied up</th><th class="num">Watchers</th><th>Stored at</th><th>Relists</th></tr></thead>
+      <tbody>{% for l in h.stale.listed %}
+        <tr><td class="title">{% if l.item_id %}<a href="{{ url_for('item_detail', item_id=l.item_id) }}">{{ l.title }}</a>{% else %}{{ l.title }}{% endif %}</td>
+          <td class="num">{{ l.age }}</td><td class="num">{{ l.price|gbp }}</td><td class="num">{{ l.cost|gbp }}</td>
+          <td class="num">{{ l.watch_count or 0 }}</td><td>{{ l.location or '' }}</td><td>{{ l.relist_count or 0 }}{% if l.promoted %} · promoted{% endif %}</td></tr>
+      {% else %}<tr><td colspan="7" class="empty-row">Nothing stale. Nice.</td></tr>{% endfor %}</tbody>
+    </table></div>
+  </section>
+  <section class="card">
+    <h2>Bought but never listed ({{ h.stale.unlisted|length }})</h2>
+    <div class="tablewrap"><table class="data compact">
+      <thead><tr><th>Item</th><th class="num">Days held</th><th class="num">Cost</th><th>Bought from</th><th>Stored at</th></tr></thead>
+      <tbody>{% for i in h.stale.unlisted %}
+        <tr><td class="title"><a href="{{ url_for('item_detail', item_id=i.id) }}">{{ i.title }}</a></td><td class="num">{{ i.age }}</td>
+          <td class="num">{{ i.cost|gbp }}</td><td>{{ i.source or '' }}</td><td>{{ i.location or '' }}</td></tr>
+      {% else %}<tr><td colspan="5" class="empty-row">Nothing waiting to be listed for that long.</td></tr>{% endfor %}</tbody>
+    </table></div>
+  </section>
+
+{% elif tab == 'growth' %}
+  <p class="muted">Last {{ lab.period_days }} days · {{ lab.total }} sales ({{ lab.costed }} with a cost, used for profit and margin).</p>
+  <div class="kpis three">
+    <div class="kpi"><span class="label">Best price band for profit</span><span class="value">{{ lab.best.label if lab.best else '—' }}</span><span class="sub">{% if lab.best %}{{ lab.best.profit|gbp }} from {{ lab.best.count }} sales{% endif %}</span></div>
+    <div class="kpi"><span class="label">Best margin</span><span class="value">{{ lab.best_margin.label if lab.best_margin else '—' }}</span><span class="sub">{% if lab.best_margin %}{{ lab.best_margin.margin|pct }} margin{% endif %}</span></div>
+    <div class="kpi"><span class="label">Loss-making sales</span><span class="value {{ 'neg' if lab.losers }}">{{ lab.margins[0].count }}</span><span class="sub">{{ '%.0f'|format(lab.margins[0].pct) }}% of costed sales</span></div>
+  </div>
+  <section class="card">
+    <h2>By price band</h2>
+    <table class="data">
+      <thead><tr><th>Sale price</th><th class="num">Sales</th><th class="num">Revenue</th><th class="num">Profit</th><th class="num">Avg profit</th><th class="num">Margin</th><th class="num">Days to sell</th></tr></thead>
+      <tbody>{% for b in lab.bands %}
+        <tr class="{{ 'sel' if lab.best and b.label == lab.best.label }}"><td><b>{{ b.label }}</b></td><td class="num">{{ b.count }}</td><td class="num">{{ b.revenue|gbp }}</td>
+          <td class="num {{ cls(b.profit) }}">{{ b.profit|gbp }}</td><td class="num">{{ b.avg_profit|gbp }}</td><td class="num">{{ b.margin|pct }}</td>
+          <td class="num">{{ '%.0f'|format(b.days) if b.days is not none else '—' }}</td></tr>
+      {% endfor %}</tbody>
+    </table>
+    <p class="hint">If higher bands make more profit per sale and sell nearly as fast, sourcing fewer, better items can earn more for less listing work.</p>
+  </section>
+  <div class="cols">
+    <section class="card">
+      <h2>Margin health</h2>
+      {% for m in lab.margins %}<div class="barrow"><span>{{ m.label }}</span><div class="bar"><span style="width:{{ m.pct }}%" class="{{ 'neg-bar' if loop.first else 'done' if loop.index > 3 else '' }}"></span></div><span class="num">{{ m.count }}</span></div>{% endfor %}
+    </section>
+    <section class="card">
+      <h2>Days to sell</h2>
+      {% for d in lab.days %}<div class="barrow"><span>{{ d.label }}</span><div class="bar"><span style="width:{{ d.pct }}%" class="{{ 'done' if loop.index < 3 else '' }}"></span></div><span class="num">{{ d.count }}</span></div>{% endfor %}
+    </section>
+  </div>
+  {% if lab.losers %}
+  <section class="card">
+    <h2>Biggest losses</h2>
+    <table class="data compact"><tbody>{% for s in lab.losers %}
+      <tr><td class="title"><a href="{{ url_for('sale_detail', line_id=s.line_item_id) }}">{{ s.title }}</a></td><td class="nowrap">{{ s.sold_at|d }}</td><td class="num">{{ s.gross|gbp }}</td><td class="num neg">{{ s.profit|gbp }}</td></tr>
+    {% endfor %}</tbody></table>
+  </section>
+  {% endif %}
+
+{% elif tab == 'goals' %}
+  {% set g = plan.goal %}
+  <section class="card">
+    <form method="post" class="row" style="flex-wrap:wrap; align-items:end">
+      <input type="hidden" name="form" value="goal">
+      <label>My goal is
+        <select name="type">{% for k, l in plan.types.items() %}<option value="{{ k }}" {{ 'selected' if g.type == k }}>{{ l }}</option>{% endfor %}</select></label>
+      <label>of<input name="amount" inputmode="decimal" value="{{ '%g'|format(g.amount) }}" style="width:120px"></label>
+      <label>per<select name="period"><option value="month" {{ 'selected' if g.period == 'month' }}>month</option><option value="year" {{ 'selected' if g.period == 'year' }}>year</option></select></label>
+      <button class="btn">Save goal</button>
+    </form>
+    <p class="hint">Progress counts item profit (before business expenses and tax). A recap appears in your notifications on the 1st of each month.</p>
+  </section>
+  <div class="rings">
+    {% for k, l in [('today', 'Today'), ('week', 'This week'), ('month', 'This month')] %}
+      {% set p = plan.progress[k] %}
+      {{ ring(p.pct, l, p.actual, p.target, 'pct' if g.type == 'margin' else 'gbp' if g.type in ('profit', 'revenue') else 'n') }}
+    {% endfor %}
+  </div>
+  {% if plan.targets %}
+  <section class="card">
+    <h2>What it takes</h2>
+    <table class="data">
+      <thead><tr><th></th><th class="num">Per day</th><th class="num">Per week</th><th class="num">Per month</th></tr></thead>
+      <tbody>
+        {% for k, l, kind in [('profit', 'Item profit', 'gbp'), ('revenue', 'Revenue', 'gbp'), ('items_sold', 'Items sold', 'n'), ('items_listed', 'New listings needed', 'n')] %}
+        <tr><td><b>{{ l }}</b></td>{% for p in ['day', 'week', 'month'] %}<td class="num">{{ fmt(plan.targets[k][p], kind) if kind == 'gbp' else ('%.1f'|format(plan.targets[k][p]) if plan.targets[k][p] is not none else '—') }}</td>{% endfor %}</tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <p class="hint">Based on your last 90 days: {{ '%.0f'|format(plan.assumptions.margin) }}% margin, {{ plan.assumptions.avg_sale|gbp }} average sale and {{ '%.0f'|format(plan.assumptions.str) }}% sell-through.</p>
+  </section>
+  {% endif %}
+{% endif %}
+{% endblock %}

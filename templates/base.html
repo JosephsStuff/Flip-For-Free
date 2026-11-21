@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}Flip for Free{% endblock %}</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<link rel="manifest" href="{{ url_for('manifest') }}">
+<meta name="theme-color" content="#146c43">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="apple-touch-icon" href="{{ url_for('static', filename='icon.svg') }}">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%23146c43'/><text x='16' y='23' font-size='19' text-anchor='middle' fill='white' font-family='Arial' font-weight='700'>£</text></svg>">
+</head>
+<body>
+{% if request.endpoint not in ('setup', 'login') %}
+<header class="topbar">
+  <a class="brand" href="{{ url_for('dashboard') }}"><span class="logo">£</span> Flip for Free</a>
+  <nav>
+    {% set ep = request.endpoint or '' %}
+    <a href="{{ url_for('dashboard') }}" class="{{ 'on' if ep == 'dashboard' }}">Dashboard</a>
+    <a href="{{ url_for('sales_list') }}" class="{{ 'on' if ep.startswith('sale') or ep.startswith('manual_sale') }}">Sales</a>
+    <a href="{{ url_for('inventory') }}" class="{{ 'on' if ep.startswith('inventory') or ep.startswith('item_') or ep.startswith('import') }}">Inventory</a>
+    <a href="{{ url_for('bulk_list') }}" class="{{ 'on' if ep.startswith('bulk') }}">Bulk buys</a>
+    <a href="{{ url_for('insights') }}" class="{{ 'on' if ep == 'insights' or ep.startswith('price') }}">Insights</a>
+    <a href="{{ url_for('performance') }}" class="{{ 'on' if ep in ('performance', 'tools') }}">Performance</a>
+    <a href="{{ url_for('automations') }}" class="{{ 'on' if ep.startswith('automation') }}">Automations</a>
+    <a href="{{ url_for('pnl_page') }}" class="{{ 'on' if ep.startswith('tax') or ep.startswith('pnl') or ep.startswith('mileage') or ep in ('expenses', 'receipt') }}">Accounts</a>
+  </nav>
+  <div class="topright">
+    <a class="iconbtn bell" href="{{ url_for('notifications') }}" title="Notifications" id="bell">🔔<span class="badge" id="bellCount" {% if not unread %}hidden{% endif %}>{{ unread }}</span></a>
+    <a class="iconbtn {{ 'on' if (request.endpoint or '') == 'settings_page' }}" href="{{ url_for('settings_page') }}" title="Settings">⚙</a>
+    <span class="synctext" id="syncText" title="Last sync">{% if sync_status.running %}Syncing…{% else %}Synced {{ last_sync|ago }}{% endif %}</span>
+    <button class="btn small" id="syncBtn" {% if demo %}disabled title="Disabled in demo mode"{% endif %}>Sync now</button>
+    {% if not demo %}
+    <form method="post" action="{{ url_for('logout') }}" class="inline">
+      <button class="linkbtn" title="Sign out">{{ user_name or 'Account' }} ⎋</button>
+    </form>
+    {% endif %}
+  </div>
+</header>
+{% endif %}
+
+{% if demo %}<div class="banner info">Demo mode — this is fake data. Run <code>python app.py</code> without <code>--demo</code> to use your eBay account.</div>{% endif %}
+{% if device_warning %}<div class="banner warn">This database was used on <b>{{ device_warning }}</b> in the last few minutes. Close the app there first — editing from two devices at once can make Google Drive create conflicting copies.</div>{% endif %}
+
+<main class="{% block mainclass %}wrap{% endblock %}">
+  {% with msgs = get_flashed_messages(with_categories=true) %}
+    {% for cat, m in msgs %}<div class="flash {{ cat }}">{{ m }}</div>{% endfor %}
+  {% endwith %}
+  <div id="syncMsg" class="flash" hidden></div>
+  {% block content %}{% endblock %}
+</main>
+<div id="toasts" class="toasts" aria-live="polite"></div>
+<script src="{{ url_for('static', filename='app.js') }}"></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

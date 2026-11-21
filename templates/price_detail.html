@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% from "macros.html" import cls %}
+{% block title %}{{ title }} · Sold prices{% endblock %}
+{% block content %}
+<p class="crumbs"><a href="{{ url_for('prices') }}">← Sold prices</a></p>
+<h1 class="h-title">{{ title }}</h1>
+<p class="muted">{{ sales|length }} sale{{ 's' if sales|length != 1 }}{% if hist[0].legacy_item_id %} · <a href="https://www.ebay.co.uk/itm/{{ hist[0].legacy_item_id }}" target="_blank" rel="noopener">Listing {{ hist[0].legacy_item_id }} ↗</a>{% endif %}</p>
+{% if hist|length > 1 %}
+<section class="card"><div class="chartbox"><canvas id="priceChart"></canvas></div></section>
+{% endif %}
+<section class="card">
+<table class="data">
+  <thead><tr><th>Sold</th><th class="num">Qty</th><th class="num">Price each</th><th class="num">Buyer paid</th><th class="num">eBay took</th><th class="num">Money made</th><th class="num">Profit</th></tr></thead>
+  <tbody>
+  {% for s in sales %}
+    <tr><td><a href="{{ url_for('sale_detail', line_id=s.line_item_id, back=request.path) }}">{{ s.sold_at|d }}</a></td><td class="num">{{ s.quantity }}</td>
+      <td class="num"><b>{{ s.unit_price|gbp }}</b></td><td class="num">{{ s.gross|gbp }}</td>
+      <td class="num neg">{{ s.ebay_deductions_total|gbp }}</td><td class="num">{{ s.money_made|gbp }}</td>
+      <td class="num {{ cls(s.profit) }}">{% if s.in_bulk %}<span class="muted small">bulk</span>{% else %}{{ s.profit|gbp }}{% endif %}</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+</section>
+{% endblock %}
+{% block scripts %}
+{% if hist|length > 1 %}
+<script src="{{ url_for('static', filename='chart.umd.js') }}"></script>
+<script>priceChart({{ chart_dates|tojson }}, {{ hist|map(attribute='unit_price')|list|tojson }});</script>
+{% endif %}
+{% endblock %}

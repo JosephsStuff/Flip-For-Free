@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% from "macros.html" import cls, period_picker with context %}
+{% block title %}Sales · Flip for Free{% endblock %}
+{% block mainclass %}wide{% endblock %}
+{% block content %}
+<div class="pagehead">
+  <div class="row" style="align-items:center"><h1>Sales</h1><a class="btn small ghost" href="{{ url_for('manual_sale') }}">+ Sale from another marketplace</a></div>
+  {{ period_picker(periods, period, start, end, {'q': q, 'bulk': bulk, 'filter': filter}) }}
+</div>
+
+<form method="get" class="filters">
+  <input type="hidden" name="period" value="{{ period }}"><input type="hidden" name="start" value="{{ start }}"><input type="hidden" name="end" value="{{ end }}">
+  <input type="search" name="q" value="{{ q }}" placeholder="Search title, order no., item ID, SKU">
+  <select name="bulk" onchange="this.form.submit()">
+    <option value="">Any bulk buy</option>
+    <option value="none" {{ 'selected' if bulk == 'none' }}>Not in a bulk buy</option>
+    {% for b in bulks %}<option value="{{ b.id }}" {{ 'selected' if bulk == b.id|string }}>{{ b.name }}</option>{% endfor %}
+  </select>
+  <label class="check"><input type="checkbox" name="filter" value="missing_cost" {{ 'checked' if filter == 'missing_cost' }} onchange="this.form.submit()"> Missing price paid</label>
+  <button class="btn small ghost">Search</button>
+  <a class="btn small ghost" href="{{ url_for('export_csv', period=period, start=start, end=end, q=q, bulk=bulk, filter=filter) }}">Export CSV</a>
+</form>
+
+<div class="summaryline">
+  <span><b>{{ tot.count }}</b> sales</span>
+  <span>Buyers paid <b>{{ tot.gross|gbp }}</b></span>
+  <span>eBay took <b class="neg">{{ tot.ebay|gbp }}</b></span>
+  <span>Money made <b>{{ tot.money_made|gbp }}</b></span>
+  {% if tot.missing_cost %}<span class="warn-text">{{ tot.missing_cost }} missing price paid</span>{% endif %}
+</div>
+
+<form method="post" action="{{ url_for('sales_assign') }}" id="salesForm">
+  <input type="hidden" name="back" value="{{ request.full_path }}">
+  <div class="actionbar" id="actionBar" hidden>
+    <span id="selCount">0 selected</span>
+    <span class="sep"></span>
+    <select name="bulk_buy_id" id="bulkSel">
+      <option value="">— Remove from bulk buy —</option>
+      {% for b in bulks %}<option value="{{ b.id }}">{{ b.name }}</option>{% endfor %}
+      <option value="new">+ New bulk buy…</option>
+    </select>
+    <input name="new_bulk_name" id="newBulkName" placeholder="New bulk buy name" hidden>
+    <button class="btn small" name="action" value="bulk">Assign to bulk buy</button>
+    <span class="sep"></span>
+    <input name="cost_each" class="money" placeholder="£ each" inputmode="decimal">
+    <button class="btn small ghost" name="action" value="cost">Set price paid</button>
+    <button class="btn small ghost" name="action" value="packaging">Set packaging</button>
+    <button class="btn small ghost" name="action" value="handling">Set handling</button>
+  </div>
+
+  <div class="tablewrap">
+  <table class="data">
+    <thead><tr>
+      <th class="cb"><input type="checkbox" id="checkAll" aria-label="Select all"></th>
+      <th>Sold</th><th>Item</th><th class="num">Qty</th><th class="num">Buyer paid</th>
+      <th class="num">eBay took</th><th class="num">Your costs</th><th class="num">Money made</th>
+      <th class="num">Price paid</th><th class="num">Profit</th><th>Bulk buy</th>
+    </tr></thead>
+    <tbody>
+    {% for s in sales %}
+      <tr class="{{ 'refunded' if s.ebay_deductions.get('Refunds') }}">
+        <td class="cb"><input type="checkbox" name="ids" value="{{ s.line_item_id }}"></td>
+        <td class="nowrap">{{ s.sold_at|d }}</td>
+        <td class="title"><a href="{{ url_for('manual_sale', line_id=s.line_item_id) if s.source == 'manual' else url_for('sale_detail', line_id=s.line_item_id, back=request.full_path) }}">{{ s.title }}</a>
+          {% if s.estimated %}<span class="tag" title="Fees estimated until eBay's money data arrives">est.</span>{% endif %}
+          {% if s.status %}<span class="tag red">{{ s.status }}</span>{% elif s.ebay_deductions.get('Refunds') %}<span class="tag red">refund</span>{% endif %}
+          {% if s.channel and s.channel != 'eBay' %}<span class="tag">{{ s.channel }}</span>{% endif %}
+        </td>
+        <td class="num">{{ s.quantity }}</td>
+        <td class="num">{{ s.gross|gbp }}</td>
+        <td class="num neg">{{ s.ebay_deductions_total|gbp }}</td>
+        <td class="num muted">{{ s.own_costs_total|gbp('') if s.own_costs_total else '' }}</td>
+        <td class="num">{{ s.money_made|gbp }}</td>
+        <td class="num">{% if s.in_bulk %}{% if s.item_cost is not none %}{{ s.item_cost|gbp }}<small class="muted"> share</small>{% else %}<span class="muted small">bulk</span>{% endif %}{% elif s.item_cost is none %}<a class="addcost" href="{{ url_for('sale_detail', line_id=s.line_item_id, back=request.full_path) }}">+ add</a>{% else %}{{ s.item_cost|gbp }}{% endif %}</td>
+        <td class="num {{ cls(s.profit) }}"><b>{{ s.profit|gbp('') }}</b></td>
+        <td>{% if s.bulk_name %}<a class="tag green" href="{{ url_for('bulk_detail', bulk_id=s.bulk_buy_id) }}">{{ s.bulk_name }}</a>{% endif %}</td>
+      </tr>
+    {% else %}
+      <tr><td colspan="11" class="empty-row">No sales match.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  </div>
+</form>
+{% endblock %}
+{% block scripts %}<script>initSales();</script>{% endblock %}

@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}Use on your phone · Flip for Free{% endblock %}
+{% block mainclass %}narrow{% endblock %}
+{% block content %}
+<p class="crumbs"><a href="{{ url_for('settings_page') }}">← Settings</a></p>
+<h1>Use on your phone</h1>
+<p class="muted">Add stock and costs while you're sourcing, mark things sold at a market, log receipts, and check sales, goals and auto relist, from your phone on the same Wi-Fi as this computer.</p>
+{% if server_url %}
+<section class="card">
+  <h2>You're running Flip for Free on a server</h2>
+  <ol>
+    <li>Install <b>Tailscale</b> on your phone (App Store / Google Play) and sign in with the same account as the server.</li>
+    <li>Open <a href="{{ server_url }}"><code>{{ server_url }}</code></a> on your phone and sign in with eBay.</li>
+    <li>Add it to your home screen (Share → Add to Home Screen on iPhone, ⋮ → Add to Home screen on Android) to use it like an app.</li>
+  </ol>
+  <p class="hint">No pairing needed: only devices signed in to your Tailscale account can reach the server.</p>
+</section>
+{% elif not lan %}
+<section class="card">
+  <h2>1. Turn on phone access</h2>
+  <p>Close the app and start it again with phone access switched on:</p>
+  <p><code>python app.py --lan</code> <span class="muted small">(or double-click <b>run-with-phone.bat</b> / <b>run-with-phone.command</b>)</span></p>
+  <p class="hint">Phone access only works while this computer is on and the app is running. Other devices on your network can't see anything until you pair them.</p>
+</section>
+{% else %}
+<section class="card center">
+  {% if link %}
+    <h2>Scan with your phone's camera</h2>
+    <div id="qr" style="display:inline-block; background:#fff; padding:12px; border-radius:10px"></div>
+    <p class="small"><code class="path">{{ link }}</code></p>
+    <p class="muted small">This link works once and expires in {{ expires }} min. Your phone will warn about the certificate the first time. That's this app's own certificate, so tap <i>Advanced → Proceed</i>.</p>
+    <p class="muted small">Once it's open, use your browser's <b>Add to Home Screen</b> so it opens like an app.</p>
+  {% else %}
+    <h2>Pair a phone</h2>
+    <p class="muted">{% if ip %}Your computer is at <b>{{ ip }}</b> on this network.{% else %}Couldn't find this computer's network address.{% endif %}</p>
+    <form method="post"><button class="btn">Show pairing code</button></form>
+  {% endif %}
+</section>
+{% endif %}
+{% endblock %}
+{% block scripts %}{% if link %}
+<script src="{{ url_for('static', filename='qrcode.js') }}"></script>
+<script>(function(){const q=qrcode(0,'M');q.addData({{ link|tojson }});q.make();document.getElementById('qr').innerHTML=q.createSvgTag({cellSize:5,margin:0});})();</script>
+{% endif %}{% endblock %}

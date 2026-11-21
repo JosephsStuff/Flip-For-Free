@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Edit sale' if row else 'Record a sale' }} · Flip for Free{% endblock %}
+{% block content %}
+<p class="crumbs"><a href="{{ url_for('sales_list') }}">← Sales</a></p>
+<h1>{{ 'Edit sale' if row else 'Record a sale from another marketplace' }}</h1>
+<p class="muted">For Vinted, Facebook, Depop, car boots, cash sales… eBay sales come in automatically.</p>
+<section class="card">
+  <form method="post" class="grid3">
+    <label>Where<select name="channel">{% for c in channels %}<option {{ 'selected' if (row and row.channel == c) or (not row and channel == c) }}>{{ c }}</option>{% endfor %}</select></label>
+    <label>Sold on<input type="date" name="sold_at" value="{{ (row.sold_at[:10]) if row else today }}" required></label>
+    <label>Quantity<input name="quantity" inputmode="numeric" value="{{ row.quantity if row else 1 }}"></label>
+    <label class="span3">From inventory <small class="muted">(links cost, source and location)</small>
+      <select name="item_id" id="itemSel">
+        <option value="">— Not in inventory —</option>
+        {% for i in items %}<option value="{{ i.id }}" data-title="{{ i.title }}" {{ 'selected' if (row and row.item_id == i.id) or (not row and preselect == i.id) }}>{{ i.title }}{% if i.location %} · {{ i.location }}{% endif %}{% if i.unit_cost is not none %} · cost {{ i.unit_cost|gbp }}{% endif %}</option>{% endfor %}
+      </select></label>
+    <label class="span3">Title<input name="title" id="titleIn" value="{{ row.title if row else '' }}" required></label>
+    <label>Sale price (£)<input name="item_price" class="money" inputmode="decimal" value="{{ '%.2f'|format(row.item_price) if row else '' }}" required></label>
+    <label>Postage charged to buyer (£)<input name="delivery_charged" class="money" inputmode="decimal" value="{{ '%.2f'|format(row.delivery_charged or 0) if row else '' }}"></label>
+    <label>Platform fees (£)<input name="manual_fees" class="money" inputmode="decimal" value="{{ '%.2f'|format(row.manual_fees or 0) if row else '' }}"></label>
+    <label>Postage you paid (£)<input name="postage_cost" class="money" inputmode="decimal" value="{{ '%.2f'|format(row.postage_cost) if row and row.postage_cost is not none else '' }}"></label>
+    <label>Packaging (£)<input name="packaging_cost" class="money" inputmode="decimal" value="{{ '%.2f'|format(row.packaging_cost) if row and row.packaging_cost is not none else '' }}" placeholder="blank = listing/default"></label>
+    <label>Handling (labour) (£)<input name="handling_cost" class="money" inputmode="decimal" value="{{ '%.2f'|format(row.handling_cost) if row and row.handling_cost is not none else '' }}" placeholder="blank = listing/default"></label>
+    <label>Price paid (£) <small class="muted">if not from inventory</small><input name="cost" class="money" inputmode="decimal" value="{{ '%.2f'|format(row.cost) if row and row.cost is not none else '' }}"></label>
+    <label class="span3">Notes<input name="notes" value="{{ row.notes or '' if row else '' }}"></label>
+    <div class="span3 row between"><button class="btn">Save sale</button>
+      {% if row %}<button class="btn ghost danger" formaction="{{ url_for('manual_sale_delete', line_id=row.line_item_id) }}" onclick="return confirm('Delete this sale?')">Delete</button>{% endif %}</div>
+  </form>
+</section>
+{% endblock %}
+{% block scripts %}<script>
+(function(){const s=document.getElementById('itemSel'),t=document.getElementById('titleIn');
+ function f(){const o=s.selectedOptions[0]; if(o&&o.dataset.title&&!t.value) t.value=o.dataset.title;}
+ s.addEventListener('change',()=>{t.value='';f();}); f();})();
+</script>{% endblock %}

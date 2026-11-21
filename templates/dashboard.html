@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+{% from "macros.html" import cls, period_picker, progress with context %}
+{% block content %}
+<div class="pagehead">
+  <h1>Dashboard</h1>
+  {{ period_picker(periods, period, start, end) }}
+</div>
+
+{% if tot.count == 0 %}
+  <div class="empty card">
+    <h2>No sales in this period</h2>
+    <p class="muted">{% if not last_sync %}Your first sync hasn't finished yet — it runs in the background after you sign in.{% else %}Try a longer period, or press <b>Sync now</b>.{% endif %}</p>
+  </div>
+{% endif %}
+
+<div class="kpis">
+  <div class="kpi hero-kpi">
+    <span class="label">True profit</span>
+    <span class="value {{ cls(true_profit) }}">{{ true_profit|gbp }}</span>
+    <span class="sub">{{ tot.units }} item{{ 's' if tot.units != 1 }} sold · {{ tot.count }} sale{{ 's' if tot.count != 1 }}</span>
+  </div>
+  <div class="kpi"><span class="label">Buyers paid</span><span class="value">{{ tot.gross|gbp }}</span><span class="sub">items + postage</span></div>
+  <div class="kpi"><span class="label">eBay took</span><span class="value neg">{{ tot.ebay|gbp }}</span>
+    <span class="sub">{% if tot.gross %}{{ (tot.ebay / tot.gross * 100)|round(1) }}% of sales{% else %}&nbsp;{% endif %}</span></div>
+  <div class="kpi"><span class="label">Money made</span><span class="value">{{ tot.money_made|gbp }}</span><span class="sub">after eBay &amp; your postage/packaging</span></div>
+</div>
+
+<div class="kpis three">
+  <div class="kpi"><span class="label">Average sale</span><span class="value">{{ ((tot.gross / tot.count) if tot.count else none)|gbp }}</span><span class="sub">per order line, incl. postage</span></div>
+  <div class="kpi"><span class="label">Margin</span><span class="value">{{ ((true_profit / tot.gross * 100) if tot.gross else none)|pct }}</span><span class="sub">true profit ÷ what buyers paid</span></div>
+  <div class="kpi"><span class="label">Stock on hand</span><span class="value">{{ stock.value|gbp }}</span><span class="sub">{{ stock.units }} unsold items at cost: an asset, not in profit{% if stock.missing_cost %} · {{ stock.missing_cost }} without a cost{% endif %}</span></div>
+</div>
+
+{% if tot.missing_cost or tot.estimated %}
+<div class="notes">
+  {% if tot.missing_cost %}<a class="note warn" href="{{ url_for('sales_list', filter='missing_cost', period=period, start=start, end=end) }}">⚠ {{ tot.missing_cost }} sale{{ 's' if tot.missing_cost != 1 }} with no price paid and no bulk buy — profit is overstated until you add them →</a>{% endif %}
+  {% if tot.estimated %}<span class="note">ⓘ {{ tot.estimated }} sale{{ 's' if tot.estimated != 1 }} use estimated fees (eBay's money data hasn't arrived yet).</span>{% endif %}
+</div>
+{% endif %}
+
+<div class="cols">
+  <section class="card">
+    <h2>Where the money went</h2>
+    <table class="waterfall">
+      <tr class="total"><td>Buyers paid</td><td class="num">{{ tot.gross|gbp }}</td></tr>
+      {% for k, v in tot.deductions.items() %}
+        <tr><td class="indent">{{ k }}</td><td class="num {{ 'pos' if v < 0 else 'neg' }}">{{ (-v)|gbp }}</td></tr>
+      {% endfor %}
+      <tr class="sub"><td>Money made from sales</td><td class="num">{{ tot.money_made|gbp }}</td></tr>
+      <tr><td class="indent">Price paid for items sold</td><td class="num neg">{{ (-tot.item_costs)|gbp }}</td></tr>
+      {% if basis == 'sold' %}
+      <tr><td class="indent">Bulk buy share of items sold</td><td class="num neg">{{ (-tot.bulk_alloc)|gbp }}</td></tr>
+      {% else %}
+      <tr><td class="indent">Bulk buys purchased this period{% if bulks_in_period %} <small class="muted">({{ bulks_in_period|length }})</small>{% endif %}</td><td class="num neg">{{ (-bulk_cost)|gbp }}</td></tr>
+      {% endif %}
+      {% if include_acct %}
+        {% for k, v in acct['items'].items() %}
+          <tr><td class="indent">{{ k }} <small class="muted">account-level</small></td><td class="num {{ 'pos' if v < 0 else 'neg' }}">{{ (-v)|gbp }}</td></tr>
+        {% endfor %}
+      {% endif %}
+      <tr class="total"><td>True profit</td><td class="num {{ cls(true_profit) }}">{{ true_profit|gbp }}</td></tr>
+    </table>
+    <p class="hint">{% if basis == 'sold' %}Bulk buys count item by item as they sell (their share of the lot's cost).{% else %}Bulk buy costs count in the period you bought them.{% endif %} Change this, or exclude account-level charges, in <a href="{{ url_for('settings_page') }}">Settings</a>.</p>
+  </section>
+
+  <section class="card">
+    <h2>Last 12 months</h2>
+    <div class="chartbox"><canvas id="monthChart"></canvas></div>
+    {% if top %}
+    <h3>Best sales this period</h3>
+    <ul class="toplist">
+      {% for s in top %}<li><a href="{{ url_for('sale_detail', line_id=s.line_item_id) }}">{{ s.title }}</a><span class="num {{ cls(s.profit) }}">{{ s.profit|gbp }}</span></li>{% endfor %}
+    </ul>
+    {% endif %}
+  </section>
+</div>
+
+{% if open_bulks %}
+<section class="card">
+  <div class="cardhead"><h2>Bulk buys</h2><a href="{{ url_for('bulk_list') }}">All bulk buys →</a></div>
+  <div class="bulkgrid">
+    {% for b in open_bulks %}
+    <a class="bulkcard" href="{{ url_for('bulk_detail', bulk_id=b.id) }}">
+      <div class="bc-top"><b>{{ b.name }}</b><span class="num {{ cls(b.profit) }}">{{ b.profit|gbp }}</span></div>
+      {{ progress(b.recovered_pct) }}
+      <div class="bc-foot muted small">
+        {% if b.recovered_pct is not none %}{{ b.recovered_pct|pct }} of {{ b.cost|gbp }} back{% else %}No cost entered{% endif %}
+        · {{ b.units }}{% if b.item_count %}/{{ b.item_count }}{% endif %} sold
+      </div>
+    </a>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='chart.umd.js') }}"></script>
+<script>monthChart({{ months|tojson }});</script>
+{% endblock %}

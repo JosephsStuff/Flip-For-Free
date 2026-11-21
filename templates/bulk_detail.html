@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+{% from "macros.html" import cls, progress %}
+{% block title %}{{ b.name }} · Flip for Free{% endblock %}
+{% block content %}
+<p class="crumbs"><a href="{{ url_for('bulk_list') }}">← Bulk buys</a></p>
+<div class="pagehead">
+  <div><h1>{{ b.name }}</h1><p class="muted">Bought {{ b.purchased_at|d }}{% if b.notes %} · {{ b.notes }}{% endif %}</p></div>
+  <div class="bigprofit {{ cls(summ.profit) }}"><span class="label">{{ 'Profit' if summ.profit >= 0 else 'Still to recover' }}</span>{{ summ.profit|gbp if summ.profit >= 0 else summ.remaining_to_break_even|gbp }}</div>
+</div>
+
+<div class="kpis">
+  <div class="kpi"><span class="label">Cost</span><span class="value">{{ summ.cost|gbp }}</span><span class="sub">{{ b.total_cost|gbp }} + {{ b.extra_costs|gbp }} extras</span></div>
+  <div class="kpi"><span class="label">Money made</span><span class="value">{{ summ.money_made|gbp }}</span><span class="sub">from {{ summ.count }} sale{{ 's' if summ.count != 1 }}</span></div>
+  <div class="kpi"><span class="label">Paid back</span><span class="value">{{ summ.recovered_pct|pct }}</span>{{ progress(summ.recovered_pct) }}</div>
+  <div class="kpi"><span class="label">Items sold</span><span class="value">{{ summ.units }}{% if b.item_count %}<small class="muted"> / {{ b.item_count }}</small>{% endif %}</span>
+    <span class="sub">{% if summ.items_left is not none %}{{ summ.items_left }} left{% if summ.items_left > 0 and summ.units %} · avg {{ (summ.money_made / summ.units)|gbp }} each{% endif %}{% else %}&nbsp;{% endif %}</span></div>
+</div>
+
+<div class="cols">
+  <section class="card">
+    <h2>Paying it back</h2>
+    {% if curve|length > 1 %}<div class="chartbox"><canvas id="bulkChart"></canvas></div>{% else %}<p class="muted">The chart appears once two or more sales are assigned.</p>{% endif %}
+    <table class="waterfall">
+      <tr><td>Buyers paid</td><td class="num">{{ summ.gross|gbp }}</td></tr>
+      {% for k, v in summ.deductions.items() %}<tr><td class="indent">{{ k }}</td><td class="num {{ 'pos' if v < 0 else 'neg' }}">{{ (-v)|gbp }}</td></tr>{% endfor %}
+      <tr class="sub"><td>Money made</td><td class="num">{{ summ.money_made|gbp }}</td></tr>
+      <tr><td class="indent">Bulk buy cost</td><td class="num neg">{{ (-summ.cost)|gbp }}</td></tr>
+      <tr class="total"><td>Profit</td><td class="num {{ cls(summ.profit) }}">{{ summ.profit|gbp }}</td></tr>
+    </table>
+  </section>
+  <section class="card">
+    <h2>Details</h2>
+    <form method="post" class="grid2">
+      <label class="span2">Name<input name="name" value="{{ b.name }}" required></label>
+      <label>Bought on<input type="date" name="purchased_at" value="{{ b.purchased_at or '' }}"></label>
+      <label>Number of items<input name="item_count" inputmode="numeric" value="{{ b.item_count or '' }}"><small class="muted">Used to split the cost{% if alloc.per_unit is not none and alloc.method != 'price' %}: {{ alloc.per_unit|gbp }} each{% endif %}</small></label>
+      <label>Split the cost
+        <select name="split_method"><option value="even" {{ 'selected' if (b.split_method or 'even') == 'even' }}>Evenly per item</option><option value="price" {{ 'selected' if b.split_method == 'price' }}>By each item's price</option></select>
+        <small class="muted">By price: a £40 card carries more of the cost than a £2 one.</small></label>
+      <label>Bought from<input name="source" value="{{ b.source or '' }}"></label>
+      <label>Stored at<input name="location" value="{{ b.location or '' }}"></label>
+      <label>Price paid (£)<input name="total_cost" class="money" inputmode="decimal" value="{{ '%.2f'|format(b.total_cost or 0) }}"></label>
+      <label>Extra costs (£)<input name="extra_costs" class="money" inputmode="decimal" value="{{ '%.2f'|format(b.extra_costs or 0) }}"></label>
+      <label class="span2">Notes<textarea name="notes" rows="2">{{ b.notes or '' }}</textarea></label>
+      <div class="span2 row between"><button class="btn">Save</button>
+        <button class="btn danger ghost" formaction="{{ url_for('bulk_delete', bulk_id=b.id) }}" onclick="return confirm('Delete this bulk buy? Its sales are kept, just unassigned.')">Delete</button></div>
+    </form>
+    {% if rules %}
+      <h3>Listings linked to this bulk buy</h3>
+      <p class="hint">New sales of these listings are added automatically on each sync.</p>
+      <ul class="plain">{% for r in rules %}<li>{{ r.title or r.legacy_item_id }} <span class="muted small">#{{ r.legacy_item_id }}</span></li>{% endfor %}</ul>
+    {% endif %}
+  </section>
+</div>
+
+<section class="card">
+  <div class="cardhead"><h2>Items in this bulk buy <small class="muted">({{ items|length }} logged{% if b.item_count %} of {{ b.item_count }}{% endif %})</small></h2>
+    <span class="muted small">Still listed: <b>{{ list_value|gbp }}</b></span></div>
+  <form method="post" action="{{ url_for('inventory_new') }}" class="row" style="margin-bottom:10px">
+    <input type="hidden" name="bulk_buy_id" value="{{ b.id }}"><input type="hidden" name="source" value="{{ b.source or '' }}">
+    <input type="hidden" name="location" value="{{ b.location or '' }}"><input type="hidden" name="purchased_at" value="{{ b.purchased_at or '' }}">
+    <input type="hidden" name="back" value="{{ request.path }}">
+    <input name="title" placeholder="Add an item from this lot, e.g. Blue-Eyes White Dragon LOB-001" style="flex:1" required>
+    <input name="cost" class="money" placeholder="fixed £ (optional)" style="width:150px" oninput="this.form.cost_locked.checked = !!this.value">
+    <input type="checkbox" name="cost_locked" value="1" hidden>
+    <button class="btn small">Add</button>
+  </form>
+  <details class="linkbox" {% if not items %}open{% endif %}>
+    <summary>Link existing eBay listings to this bulk buy</summary>
+    {% if linkable or linkable_sales %}
+    <form method="post" action="{{ url_for('bulk_link_listings', bulk_id=b.id) }}" id="linkForm">
+      <div class="row" style="margin:8px 0">
+        <input type="search" placeholder="Filter listings…" oninput="filterLinkable(this)" style="flex:1">
+        <button class="btn small">Link ticked listings</button>
+      </div>
+      <div class="tablewrap" style="max-height:340px; overflow:auto">
+      <table class="data compact">
+        <thead><tr><th class="cb"></th><th>Listing</th><th>Status</th><th class="num">Price</th><th class="num">Sold</th><th>Now in</th></tr></thead>
+        <tbody>
+        {% for l in linkable %}
+          <tr><td class="cb"><input type="checkbox" name="listing_ids" value="{{ l.legacy_item_id }}"></td>
+            <td class="title">{{ l.title }} <small class="muted">#{{ l.legacy_item_id }}</small></td>
+            <td>{{ l.status }}</td><td class="num">{{ l.price|gbp }}</td><td class="num">{{ l.sold or '' }}</td>
+            <td class="small">{% if l.cur_bulk_name %}<span class="tag">{{ l.cur_bulk_name }}</span>{% endif %}</td></tr>
+        {% endfor %}
+        {% for l in linkable_sales %}
+          <tr><td class="cb"><input type="checkbox" name="listing_ids" value="{{ l.legacy_item_id }}"></td>
+            <td class="title">{{ l.title }} <small class="muted">#{{ l.legacy_item_id }}</small></td>
+            <td>sold</td><td class="num"></td><td class="num">{{ l.sold }}</td><td></td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+      </div>
+      <p class="hint">Linking moves the listing's past sales, and any future sales and relists, into this bulk buy. A listing already in another bulk buy is moved here.</p>
+    </form>
+    {% else %}<p class="muted small">No listings to link yet. They appear after a sync.</p>{% endif %}
+  </details>
+  {% if alloc.locked_total and alloc.locked_total > alloc.cost %}<div class="flash warn">The fixed costs you've given items ({{ alloc.locked_total|gbp }}) add up to more than the whole lot ({{ alloc.cost|gbp }}), so the other items get £0 each. Lower the fixed costs or raise the bulk buy's price.</div>{% endif %}
+  {% if items %}
+  <div class="tablewrap"><table class="data compact">
+    <thead><tr><th>Item</th><th>Status</th><th class="num">Cost each</th><th class="num">Listed at</th></tr></thead>
+    <tbody>{% for it in items %}
+      <tr><td class="title"><a href="{{ url_for('item_detail', item_id=it.id) }}">{{ it.title }}</a></td>
+        <td>{{ 'listed' if it.active else '' }}</td>
+        <td class="num">{{ it.unit_cost|gbp }}{% if it.cost_locked %} <small class="muted">fixed</small>{% endif %}</td>
+        <td class="num">{{ it.list_value|gbp('') }}</td></tr>
+    {% endfor %}</tbody>
+  </table></div>
+  {% else %}<p class="muted small">Log the items in this lot to track each one's cost and listing. Give a valuable item a fixed cost and the rest of the lot's price is split evenly.</p>{% endif %}
+</section>
+
+<section class="card">
+  <div class="cardhead"><h2>Sales in this bulk buy</h2><a href="{{ url_for('sales_list', bulk='none') }}">Add sales →</a></div>
+  {% if sales %}
+  <div class="tablewrap">
+  <table class="data">
+    <thead><tr><th>Sold</th><th>Item</th><th class="num">Qty</th><th class="num">Buyer paid</th><th class="num">eBay took</th><th class="num">Your costs</th><th class="num">Money made</th></tr></thead>
+    <tbody>
+    {% for s in sales %}
+      <tr><td class="nowrap">{{ s.sold_at|d }}</td>
+        <td class="title"><a href="{{ url_for('sale_detail', line_id=s.line_item_id, back=request.path) }}">{{ s.title }}</a>{% if s.estimated %} <span class="tag">est.</span>{% endif %}</td>
+        <td class="num">{{ s.quantity }}</td><td class="num">{{ s.gross|gbp }}</td>
+        <td class="num neg">{{ s.ebay_deductions_total|gbp }}</td><td class="num muted">{{ s.own_costs_total|gbp if s.own_costs_total else '' }}</td>
+        <td class="num"><b>{{ s.money_made|gbp }}</b></td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  </div>
+  {% else %}
+    <p class="muted">No sales yet. Go to <a href="{{ url_for('sales_list', bulk='none') }}">Sales</a>, tick the items from this lot and choose <b>Assign to bulk buy → {{ b.name }}</b>.</p>
+  {% endif %}
+</section>
+{% endblock %}
+{% block scripts %}
+{% if curve|length > 1 %}
+<script src="{{ url_for('static', filename='chart.umd.js') }}"></script>
+<script>bulkChart({{ curve|tojson }}, {{ summ.cost }});</script>
+{% endif %}
+{% endblock %}

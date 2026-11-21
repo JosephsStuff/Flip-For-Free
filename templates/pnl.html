@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% from "macros.html" import cls %}
+{% block title %}Profit & loss · {{ label }}{% endblock %}
+{% block content %}
+<nav class="tabs noprint">
+  <a href="{{ url_for('pnl_page') }}" class="on">Profit &amp; loss</a>
+  <a href="{{ url_for('tax') }}">Self Assessment</a>
+  <a href="{{ url_for('expenses') }}">Expenses &amp; receipts</a>
+  <a href="{{ url_for('mileage') }}">Mileage</a>
+</nav>
+<div class="pagehead">
+  <div><h1>Profit &amp; loss</h1><p class="muted">{{ label }}</p></div>
+  <form method="get" class="row noprint" style="flex-wrap:wrap">
+    <select name="mode" onchange="this.form.querySelectorAll('[data-m]').forEach(e => e.hidden = !e.dataset.m.includes(this.value))">
+      <option value="fy" {{ 'selected' if mode == 'fy' }}>Financial year</option>
+      <option value="quarter" {{ 'selected' if mode == 'quarter' }}>Quarter</option>
+      <option value="custom" {{ 'selected' if mode == 'custom' }}>Date range</option>
+      {% if saved_ranges %}<optgroup label="Saved ranges">{% for r in saved_ranges %}<option value="r:{{ r.id }}" {{ 'selected' if mode == 'r:' ~ r.id }}>★ {{ r.name }}</option>{% endfor %}</optgroup>{% endif %}
+    </select>
+    <select name="year" data-m="fy quarter" {{ 'hidden' if mode not in ('fy', 'quarter') }}>{% for y in years %}<option value="{{ y }}" {{ 'selected' if y == year }}>{{ fy_label(y) }}</option>{% endfor %}</select>
+    <select name="q" data-m="quarter" {{ 'hidden' if mode != 'quarter' }}>{% for i in range(1, 5) %}<option value="{{ i }}" {{ 'selected' if q == i }}>Q{{ i }}</option>{% endfor %}</select>
+    <span data-m="custom" class="pnl-range" {{ 'hidden' if mode != 'custom' }}><input type="date" name="start" value="{{ args.get('start', '') }}"> – <input type="date" name="end" value="{{ args.get('end', '') }}">
+      <input name="range_name" placeholder="Name it to save" maxlength="40" aria-label="Range name" style="width:150px">
+      <button class="btn small ghost save-range" formaction="{{ url_for('range_save') }}" formmethod="post">Save range</button></span>
+    <button class="btn small apply-range">Show</button>
+  </form>
+</div>
+<div class="subnav noprint">
+  <button class="btn small ghost" onclick="window.print()">Save as PDF / print</button>
+  <a class="btn small ghost" href="{{ url_for('pnl_csv', **args) }}">Download CSV</a>
+  <a class="btn small ghost" href="{{ mailto }}" title="{{ 'Set your accountant’s email in Settings' if not accountant }}">Email to accountant</a>
+  <a class="btn small ghost" href="{{ url_for('tax') }}">Self Assessment boxes →</a>
+</div>
+{% if not accountant %}<p class="hint noprint">Add your accountant's email in <a href="{{ url_for('settings_page') }}">Settings</a>. The email opens in your mail app with a summary; attach the CSV or PDF.</p>{% endif %}
+
+<div class="kpis">
+  <div class="kpi hero-kpi"><span class="label">Net profit</span><span class="value {{ cls(r.net) }}">{{ r.net|gbp }}</span><span class="sub">after expenses and write-offs, before income tax{% if r.net_margin is not none %} · {{ r.net_margin|pct }} of revenue{% endif %}</span></div>
+  <div class="kpi"><span class="label">Revenue</span><span class="value">{{ r.revenue|gbp }}</span><span class="sub">{{ r.units }} items, {{ r.sales }} sales</span></div>
+  <div class="kpi"><span class="label">Item profit</span><span class="value {{ cls(r.item_profit) }}">{{ r.item_profit|gbp }}</span><span class="sub">sales less their own costs{% if r.margin is not none %} · {{ r.margin|pct }}{% endif %}</span></div>
+  <div class="kpi"><span class="label">Stock on hand</span><span class="value">{{ stock.value|gbp }}</span><span class="sub">at cost, an asset, not in the P&amp;L</span></div>
+</div>
+{% if r.missing_cost %}<div class="notes"><a class="note warn noprint" href="{{ url_for('sales_list', filter='missing_cost') }}">⚠ {{ r.missing_cost }} sales in this period have no cost, so cost of goods is understated →</a></div>{% endif %}
+
+<section class="card">
+  <table class="waterfall">
+    <tr><td class="indent">Item sales</td><td class="num">{{ r.item_sales|gbp }}</td></tr>
+    <tr><td class="indent">Postage charged to buyers</td><td class="num">{{ r.postage_in|gbp }}</td></tr>
+    <tr><td class="indent">Refunds</td><td class="num neg">{{ (-r.refunds)|gbp }}</td></tr>
+    <tr class="sub"><td>Revenue</td><td class="num">{{ r.revenue|gbp }}</td></tr>
+    <tr><td class="indent">Cost of goods sold</td><td class="num neg">{{ (-r.cogs)|gbp }}</td></tr>
+    {% for k, v in r.fees.items() %}<tr><td class="indent">{{ k }}</td><td class="num {{ 'pos' if v < 0 else 'neg' }}">{{ (-v)|gbp }}</td></tr>{% endfor %}
+    <tr><td class="indent">Promoted listing fees</td><td class="num neg">{{ (-r.promoted)|gbp }}</td></tr>
+    <tr><td class="indent">Shipping &amp; packaging</td><td class="num neg">{{ (-r.shipping)|gbp }}</td></tr>
+    {% if r.labour %}<tr><td class="indent">Handling (labour){% if not r.labour_paid %} <small class="muted">your own time: shows what packing would cost if you paid someone, not a tax expense</small>{% endif %}</td><td class="num neg">{{ (-r.labour)|gbp }}</td></tr>{% endif %}
+    {% if r.other %}<tr><td class="indent">Other sale costs</td><td class="num neg">{{ (-r.other)|gbp }}</td></tr>{% endif %}
+    <tr class="sub"><td>Item profit</td><td class="num {{ cls(r.item_profit) }}">{{ r.item_profit|gbp }}</td></tr>
+    {% for k, v in r.account['items'].items() %}<tr><td class="indent">{{ k }} <small class="muted">eBay account</small></td><td class="num neg">{{ (-v)|gbp }}</td></tr>{% endfor %}
+    {% for k, v in r.expenses.items() %}<tr><td class="indent">{{ k }}</td><td class="num neg">{{ (-v)|gbp }}</td></tr>{% endfor %}
+    {% if r.write_offs %}
+      <tr><td class="indent"><details><summary>Write-offs ({{ r.write_offs|length }})</summary><ul class="plain small">{% for w in r.write_offs %}<li><a href="{{ url_for('item_detail', item_id=w.id) }}">{{ w.title }}</a> · {{ w.write_off_reason }} · {{ w.value|gbp }}</li>{% endfor %}</ul></details></td><td class="num neg">{{ (-r.write_off_total)|gbp }}</td></tr>
+    {% endif %}
+    <tr class="total"><td>Net profit (before income tax)</td><td class="num {{ cls(r.net) }}">{{ r.net|gbp }}</td></tr>
+  </table>
+  <p class="hint">Item profit = each sale minus its own fees, postage and cost of goods. Net profit also takes off business expenses ({{ r.receipts }} with receipts), {{ '{:,.0f}'.format(r.miles) }} business miles and write-offs. Unsold stock isn't an expense here; it's shown above as an asset at cost.</p>
+</section>
+{% endblock %}

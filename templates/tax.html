@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+{% from "macros.html" import cls %}
+{% block title %}Tax {{ r.label }} · Flip for Free{% endblock %}
+{% block content %}
+<nav class="tabs noprint">
+  <a href="{{ url_for('pnl_page') }}">Profit &amp; loss</a>
+  <a href="{{ url_for('tax') }}" class="{{ 'on' if request.endpoint == 'tax' }}">Self Assessment</a>
+  <a href="{{ url_for('expenses') }}" class="{{ 'on' if request.endpoint == 'expenses' }}">Expenses &amp; receipts</a>
+  <a href="{{ url_for('mileage') }}" class="{{ 'on' if request.endpoint == 'mileage' }}">Mileage</a>
+</nav>
+<div class="pagehead">
+  <div>
+    <h1>Self Assessment {{ r.label }}</h1>
+    <p class="muted">Tax year 6 April {{ r.year }} – 5 April {{ r.year + 1 }}. Figures for the self-employment pages (SA103S). They update as you sync and add records.</p>
+  </div>
+  <form method="get" class="row">
+    <select name="year" onchange="this.form.submit()">{% for y, l in years %}<option value="{{ y }}" {{ 'selected' if y == year }}>{{ l }}</option>{% endfor %}</select>
+    <div class="seg">
+      <button name="basis" value="cash" class="{{ 'on' if r.basis == 'cash' }}" title="Count stock when you pay for it (HMRC default for sole traders)">Cash basis</button>
+      <button name="basis" value="accrual" class="{{ 'on' if r.basis == 'accrual' }}" title="Count stock when it sells">Accruals</button>
+    </div>
+  </form>
+</div>
+<div class="subnav">
+  <a class="btn small ghost" href="{{ url_for('expenses', year=year) }}">Expenses ledger</a>
+  <a class="btn small ghost" href="{{ url_for('mileage', year=year) }}">Mileage log</a>
+  <a class="btn small ghost" href="{{ url_for('tax_export', year=year) }}">Download for accountant (CSV)</a>
+</div>
+
+{% if closed %}<div class="flash">🔒 {{ r.label }} is marked as filed. Any change that would alter these figures asks you to confirm first.</div>{% endif %}
+
+<div class="kpis three">
+  <div class="kpi"><span class="label">Turnover (box 9)</span><span class="value">{{ r.box9|gbp }}</span><span class="sub">{{ r.sales_count }} sales{% if r.refunds %}, after {{ r.refunds|gbp }} refunds{% endif %}</span></div>
+  <div class="kpi"><span class="label">Allowable expenses (box 20)</span><span class="value">{{ r.box20|gbp }}</span><span class="sub">{{ 'cash' if r.basis == 'cash' else 'accruals' }} basis</span></div>
+  <div class="kpi"><span class="label">{{ 'Net profit (box 21)' if r.net >= 0 else 'Net loss (box 22)' }}</span><span class="value {{ cls(r.net) }}">{{ r.net|abs|gbp }}</span><span class="sub">before tax and any allowances</span></div>
+</div>
+
+<div class="cols">
+  <section class="card">
+    <h2>Boxes</h2>
+    <table class="waterfall boxes">
+      <tr><td>9</td><td>Your turnover</td><td class="num">{{ r.box9|gbp }}</td></tr>
+      <tr><td>10</td><td>Other business income</td><td class="num">{{ r.box10|gbp }}</td></tr>
+      {% for b in range(11, 20) %}
+        <tr><td>{{ b }}</td><td>{% if r.lines[b] %}<details><summary>{{ box_labels[b] }}</summary><ul>{% for k, v in r.lines[b].items() %}<li>{{ k }}: {{ v|gbp }}</li>{% endfor %}</ul></details>{% else %}<span class="muted">{{ box_labels[b] }}</span>{% endif %}</td><td class="num">{{ r.boxes[b]|gbp }}</td></tr>
+      {% endfor %}
+      <tr class="total"><td>20</td><td>Total allowable expenses</td><td class="num">{{ r.box20|gbp }}</td></tr>
+      <tr class="total"><td>{{ 21 if r.net >= 0 else 22 }}</td><td>{{ 'Net profit' if r.net >= 0 else 'Net loss' }}</td><td class="num {{ cls(r.net) }}">{{ r.net|abs|gbp }}</td></tr>
+    </table>
+    <p class="hint">With turnover under £90,000 you can enter just the total in box 20 instead of boxes 11–19. eBay selling fees and promoted listing fees go in box 19, and postage labels and packaging in box 18.</p>
+  </section>
+
+  <div>
+    <section class="card">
+      <h2>Before you file</h2>
+      {% if r.checks %}
+        <ul class="check-list">{% for c in r.checks %}<li class="{{ c.level }}"><b>{{ c.title }}</b>{{ c.body }} <a href="{{ c.link }}">Fix →</a></li>{% endfor %}</ul>
+      {% else %}<p class="pos">✓ No missing data found for {{ r.label }}.</p>{% endif %}
+    </section>
+
+    <section class="card">
+      <h2>Trading allowance</h2>
+      {% set ta = r.trading_allowance %}
+      {% if ta.under %}
+        <p>Your trading income is <b>£1,000 or less</b>. You may not need to report it at all if this is your only trading income. If you do report, you can claim the £1,000 trading allowance (box 10.1) instead of expenses.</p>
+      {% elif ta.better %}
+        <p>Claiming the <b>£1,000 trading allowance</b> (box 10.1) instead of your {{ r.box20|gbp }} of expenses would give a taxable profit of <b>{{ ta.profit_with_allowance|gbp }}</b>, lower than {{ r.net|gbp }}.</p>
+      {% else %}
+        <p>Your expenses ({{ r.box20|gbp }}) are more than the £1,000 trading allowance, so claiming actual expenses gives the lower profit.</p>
+      {% endif %}
+      <p class="hint">You can use the allowance or expenses, not both.</p>
+      {% if r.over_vat %}<p class="neg"><b>Your turnover is over £90,000:</b> you must fill in the full SA103F and check VAT registration.</p>{% endif %}
+    </section>
+
+    {% if r.by_channel %}
+    <section class="card">
+      <h2>Turnover by marketplace</h2>
+      <table class="waterfall">{% for k, v in r.by_channel.items() %}<tr><td>{{ k }}</td><td class="num">{{ v|gbp }}</td></tr>{% endfor %}</table>
+      <p class="hint">Marketplaces report sellers to HMRC under the digital platform rules (30+ sales or about £1,700 a year), so make sure every channel is included.</p>
+    </section>
+    {% endif %}
+
+    <section class="card">
+      <h2>Close this tax year</h2>
+      <p class="muted small">Once you've filed, mark the year as closed. Edits to sales, costs, bulk buys, expenses or mileage that would change {{ r.label }} will then ask before saving.</p>
+      <form method="post" action="{{ url_for('tax_close') }}">
+        <input type="hidden" name="year" value="{{ year }}"><input type="hidden" name="closed" value="{{ '0' if closed else '1' }}">
+        <button class="btn {{ 'ghost' if closed else '' }}">{{ 'Reopen ' ~ r.label if closed else 'Mark ' ~ r.label ~ ' as filed' }}</button>
+      </form>
+    </section>
+  </div>
+</div>
+<p class="hint">This is a record-keeping aid, not tax advice. Check the current HMRC SA103S notes or ask an accountant before filing. Making Tax Digital for Income Tax applies from April 2026 if your self-employment and property income is over £50,000.</p>
+{% endblock %}

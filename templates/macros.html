@@ -1,0 +1,40 @@
+{% macro spark(values, w=110, h=28) -%}
+  {%- if values|length > 1 -%}
+    {%- set lo = values|min -%}{%- set hi = values|max -%}{%- set rng = (hi - lo) or 1 -%}
+    <svg class="spark" width="{{ w }}" height="{{ h }}" viewBox="0 0 {{ w }} {{ h }}" aria-hidden="true"><polyline fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round" points="
+      {%- for v in values -%}{{ (loop.index0 / (values|length - 1) * (w - 4) + 2)|round(1) }},{{ (h - 3 - (v - lo) / rng * (h - 6))|round(1) }} {% endfor -%}"/></svg>
+  {%- endif -%}
+{%- endmacro %}
+
+{% macro cls(v) -%}{% if v is none %}muted{% elif v < 0 %}neg{% elif v > 0 %}pos{% endif %}{%- endmacro %}
+
+{% macro period_picker(periods, period, start, end, extra={}) -%}
+{% set is_custom = period == 'custom' %}
+<form method="get" class="periods">
+  {% for k, v in extra.items() %}{% if v %}<input type="hidden" name="{{ k }}" value="{{ v }}">{% endif %}{% endfor %}
+  <div class="seg">
+    {% for key, label in periods %}
+      <button name="period" value="{{ key }}" class="{{ 'on' if key == period }}" {% if key == 'custom' %}type="button" onclick="showCustomRange(this)"{% endif %}>{{ label }}</button>
+    {% endfor %}
+    {% for r in saved_ranges %}
+      <button name="period" value="r:{{ r.id }}" class="saved {{ 'on' if period == 'r:' ~ r.id }}" title="{{ r.start|d }} – {{ r.end|d }}">★ {{ r.name }}</button>
+    {% endfor %}
+  </div>
+  <div class="custom" {% if not is_custom %}hidden{% endif %}>
+    <label>From<input type="date" name="start" value="{{ start }}"></label>
+    <label>To<input type="date" name="end" value="{{ end }}"></label>
+    <button class="btn small apply-range" name="period" value="custom">Apply</button>
+    <span class="sep"></span>
+    <input name="range_name" placeholder="Name it, e.g. Christmas rush" maxlength="40" aria-label="Range name">
+    <button class="btn small ghost save-range" formaction="{{ url_for('range_save') }}" formmethod="post">Save range</button>
+    {% if saved_ranges %}
+      <span class="saved-list">{% for r in saved_ranges %}<button class="chip" formaction="{{ url_for('range_delete') }}" formmethod="post" name="range_id" value="{{ r.id }}" title="Remove this saved range" onclick="return confirm('Remove “{{ r.name }}”?')">★ {{ r.name }} ✕</button>{% endfor %}</span>
+    {% endif %}
+  </div>
+</form>
+{%- endmacro %}
+
+{% macro progress(pct) -%}
+  {%- set p = pct or 0 -%}
+  <div class="bar" title="{{ p|round(0)|int }}%"><span style="width: {{ [p, 100]|min }}%" class="{{ 'done' if p >= 100 }}"></span></div>
+{%- endmacro %}

@@ -1,0 +1,16 @@
+# your data never goes in the repository
+*.db
+*.db-journal
+*.db.gz
+backups/
+*receipts/
+.env
+*.pem
+*.key
+# Python / tools
+__pycache__/
+*.pyc
+.venv/
+venv/
+.DS_Store
+Thumbs.db
