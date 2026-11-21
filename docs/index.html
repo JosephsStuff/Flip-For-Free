@@ -1,0 +1,284 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Run Flip for Free on Oracle for £0</title>
+<meta name="description" content="Step-by-step guide: run Flip for Free, the free eBay profit tracker, 24/7 on Oracle Cloud's Always Free tier, private to your own devices with Tailscale.">
+<style>
+:root{
+  --bg:#f7f6f2;--card:#ffffff;--ink:#1d1d1b;--muted:#5d5d57;--line:#e3e1da;
+  --accent:#0f7b5f;--accent-soft:#e3f3ed;--warn:#8a5a00;--warn-soft:#fff4dc;
+  --code-bg:#1e2320;--code-ink:#e8efe9;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#121412;--card:#1a1d1a;--ink:#ecede8;--muted:#a3a69e;--line:#2c302c;
+    --accent:#4cc79f;--accent-soft:#16302a;--warn:#f0c060;--warn-soft:#2e2512;
+    --code-bg:#0b0d0b;--code-ink:#dfe8e1;
+  }
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--accent)}
+.wrap{max-width:860px;margin:0 auto;padding:0 16px}
+header{padding:56px 0 32px;border-bottom:1px solid var(--line)}
+.brand{display:inline-flex;align-items:center;gap:8px;font-weight:700;color:var(--accent);text-decoration:none;font-size:15px;letter-spacing:.02em}
+h1{font-size:clamp(30px,5vw,44px);line-height:1.15;margin:14px 0 12px;letter-spacing:-.02em}
+.lede{font-size:18px;color:var(--muted);max-width:640px;margin:0}
+.facts{display:flex;flex-wrap:wrap;gap:10px;margin:24px 0 0;padding:0;list-style:none}
+.facts li{background:var(--card);border:1px solid var(--line);border-radius:999px;padding:6px 14px;font-size:14px}
+.facts b{color:var(--accent)}
+nav.toc{margin:28px 0 0;display:flex;flex-wrap:wrap;gap:6px 14px;font-size:14px}
+nav.toc a{color:var(--muted);text-decoration:none}
+nav.toc a:hover{color:var(--accent)}
+main{padding:24px 0 64px}
+section.step{display:grid;grid-template-columns:44px minmax(0,1fr);gap:0 18px;padding:28px 0;border-bottom:1px solid var(--line)}
+.num{width:44px;height:44px;border-radius:50%;background:var(--accent);color:#fff;display:grid;place-items:center;font-weight:700;font-size:18px}
+@media (prefers-color-scheme: dark){.num{color:#0b1a14}}
+h2{font-size:22px;margin:6px 0 10px;letter-spacing:-.01em}
+h3{font-size:17px;margin:22px 0 8px}
+p,ol,ul{margin:0 0 12px}
+ol,ul{padding-left:22px}
+li{margin:4px 0}
+pre{background:var(--code-bg);color:var(--code-ink);padding:14px 16px;border-radius:10px;overflow-x:auto;font-size:14px;line-height:1.5;margin:10px 0 14px;position:relative}
+code{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:.92em}
+p code,li code,td code{background:var(--accent-soft);padding:1px 6px;border-radius:5px}
+.copy{position:absolute;top:8px;right:8px;background:#ffffff1f;color:var(--code-ink);border:0;border-radius:6px;padding:4px 10px;font-size:12px;cursor:pointer}
+.copy:hover{background:#ffffff33}
+.note,.warn{border-radius:10px;padding:12px 16px;margin:12px 0}
+.note{background:var(--accent-soft)}
+.warn{background:var(--warn-soft);color:var(--ink);border-left:4px solid var(--warn)}
+.tabs{display:flex;gap:6px;margin:8px 0 0}
+.tabs button{border:1px solid var(--line);background:var(--card);color:var(--ink);padding:5px 12px;border-radius:8px;cursor:pointer;font-size:14px}
+.tabs button[aria-selected=true]{background:var(--accent);border-color:var(--accent);color:#fff}
+@media (prefers-color-scheme: dark){.tabs button[aria-selected=true]{color:#0b1a14}}
+.panel[hidden]{display:none}
+table{width:100%;border-collapse:collapse;font-size:15px;margin:8px 0 16px}
+th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:13px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+.table-wrap{overflow-x:auto}
+.diagram{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px;margin:28px 0 8px}
+.diagram svg{width:100%;height:auto;display:block}
+footer{border-top:1px solid var(--line);padding:24px 0 48px;color:var(--muted);font-size:14px}
+@media (max-width:560px){section.step{grid-template-columns:minmax(0,1fr)}.num{margin-bottom:8px}}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <a class="brand" href="https://github.com/JosephsStuff/flip-for-free">◆ Flip for Free</a>
+    <h1>Run Flip for Free 24/7 on Oracle Cloud, for £0</h1>
+    <p class="lede">Put your eBay profit tracker on a free Oracle server so syncing, relisting and promotions keep running when your PC is off. Only your own devices can reach it, through Tailscale, at a proper https address.</p>
+    <ul class="facts">
+      <li>Cost <b>£0</b></li>
+      <li>Time <b>about 45 minutes</b></li>
+      <li>Need <b>a debit/credit card</b> (Oracle verifies you with it)</li>
+    </ul>
+    <nav class="toc" aria-label="Steps">
+      <a href="#s1">1 Oracle account</a><a href="#s2">2 Server</a><a href="#s3">3 Connect</a><a href="#s4">4 Install</a>
+      <a href="#s5">5 HTTPS</a><a href="#s6">6 Your devices</a><a href="#s7">7 eBay sign-in</a><a href="#s8">8 Claude</a>
+      <a href="#daily">Day to day</a><a href="#backups">Backups</a><a href="#free">Keeping it free</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <div class="diagram" role="img" aria-label="Your PC and phone connect through Tailscale to Flip for Free on an Oracle server, which talks to eBay and backs up to Google Drive">
+    <svg viewBox="0 0 760 170" fill="none" font-family="system-ui,sans-serif" font-size="14">
+      <g stroke="currentColor" style="color:var(--line)" stroke-width="1.5">
+        <rect x="10" y="20" width="150" height="54" rx="10" fill="var(--bg)"/>
+        <rect x="10" y="96" width="150" height="54" rx="10" fill="var(--bg)"/>
+        <rect x="290" y="45" width="190" height="80" rx="12" fill="var(--accent-soft)"/>
+        <rect x="600" y="20" width="150" height="54" rx="10" fill="var(--bg)"/>
+        <rect x="600" y="96" width="150" height="54" rx="10" fill="var(--bg)"/>
+      </g>
+      <g fill="var(--ink)" text-anchor="middle">
+        <text x="85" y="52">Your PC</text>
+        <text x="85" y="128">Your phone</text>
+        <text x="385" y="80" font-weight="700">Flip for Free</text>
+        <text x="385" y="102" fill="var(--muted)" font-size="13">Oracle Always Free server</text>
+        <text x="675" y="52">eBay APIs</text>
+        <text x="675" y="128">Google Drive</text>
+      </g>
+      <g stroke="var(--accent)" stroke-width="2">
+        <path d="M160 47 C220 47 230 75 290 75"/><path d="M160 123 C220 123 230 95 290 95"/>
+        <path d="M480 72 C540 72 545 47 600 47"/><path d="M480 98 C540 98 545 123 600 123" stroke-dasharray="5 5"/>
+      </g>
+      <text x="225" y="20" fill="var(--muted)" font-size="12" text-anchor="middle">private Tailscale link</text>
+      <text x="540" y="164" fill="var(--muted)" font-size="12" text-anchor="middle">nightly, optional</text>
+    </svg>
+  </div>
+
+  <section class="step" id="s1">
+    <div class="num">1</div>
+    <div>
+      <h2>Create your Oracle account</h2>
+      <ol>
+        <li>Go to <a href="https://cloud.oracle.com/free">cloud.oracle.com/free</a> and sign up.</li>
+        <li><strong>Home region: choose UK South (London)</strong> (or the region nearest you). Free servers can only be created in your home region, and it can't be changed later.</li>
+      </ol>
+      <p class="note">Always Free resources stay free. The card is only used to check you're a real person.</p>
+    </div>
+  </section>
+
+  <section class="step" id="s2">
+    <div class="num">2</div>
+    <div>
+      <h2>Create the server</h2>
+      <ol>
+        <li>In the Oracle console: <strong>☰ → Compute → Instances → Create instance</strong>.</li>
+        <li>Name it <code>flip</code>.</li>
+        <li><strong>Image:</strong> click <em>Change image</em> → <strong>Canonical Ubuntu 24.04</strong>.</li>
+        <li><strong>Shape:</strong> click <em>Change shape</em> and pick one marked <strong>Always Free-eligible</strong>:
+          <ul>
+            <li><strong>Ampere VM.Standard.A1.Flex</strong> with 1 OCPU and 6 GB memory (best), or</li>
+            <li><strong>VM.Standard.E2.1.Micro</strong> (AMD, 1 GB) if Ampere says “out of capacity”. Flip runs fine on it.</li>
+          </ul></li>
+        <li><strong>Networking:</strong> leave the defaults (a new network with a public IP).</li>
+        <li><strong>SSH keys:</strong> choose <strong>Generate a key pair for me</strong> and <strong>download the private key</strong>. Keep it safe: it's the only way into the server until Tailscale is set up.</li>
+        <li>Click <strong>Create</strong>. When it shows <em>Running</em>, copy the <strong>Public IP address</strong>.</li>
+      </ol>
+    </div>
+  </section>
+
+  <section class="step" id="s3">
+    <div class="num">3</div>
+    <div>
+      <h2>Connect to the server</h2>
+      <div class="tabs" role="tablist">
+        <button role="tab" aria-selected="true" data-tab="win">Windows</button>
+        <button role="tab" aria-selected="false" data-tab="mac">Mac / Linux</button>
+      </div>
+      <div class="panel" data-panel="win">
+        <p>Put the downloaded key somewhere simple, e.g. <code>C:\Users\you\.ssh\flip.key</code>, then in <strong>PowerShell</strong>:</p>
+<pre><code># Windows refuses keys other people can read, so lock it down once:
+icacls $env:USERPROFILE\.ssh\flip.key /inheritance:r /grant:r "$($env:USERNAME):R"
+ssh -i $env:USERPROFILE\.ssh\flip.key ubuntu@YOUR.PUBLIC.IP</code></pre>
+      </div>
+      <div class="panel" data-panel="mac" hidden>
+        <p>Move the key to <code>~/.ssh/flip.key</code>, then in <strong>Terminal</strong>:</p>
+<pre><code>chmod 600 ~/.ssh/flip.key
+ssh -i ~/.ssh/flip.key ubuntu@YOUR.PUBLIC.IP</code></pre>
+      </div>
+      <p>Type <code>yes</code> the first time. You're on the server when the prompt says <code>ubuntu@flip</code>.</p>
+    </div>
+  </section>
+
+  <section class="step" id="s4">
+    <div class="num">4</div>
+    <div>
+      <h2>Install Flip for Free</h2>
+      <h3>Already using Flip for Free on your PC? Bring your data</h3>
+      <p>In Flip for Free on your PC, go to <strong>Settings → Your data → Download database</strong>. Then, from a <strong>second</strong> PowerShell window on your PC, upload it:</p>
+<pre><code>ssh -i $env:USERPROFILE\.ssh\flip.key ubuntu@YOUR.PUBLIC.IP "mkdir -p ~/flip-data"
+scp -i $env:USERPROFILE\.ssh\flip.key "$env:USERPROFILE\Downloads\flip-for-free-DATE.db" ubuntu@YOUR.PUBLIC.IP:~/flip-data/ebay_profit_tracker.db</code></pre>
+      <p>If you attach receipts to expenses, upload that folder too (it sits next to your database):</p>
+<pre><code>scp -i $env:USERPROFILE\.ssh\flip.key -r "PATH\TO\Profit Tracker receipts" ubuntu@YOUR.PUBLIC.IP:~/flip-data/</code></pre>
+      <div class="warn"><strong>Stop using the copy on your PC once the server is running.</strong> Both would sync with eBay and run automations from their own database, so listings could be relisted or promoted twice. Close the app on your PC and keep the downloaded file as a spare backup.</div>
+
+      <h3>Install on the server</h3>
+      <p>Back in the window connected to the server, run:</p>
+<pre><code>curl -fsSL https://raw.githubusercontent.com/JosephsStuff/flip-for-free/main/deploy/install.sh | bash</code></pre>
+      <p>It installs Flip for Free, sets it to start automatically and restart if it ever stops, and schedules nightly backups. Partway through it prints a <strong>Tailscale sign-in link</strong>: open it, sign in (create a free Tailscale account if you need one, e.g. with Google) and approve the server.</p>
+    </div>
+  </section>
+
+  <section class="step" id="s5">
+    <div class="num">5</div>
+    <div>
+      <h2>Turn on HTTPS in Tailscale (one-off)</h2>
+      <p>In the Tailscale admin console (<a href="https://login.tailscale.com/admin/dns">login.tailscale.com/admin/dns</a>), make sure <strong>MagicDNS</strong> is on and click <strong>Enable HTTPS</strong>. If the installer said it couldn't switch on Tailscale Serve, run this on the server afterwards:</p>
+<pre><code>sudo tailscale serve --bg 8765</code></pre>
+      <p class="note">Your server's name appears in public certificate logs as <code>flip.&lt;your-tailnet&gt;.ts.net</code>, which is why it's called “flip” rather than anything personal.</p>
+    </div>
+  </section>
+
+  <section class="step" id="s6">
+    <div class="num">6</div>
+    <div>
+      <h2>Put Tailscale on your PC and phone</h2>
+      <p>Install Tailscale from <a href="https://tailscale.com/download">tailscale.com/download</a> on each device and sign in with the same account. Then open the address the installer printed, e.g. <strong>https://flip.tail1234.ts.net</strong>.</p>
+    </div>
+  </section>
+
+  <section class="step" id="s7">
+    <div class="num">7</div>
+    <div>
+      <h2>Point eBay sign-in at the server</h2>
+      <p>On <a href="https://developer.ebay.com/my/keys">developer.ebay.com → Application Keys</a> → <strong>User Tokens</strong>, edit your RuName and set <strong>both</strong> <em>Your auth accepted URL</em> and <em>Your auth declined URL</em> to:</p>
+<pre><code>https://flip.&lt;your-tailnet&gt;.ts.net/auth/callback</code></pre>
+      <p>The installer prints the exact address. eBay only redirects <em>your browser</em> there, so it works even though the server isn't public. Then click <strong>Sign in with eBay</strong> in Flip for Free.</p>
+      <p>If you uploaded your database, your keys, costs and bulk buys are already there. If not, the setup page asks for your own eBay developer keys. The database is already set to <code>~/flip-data</code>.</p>
+    </div>
+  </section>
+
+  <section class="step" id="s8">
+    <div class="num">8</div>
+    <div>
+      <h2>Connect Claude (optional)</h2>
+      <p>If you use the Claude connector, change <code>FLIP_URL</code> in your Claude desktop config to the server's address. Your PC needs Tailscale running for this.</p>
+<pre><code>"env": { "FLIP_URL": "https://flip.&lt;your-tailnet&gt;.ts.net", "FLIP_API_KEY": "flip_…" }</code></pre>
+    </div>
+  </section>
+
+  <h2 id="daily" style="margin-top:40px">Day to day</h2>
+  <div class="table-wrap"><table>
+    <tr><th>Task</th><th>How</th></tr>
+    <tr><td>Update to a new version</td><td><strong>Settings → Updates → Update now</strong> in Flip for Free (or turn on automatic updates). Your data is backed up first and never touched.</td></tr>
+    <tr><td>How often it syncs with eBay</td><td><strong>Settings → Sync</strong>: every 5 minutes up to once a day</td></tr>
+    <tr><td>Download a copy of your data</td><td><strong>Settings → Your data → Download database</strong></td></tr>
+    <tr><td>Is it running?</td><td><code>sudo systemctl status flip</code></td></tr>
+    <tr><td>Live log</td><td><code>journalctl -u flip -f</code></td></tr>
+    <tr><td>Restart</td><td><code>sudo systemctl restart flip</code></td></tr>
+    <tr><td>Back up now</td><td><code>bash ~/flip-for-free/deploy/backup.sh</code></td></tr>
+  </table></div>
+
+  <h2 id="backups">Backups</h2>
+  <p>Every night at 03:30 a copy of your database is saved in <code>~/flip-data/backups</code> and kept for 30 days. To also send each backup to <strong>Google Drive</strong> (recommended, so a copy lives off the server):</p>
+  <ol>
+    <li>On your <strong>PC</strong>, install rclone (<a href="https://rclone.org/downloads/">rclone.org/downloads</a>) and run <code>rclone authorize "drive"</code>. Sign in to Google and copy the token it prints.</li>
+    <li>On the <strong>server</strong>: <code>sudo apt-get install -y rclone &amp;&amp; rclone config</code>. Choose <strong>n</strong> (new remote), name it <strong>gdrive</strong>, storage <strong>drive</strong>, accept the defaults, answer <strong>n</strong> to “Use auto config?”, and paste the token.</li>
+    <li>Test with <code>bash ~/flip-for-free/deploy/backup.sh</code>. It should say <em>Copied to Google Drive</em>.</li>
+  </ol>
+  <p>To restore a backup, either upload it in <strong>Settings → Your data → Restore</strong>, or on the server:</p>
+<pre><code>sudo systemctl stop flip
+gunzip -c ~/flip-data/backups/flip-DATE.db.gz &gt; ~/flip-data/ebay_profit_tracker.db
+sudo systemctl start flip</code></pre>
+
+  <h2 id="free">Keeping it free and safe</h2>
+  <ul>
+    <li><strong>Idle servers:</strong> Oracle may reclaim an Always Free server that's been mostly idle for 7 days (it measures CPU, network and memory, so a busier sync schedule doesn't change this). Keep the Google Drive backup on: if the server ever disappears, create a new one, run the installer and restore. Oracle also suspends <em>accounts</em> left unused for 30 days, so log in to the Oracle console now and then.</li>
+    <li><strong>Close the public door (optional):</strong> once Tailscale works, run <code>sudo tailscale set --ssh</code> and connect with <code>ssh ubuntu@flip</code> from your PC (with Tailscale on). Then in Oracle's console (<strong>Networking → Virtual cloud networks → your VCN → Security lists</strong>) remove the rule allowing port 22 from 0.0.0.0/0. The server then has no ports open to the internet at all.</li>
+    <li>Flip for Free only listens on the server itself. Tailscale is the only way in, and only your own signed-in devices can use it.</li>
+    <li>Each person uses their <strong>own</strong> eBay developer keys. Nothing goes through anyone else's account or server.</li>
+  </ul>
+</main>
+
+<footer>
+  <div class="wrap">
+    <a href="https://github.com/JosephsStuff/flip-for-free">Flip for Free on GitHub</a> · Free and open source (MIT). Not affiliated with eBay, Oracle or Tailscale. Flip for Free is a record-keeping aid, not tax advice.
+  </div>
+</footer>
+
+<script>
+document.querySelectorAll('pre').forEach(function(pre){
+  var b=document.createElement('button');b.className='copy';b.type='button';b.textContent='Copy';
+  b.addEventListener('click',function(){
+    var t=pre.querySelector('code').innerText;
+    (navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(function(){b.textContent='Copied';setTimeout(function(){b.textContent='Copy'},1500)}).catch(function(){b.textContent='Select & copy'});
+  });
+  pre.appendChild(b);
+});
+document.querySelectorAll('.tabs button').forEach(function(btn){
+  btn.addEventListener('click',function(){
+    var box=btn.closest('div').parentNode;
+    box.querySelectorAll('.tabs button').forEach(function(x){x.setAttribute('aria-selected',x===btn)});
+    box.querySelectorAll('.panel').forEach(function(p){p.hidden=p.dataset.panel!==btn.dataset.tab});
+  });
+});
+</script>
+</body>
+</html>

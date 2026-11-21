@@ -1,5 +1,7 @@
 # Run Flip for Free on Oracle Cloud's free tier
 
+> 📘 **Step-by-step web version:** https://josephsstuff.github.io/flip-for-free/
+
 You get Flip for Free running 24/7 on a free Oracle server, reachable only from your own devices
 through Tailscale, at a proper https address. That address also fixes eBay sign-in, so there's
 no relay page and no certificate warning. Cost: £0.
