@@ -1,0 +1,86 @@
+[
+  {
+    "file": "claude.svg",
+    "icon": "logos:claude-icon",
+    "name": "Claude",
+    "kind": "colour",
+    "source": "gilbarbara/logos@d6960edc1b7309d392c76e40d3a320df7f9ff85c",
+    "author": "Gil Barbara",
+    "licence": "CC0-1.0",
+    "url": "https://github.com/gilbarbara/logos",
+    "trademark": true,
+    "markUrl": "https://claude.ai/"
+  },
+  {
+    "file": "ebay.svg",
+    "icon": "si:ebay",
+    "name": "eBay",
+    "kind": "mono",
+    "source": "simple-icons@16.30.0",
+    "author": "Simple Icons Collaborators",
+    "licence": "CC0-1.0",
+    "url": "https://github.com/simple-icons/simple-icons",
+    "trademark": true,
+    "colour": "one-colour fallback in the brand hex"
+  },
+  {
+    "file": "github.svg",
+    "icon": "logos:github-icon",
+    "name": "GitHub",
+    "kind": "colour",
+    "source": "gilbarbara/logos@d6960edc1b7309d392c76e40d3a320df7f9ff85c",
+    "author": "Gil Barbara",
+    "licence": "CC0-1.0",
+    "url": "https://github.com/gilbarbara/logos",
+    "trademark": true,
+    "markUrl": "https://github.com/"
+  },
+  {
+    "file": "google-drive.svg",
+    "icon": "logos:google-drive",
+    "name": "Google Drive",
+    "kind": "colour",
+    "source": "gilbarbara/logos@d6960edc1b7309d392c76e40d3a320df7f9ff85c",
+    "author": "Gil Barbara",
+    "licence": "CC0-1.0",
+    "url": "https://github.com/gilbarbara/logos",
+    "trademark": true,
+    "markUrl": "https://www.google.com/drive/"
+  },
+  {
+    "file": "oracle.svg",
+    "icon": "logos:oracle",
+    "name": "Oracle",
+    "kind": "colour",
+    "source": "gilbarbara/logos@d6960edc1b7309d392c76e40d3a320df7f9ff85c",
+    "author": "Gil Barbara",
+    "licence": "CC0-1.0",
+    "url": "https://github.com/gilbarbara/logos",
+    "trademark": true,
+    "markUrl": "https://www.oracle.com/database/"
+  },
+  {
+    "file": "tailscale.svg",
+    "icon": "logos:tailscale",
+    "name": "Tailscale",
+    "kind": "colour",
+    "source": "gilbarbara/logos@d6960edc1b7309d392c76e40d3a320df7f9ff85c",
+    "author": "Gil Barbara",
+    "licence": "CC0-1.0",
+    "url": "https://github.com/gilbarbara/logos",
+    "trademark": true,
+    "markUrl": "https://tailscale.com"
+  },
+  {
+    "file": "ubuntu.svg",
+    "icon": "logos:ubuntu",
+    "name": "ubuntu",
+    "kind": "colour",
+    "source": "gilbarbara/logos@d6960edc1b7309d392c76e40d3a320df7f9ff85c",
+    "author": "Gil Barbara",
+    "licence": "CC0-1.0",
+    "url": "https://github.com/gilbarbara/logos",
+    "trademark": true,
+    "markUrl": "https://www.ubuntu.com/"
+  }
+]
