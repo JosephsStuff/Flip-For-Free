@@ -2,7 +2,7 @@
 
 You get Flip for Free running 24/7 on a free Oracle server, reachable only from your own devices
 through Tailscale, at a proper https address. That address also fixes eBay sign-in, so there's
-no relay page and no certificate warning. Time needed: about 45 minutes. Cost: £0.
+no relay page and no certificate warning. Cost: £0.
 
 What you need: a debit/credit card (Oracle uses it to verify you; Always Free resources stay free),
 and about 45 minutes.
