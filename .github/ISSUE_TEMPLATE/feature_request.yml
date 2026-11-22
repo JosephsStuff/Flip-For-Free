@@ -1,0 +1,31 @@
+name: Feature idea
+description: Suggest something Flip for Free should do
+labels: [enhancement]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What would you like it to do?
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: Why would it help your selling?
+  - type: input
+    id: version
+    attributes:
+      label: Flip for Free version
+  - type: dropdown
+    id: setup
+    attributes:
+      label: Where it runs
+      options:
+        - this computer
+        - server (systemd)
+        - Docker
+        - other
+  - type: input
+    id: os
+    attributes:
+      label: Operating system and Python

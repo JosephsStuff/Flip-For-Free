@@ -1,6 +1,9 @@
 # Changelog
 
 ## 1.2.0
+- Error reporting: a friendly error page with a "Report this on GitHub" button, notifications when a sync or
+  automation fails, Settings → Report a problem (bug report, feature idea, recent errors, error log). Reports
+  open pre-filled on GitHub for you to check and submit; personal details are removed first.
 - Run Flip for Free in Docker: `docker compose up -d --build`. Data stays in `flip-data`; in-app updates
   work inside the container.
 

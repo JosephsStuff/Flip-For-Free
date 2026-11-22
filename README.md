@@ -185,6 +185,13 @@ Everything stays on your computer and in your Drive folder. The app binds to `12
 - Bulk buy costs count against profit in the period you **bought** the lot. Use the Bulk buys page to see each lot's lifetime profit.
 - Options: `--port 9000`, `--no-https` (only if your RuName accepts http), `--no-browser`.
 
+## Something not working?
+If Flip for Free hits an error it shows an error page with a **Report this on GitHub** button, and background jobs
+(syncs, automations) leave a notification. **Settings → Report a problem** has buttons to report a bug or suggest a
+feature, the recent errors, and a log file to download. Each opens a pre-filled form on GitHub that you check before
+pressing Submit. Email addresses, keys, tokens, postcodes and your computer's user name are removed first.
+Or open an issue directly: https://github.com/JosephsStuff/Flip-For-Free/issues
+
 ## Licence
 Flip for Free is **free to use**, including for running your own reselling business, under the
 [Functional Source License 1.1, MIT Future License](LICENSE) (FSL-1.1-MIT).

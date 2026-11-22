@@ -143,7 +143,8 @@ def run_sync(full: bool = False) -> dict:
             msg += " Finances API failed - fees shown are estimates. " + result["finances_error"][:300]
         status = "partial" if result["finances_error"] else "ok"
     except Exception as e:  # noqa: BLE001
-        traceback.print_exc()
+        import errors
+        errors.record("eBay sync", e)
         msg, status = f"Sync failed: {e}", "error"
     finally:
         with write_lock():

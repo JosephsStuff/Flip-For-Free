@@ -1,0 +1,49 @@
+name: Bug report
+description: Something in Flip for Free doesn't work or shows an error
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting this. If you came from Flip for Free's error page or Settings, the details below are
+        filled in already. **Please don't paste your eBay keys, sign-in tokens, API keys or your database.**
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What were you doing, and what did you expect instead?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to make it happen again
+      placeholder: |
+        1. Go to …
+        2. Click …
+  - type: input
+    id: version
+    attributes:
+      label: Flip for Free version
+      description: Settings → Updates shows it.
+    validations:
+      required: true
+  - type: dropdown
+    id: setup
+    attributes:
+      label: Where it runs
+      options:
+        - this computer
+        - server (systemd)
+        - Docker
+        - other
+  - type: input
+    id: os
+    attributes:
+      label: Operating system and Python
+  - type: textarea
+    id: logs
+    attributes:
+      label: Error details
+      description: From the error page, or Settings → Report a problem → Download the error log.
+      render: text

@@ -1112,6 +1112,22 @@ def sync_interval_minutes(st=None) -> int:
     return parse_int(v) or 0
 
 
+def _background_error(where, e):
+    """Log a background job's error and leave a notification with a way to report it."""
+    err = errors.record(where, e)
+    try:
+        if db_ready():
+            conn = db.connect()
+            try:
+                with db.write_lock():
+                    errors.notify_failure(conn, where, err)
+                    conn.commit()
+            finally:
+                conn.close()
+    except Exception:  # noqa: BLE001
+        errors.log.exception("couldn't store the error notification")
+
+
 def auto_sync_loop():
     time.sleep(30)
     while True:
@@ -1126,7 +1142,7 @@ def auto_sync_loop():
                     if age >= mins * 60 - 20:
                         sync.start_background()
         except Exception as e:  # noqa: BLE001
-            print("auto-sync check failed:", e)
+            _background_error("Automatic sync", e)
         time.sleep(60)
 
 
@@ -1142,7 +1158,7 @@ def update_loop():
                     print(updater.apply_update())
                     updater.restart()
         except Exception as e:  # noqa: BLE001
-            print("update check failed:", e)
+            errors.record("Update check", e)          # usually just offline; logged, not notified
         time.sleep(24 * 3600)
 
 
@@ -1155,7 +1171,7 @@ def automation_loop():
                 msg = automation.run_all(simulate=app.config["DEMO"])
                 print("automations:", msg)
         except Exception as e:  # noqa: BLE001
-            print("automation run failed:", e)
+            _background_error("Automations", e)
         time.sleep(30 * 60)
 
 
@@ -1166,6 +1182,9 @@ features2.register(app)
 
 import api  # noqa: E402  JSON API for Claude and other tools
 api.register(app)
+
+import errors  # noqa: E402  log file, error page, GitHub issue reports
+errors.register(app)
 
 LOCAL_ADDRS = {"127.0.0.1", "::1", "::ffff:127.0.0.1"}
 # In Docker, requests from your own computer arrive from Docker's own network, not 127.0.0.1.

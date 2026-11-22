@@ -130,6 +130,33 @@
 </section>
 </div>
 
+<section class="card" id="problems">
+  <h2>Report a problem or idea</h2>
+  <p class="muted small">Found a bug or want a feature? Reports go to Flip for Free's GitHub page, where they're tracked and fixed.
+    Each button opens a pre-filled form in your browser with your version and setup already filled in. <b>Nothing is sent
+    until you press Submit there</b>. You need a free GitHub account.</p>
+  <div class="row" style="flex-wrap:wrap; gap:8px">
+    <a class="btn" href="{{ report_problem_url() }}" target="_blank" rel="noopener">Report a bug</a>
+    <a class="btn ghost" href="{{ report_problem_url(kind='feature') }}" target="_blank" rel="noopener">Suggest a feature</a>
+    <a class="btn ghost" href="{{ url_for('problems_log') }}">Download the error log</a>
+  </div>
+  {% set errs = recent_errors() %}
+  {% if errs %}
+  <h3>Recent errors</h3>
+  <table class="small">
+    <tr><th>When</th><th>Where</th><th>Error</th><th></th></tr>
+    {% for e in errs[:8] %}
+    <tr><td>{{ e.at|replace('T', ' ') }}</td><td>{{ e.where }}</td><td>{{ e.type }}: {{ e.message[:90] }}</td>
+      <td><a href="{{ report_problem_url(e) }}" target="_blank" rel="noopener">Report</a></td></tr>
+    {% endfor %}
+  </table>
+  {% else %}
+  <p class="hint">No errors since Flip for Free last started.</p>
+  {% endif %}
+  <p class="hint">Email addresses, keys, sign-in tokens, postcodes and your computer's user name are removed from reports and
+    from the downloaded log. Attach the log to a bug report if you're asked for it.</p>
+</section>
+
 <section class="card" id="api">
   <h2>API keys <small class="muted">for Claude and other tools</small></h2>
   <p class="muted small">An API key lets Claude (or a script) read and update Flip for Free for you: add stock, fill in costs, record sales, log expenses and mileage, check profit and tax. Anyone with a key can change your data, so keep keys private and revoke any you don't use.</p>

@@ -226,7 +226,8 @@ def run_all(only_rule: int | None = None, simulate: bool = False, triggered_by="
             conn.commit()
         return " ".join(msgs)
     except Exception as e:  # noqa: BLE001
-        traceback.print_exc()
+        import errors
+        errors.record("Automations", e)
         return f"Automations failed: {e}"
     finally:
         conn.close()

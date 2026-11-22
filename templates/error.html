@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Something went wrong · Flip for Free{% endblock %}
+{% block mainclass %}narrow{% endblock %}
+{% block content %}
+<section class="card">
+  <h1>Something went wrong</h1>
+  <p>Flip for Free hit an error and couldn't finish that. Your data is safe: nothing was half-saved.</p>
+  <p class="muted small">Error <b>{{ err.id }}</b> · {{ err.type }} · {{ env.version }} · {{ env.mode }}</p>
+
+  <h2>Help get it fixed</h2>
+  <p>Reporting it on GitHub opens a pre-filled bug report in your browser. <b>Nothing is sent until you press Submit
+    there</b>, so you can read and edit it first. You need a free GitHub account.</p>
+  <div class="row" style="flex-wrap:wrap; gap:8px">
+    <a class="btn" href="{{ report }}" target="_blank" rel="noopener">Report this on GitHub</a>
+    <button class="btn ghost" type="button" id="copy-err">Copy the details</button>
+    <a class="btn ghost" href="javascript:history.back()">Go back</a>
+  </div>
+  <p class="hint">Email addresses, keys, sign-in tokens, postcodes and your computer's user name are removed from the
+    report. Please add what you were doing when it happened.</p>
+
+  <details style="margin-top:12px">
+    <summary>Technical details</summary>
+    <pre id="err-text" style="white-space:pre-wrap; font-size:.8rem; max-height:320px; overflow:auto">{{ err.type }}: {{ err.message }}
+
+{{ err.trace }}</pre>
+  </details>
+</section>
+{% endblock %}
+{% block scripts %}<script>
+document.getElementById('copy-err').addEventListener('click', function () {
+  var t = document.getElementById('err-text').innerText, b = this;
+  (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(function () { b.textContent = 'Copied'; },
+    function () { document.querySelector('details').open = true; b.textContent = 'Select the text below'; });
+});
+</script>{% endblock %}
