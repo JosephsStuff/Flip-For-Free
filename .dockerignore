@@ -1,0 +1,16 @@
+.git
+.github
+.venv
+venv
+__pycache__
+*.pyc
+*.db
+*.db-journal
+*.db.gz
+backups
+flip-data
+docs
+brand
+*.pem
+*.key
+.env

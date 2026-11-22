@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.0
+- Run Flip for Free in Docker: `docker compose up -d --build`. Data stays in `flip-data`; in-app updates
+  work inside the container.
+
 ## 1.1.1
 - New licence: the Functional Source License 1.1 (MIT Future License). Free to use, including for your own
   reselling business; selling, rebranding or hosting Flip for Free commercially needs a commercial licence.

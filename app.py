@@ -1168,6 +1168,22 @@ import api  # noqa: E402  JSON API for Claude and other tools
 api.register(app)
 
 LOCAL_ADDRS = {"127.0.0.1", "::1", "::ffff:127.0.0.1"}
+# In Docker, requests from your own computer arrive from Docker's own network, not 127.0.0.1.
+# docker-compose.yml publishes the port on 127.0.0.1 only, so these count as "this computer".
+DOCKER_NETS = ("172.16.0.0/12", "192.168.65.0/24", "fd00::/8")
+
+
+def is_local(addr):
+    if addr in LOCAL_ADDRS:
+        return True
+    if app.config.get("DOCKER") and addr:
+        import ipaddress
+        try:
+            ip = ipaddress.ip_address(addr.split("%")[0])
+            return any(ip in ipaddress.ip_network(n) for n in DOCKER_NETS)
+        except ValueError:
+            return False
+    return False
 OPEN_ENDPOINTS = {"pair", "static", "manifest"}
 
 
@@ -1175,7 +1191,7 @@ OPEN_ENDPOINTS = {"pair", "static", "manifest"}
 def lan_guard():
     """In --lan mode only paired, signed-in devices may use the app from the network.
     Setup, eBay sign-in and the folder browser stay on this computer."""
-    if request.remote_addr in LOCAL_ADDRS or request.endpoint in OPEN_ENDPOINTS:
+    if is_local(request.remote_addr) or request.endpoint in OPEN_ENDPOINTS:
         return None
     if not app.config.get("LAN"):
         abort(403)
@@ -1231,6 +1247,8 @@ def main():
     ap.add_argument("--public-url", default=os.environ.get("FLIP_PUBLIC_URL", ""),
                     help="server mode: the https address people use, e.g. https://flip.tailnet.ts.net "
                          "(Flip runs on plain http behind Tailscale/Cloudflare, which add the https)")
+    ap.add_argument("--docker", action="store_true", default=os.environ.get("FLIP_DOCKER") == "1",
+                    help="running in a Docker container: listen on all interfaces, trust Docker's own network")
     ap.add_argument("--lan", action="store_true",
                     help="also allow your phone on the same Wi-Fi (paired devices only; see Settings → Use on your phone)")
     args = ap.parse_args()
@@ -1268,11 +1286,14 @@ def main():
     if not args.no_browser:
         threading.Timer(1.2, lambda: webbrowser.open(url)).start()
     app.config["LAN"] = args.lan
+    app.config["DOCKER"] = args.docker
+    if args.docker:
+        args.no_browser = True
     ip = features2.lan_ip() if args.lan else None
     ssl_ctx = None if args.no_https else ensure_cert(ip)
     if args.lan:
         print(f"  Phone access is on: open Settings → Use on your phone to pair (https://{ip}:{args.port}/)\n")
-    app.run(host="0.0.0.0" if args.lan else "127.0.0.1", port=args.port, ssl_context=ssl_ctx, debug=False,
+    app.run(host="0.0.0.0" if (args.lan or args.docker) else "127.0.0.1", port=args.port, ssl_context=ssl_ctx, debug=False,
             threaded=True)
 
 

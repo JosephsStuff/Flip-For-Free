@@ -1,0 +1,19 @@
+# Flip for Free in Docker.
+#   First time:   docker compose up -d --build
+#   Then open:    https://localhost:8765   (accept the certificate warning once)
+# Your data lives in ./flip-data next to this file: back it up, and never delete it when updating.
+services:
+  flip:
+    build: .
+    image: flip-for-free:local
+    container_name: flip-for-free
+    restart: unless-stopped
+    ports:
+      # Only this computer can reach it. Use Tailscale (README → Docker) for your phone or other devices.
+      - "127.0.0.1:8765:8765"
+    volumes:
+      - ./flip-data:/data
+    environment:
+      TZ: Europe/London
+      # Server mode behind Tailscale Serve or Cloudflare Tunnel (they add the https):
+      # FLIP_PUBLIC_URL: https://flip.your-tailnet.ts.net

@@ -138,6 +138,31 @@ Check the connection any time with `python mcp_server.py --check`.
 
 **The API directly:** send `Authorization: Bearer <key>` to `https://localhost:8765/api/v1`. `GET /api/v1` lists every endpoint. Revoke a key in Settings and it stops working straight away.
 
+## Run it in Docker
+Prefer containers (Docker Desktop on Windows or Mac, or Docker on a NAS or Linux server)? Flip for Free ships with a
+Dockerfile and a `docker-compose.yml`.
+
+```bash
+git clone https://github.com/JosephsStuff/Flip-For-Free.git
+cd Flip-For-Free
+docker compose up -d --build
+```
+Then open **https://localhost:8765** (accept the certificate warning once, as with the normal install).
+
+- **Your data** lives in the `flip-data` folder next to `docker-compose.yml`: the database, receipts, backups and
+  settings. Rebuilding or updating the container never touches it. Back that folder up.
+- **Bringing your existing data:** in your current Flip for Free, **Settings → Your data → Download database**, then
+  in the Docker one **Settings → Your data → Restore**.
+- **Updates:** **Settings → Updates** works inside the container too (the update is kept in `flip-data/app`). Or
+  run `git pull && docker compose up -d --build`, which installs the newer version the same way.
+- **Only this computer** can reach it: the port is published on `127.0.0.1`. For your phone or other devices, put
+  Tailscale on the computer running Docker, run `tailscale serve --bg 8765`, and set `FLIP_PUBLIC_URL` in
+  `docker-compose.yml` to the `https://….ts.net` address it gives (then use that address in your eBay RuName).
+  The phone pairing in **Settings → Use on your phone** is for the normal install; use Tailscale instead in Docker.
+- **Stop or restart:** `docker compose stop`, `docker compose start`, `docker compose logs -f`.
+- Keep the database inside `flip-data` rather than a Google Drive folder: Drive's sync and a running container don't
+  mix well. Use **Download database** (or the nightly backups in `flip-data/backups`) for copies.
+
 ## Run it 24/7 on a free server
 See the [Oracle deployment guide](https://josephsstuff.github.io/Flip-For-Free/oracle.html) (or **deploy/DEPLOY_ORACLE.md**): Oracle Cloud's Always Free server plus Tailscale gives you Flip for Free running all the time,
 private to your own devices, at a real https address (which also fixes eBay sign-in). `deploy/install.sh` does the
