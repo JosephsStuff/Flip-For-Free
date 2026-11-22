@@ -3,11 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Flip for Free: eBay profit tracker on a free Oracle server</title>
-<meta name="description" content="Step-by-step guide for UK eBay sellers: run the free Flip for Free profit tracker around the clock on Oracle's Always Free tier, private to your own devices.">
+<title>Flip for Free: free eBay profit tracker for UK sellers</title>
+<meta name="description" content="Flip for Free is a free eBay profit tracker for UK sellers: every fee taken off, bulk buys, auto relisting, UK Self Assessment figures. Runs on your PC or a free server.">
 <meta property="og:type" content="website">
-<meta property="og:title" content="Flip for Free: eBay profit tracker on a free Oracle server">
-<meta property="og:description" content="Run the free Flip for Free profit tracker around the clock on Oracle's Always Free tier.">
+<meta property="og:title" content="Flip for Free: free eBay profit tracker for UK sellers">
+<meta property="og:description" content="Every eBay fee taken off, bulk buys, auto relisting and UK tax figures. Free.">
 <meta property="og:image" content="share.jpg">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
@@ -46,12 +46,14 @@
 <link rel="stylesheet" href="assets/ui/stat/fragment.css">
 <link rel="stylesheet" href="assets/ui/checklist/fragment.css">
 <link rel="stylesheet" href="assets/ui/toggles/fragment.css">
+<link rel="stylesheet" href="assets/ui/chat/fragment.css">
+<link rel="stylesheet" href="assets/ui/calendar/fragment.css">
+<link rel="modulepreload" href="assets/moments/moments.js">
+<link rel="modulepreload" href="assets/moments/lib.js">
+<link rel="modulepreload" href="assets/moments/word-highlight/moment.js">
 <script>document.documentElement.classList.add('m-enter');setTimeout(()=>document.documentElement.classList.add('m-enter-done'),700)</script>
 <script src="assets/backgrounds/backgrounds.js"></script>
 <script>document.documentElement.classList.add('mo-js');setTimeout(()=>document.documentElement.classList.add('mo-safe'),2500)</script>
-<link rel="modulepreload" href="assets/moments/moments.js">
-<link rel="modulepreload" href="assets/moments/lib.js">
-<link rel="modulepreload" href="assets/moments/counter-rolls/moment.js">
 <!-- page CSS: only inside visuals, and one --p-h per card group -->
 <style>
   /* the hero frame's painted ground when WebGL is not there */
@@ -60,7 +62,18 @@
     radial-gradient(90% 50% at 10% 108%, #57703f 0 42%, transparent 43%),
     radial-gradient(80% 40% at 60% 92%, #9fb2c4 0 40%, transparent 41%),
     linear-gradient(#5f93cc, #a9c7e4 70%, #c8d6dd); }
-  .hero__window .ly-piece { width: min(560px, calc(100% - 32px)); }
+  .hero__window .ly-piece { width: min(640px, calc(100% - 32px)); }
+  .hero__window .ui-win { width: 100%; --fx-bg: #ffffff; --fx-surface: #f3f4f3; --fx-ink: #1c1f1e; --fx-muted: #5f6562; --fx-accent: #3ecf8e; --fx-accent-ink: #0d2419; }
+  @media (max-width: 639px) { .hero__window .ui-win__side, .hero__window .ui-win__cols span:nth-child(4), .hero__window .ui-win__age { display: none; } .hero__window .ui-win__body { grid-template-columns: minmax(0, 1fr); } }
+  #install .ui-term { --fx-bg: #161918; --fx-surface: #1f2321; --fx-ink: #e9ecee; --fx-muted: #9aa0a6; --fx-accent: #3ecf8e; }
+  #install .panel { --p-h: 280px; }
+  #install .panel .cmd { position: absolute; inset: 32px 24px auto 24px; }
+  @media (max-width: 639px) { #install .panel .cmd { inset: 16px 16px auto 16px; } }
+  #features .panel { --p-h: 340px; }
+  #claude .frame--wide { height: 520px; background: var(--ground-bg); }
+  @media (max-width: 639px) { #claude .frame--wide { height: 460px; } }
+  :is(#fees, #tax) .frame--split { background: var(--ground-bg); }
+  #tax .frame--split { min-height: 560px; }
   .hero__window .ui-term { width: 100%; --fx-bg: #161918; --fx-surface: #1f2321; --fx-ink: #e9ecee; --fx-muted: #9aa0a6; --fx-accent: #3ecf8e; --fx-accent-ink: #0d2419; }
   .hero__window .ly-piece { --fx-bg: #161918; --fx-surface: #1f2321; --fx-ink: #e9ecee; --fx-muted: #9aa0a6; --fx-accent: #3ecf8e; }
 
@@ -126,26 +139,26 @@
 </style>
 </head>
 <body>
-<!-- type: software (a free, open-source eBay profit tracker; this page is its self-hosting guide)
+<!-- type: software (a free eBay profit tracker for UK sellers; this is its homepage, the Oracle guide is oracle.html)
      deal: hero centred, nav centre (nav-cards dealt; no photographs to put in its cards, so dealt again from the list: nav-centre),
            close close-type, footer footer-columns, rhythm surface-pairs, buttons arrow, mark wordmark,
            palette: the client's own colours through start.mjs brand (mint #3ECF8E on grey #2B2F2D, from the new Flip for Free logo; the dealt soot-pale-lime clashed with it),
            type funnel, effect painterly-landscape in the hero frame
-     moments: counter-rolls in #install (the plain figures of the setup: cost, memory, backups, time), merged under the install split -->
+     moments: word-highlight in #every-sale (dealt by moments.mjs pick; liquid-type was the other) -->
 
 <header class="nav nav--centre">
   <div class="wrap nav__bar">
     <a class="skip-link" href="#top">Skip to content</a>
     <a class="nav__logo" href="#top"><img class="brand-mark" src="assets/flip-mark.svg" alt="" width="32" height="32">Flip for Free</a>
     <nav class="nav__links" aria-label="Main">
-      <div class="nav__item"><a class="nav__link" href="#app">Tracker</a></div>
-      <div class="nav__item"><a class="nav__link" href="#ebay">Setup</a></div>
+      <div class="nav__item"><a class="nav__link" href="#fees">Features</a></div>
+      <div class="nav__item"><a class="nav__link" href="#tax">Tax</a></div>
       <div class="nav__item"><a class="nav__link" href="#install">Install</a></div>
-      <div class="nav__item"><a class="nav__link" href="#commands">Commands</a></div>
+      <div class="nav__item"><a class="nav__link" href="oracle.html">Server guide</a></div>
       <div class="nav__item"><a class="nav__link" href="#questions">Questions</a></div>
     </nav>
     <div class="nav__actions">
-      <a class="btn btn--primary" href="#ebay">Start the setup</a>
+      <a class="btn btn--primary" href="#install">Install Flip for Free</a>
     </div>
     <button class="nav__toggle" type="button" aria-expanded="false" aria-label="Menu">
       <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><path d="M2 5h14M2 13h14" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
@@ -158,52 +171,12 @@
     <div class="wrap"><div class="hero-text">
       <div class="hero__c">
         <a class="pill" href="https://github.com/JosephsStuff/Flip-For-Free"><span>Version 1.1.1</span><span class="muted">See the code on GitHub</span></a>
-        <h1 id="hero-h">eBay profit tracker on a £0 server</h1>
-        <p class="hero__lead">Flip for Free syncs your sales, relists listings and backs up every night on Oracle's Always Free tier, private to your own devices. Setup takes about 45 minutes.</p>
-        <div class="btn-row"><a class="btn btn--primary" href="#ebay">Start the setup<svg class="m-arrow" viewBox="0 0 12 12" aria-hidden="true"><path class="m-arrow__stem" d="M1 6h8"/><path class="m-arrow__head" d="M4.5 2.5 8 6l-3.5 3.5"/></svg></a><a class="btn btn--secondary" href="#commands">See the commands</a></div>
+        <h1 id="hero-h">eBay profit after every fee, free</h1>
+        <p class="hero__lead">Flip for Free signs in with your own eBay keys, takes off every fee and cost, and shows what each item and bulk buy made. Runs on your PC or a free server.</p>
+        <div class="btn-row"><a class="btn btn--primary" href="#install">Install Flip for Free<svg class="m-arrow" viewBox="0 0 12 12" aria-hidden="true"><path class="m-arrow__stem" d="M1 6h8"/><path class="m-arrow__head" d="M4.5 2.5 8 6l-3.5 3.5"/></svg></a><a class="btn btn--secondary" href="#fees">See the features</a></div>
       </div>
-      <div class="hero__window" data-fx="painterly-landscape" data-fx-seed="7" role="img" aria-label="A terminal on the Oracle server installing Flip for Free with one command">
-        <div class="ly-piece" aria-hidden="true" data-ui-loop>
-          <div class="ui ui-panel ui-term" data-ui="terminal-run">
-            <div class="ui-term__head">
-              <span class="ui-dots" aria-hidden="true"><i></i><i></i><i></i></span>
-              <span class="ui-term__title">ubuntu@flip</span>
-              <span class="ui-meta">bash</span>
-              <span class="ui-spacer"></span>
-              <span class="ui-chip ui-chip--plain ui-term__branch">Always Free</span>
-            </div>
-            <div class="ui-term__screen" data-term-screen>
-              <div class="ui-term__track" data-term-track>
-                <div class="ui-term__ln ui-term__cmd"><span class="ui-term__cwd">~/<span class="ui-term__up">ubuntu/</span>home</span><span class="ui-term__sig">$</span><span class="ui-term__typed" data-term-cmd>curl -fsSL … | bash</span></div>
-                <div class="ui-term__ln ui-term__meter" data-term-out data-term-meter><span class="ui-term__bar" style="--p:1"><i></i></span><span class="ui-term__count" data-term-count>4 of 4 steps</span></div>
-                <div class="ui-term__ln ui-term__log" data-term-out data-term-step><svg class="ui-term__tick" viewBox="0 0 16 16" aria-hidden="true"><path d="m3.5 8.4 2.8 2.8 6.2-6.4"/></svg><span class="ui-term__path">Python and packages</span><span class="ui-term__n">venv</span><span class="ui-term__t">38s</span></div>
-                <div class="ui-term__ln ui-term__log" data-term-out data-term-step><svg class="ui-term__tick" viewBox="0 0 16 16" aria-hidden="true"><path d="m3.5 8.4 2.8 2.8 6.2-6.4"/></svg><span class="ui-term__path">flip.service</span><span class="ui-term__n">on boot</span><span class="ui-term__t">2s</span></div>
-                <div class="ui-term__ln ui-term__log" data-term-out data-term-step><svg class="ui-term__tick" viewBox="0 0 16 16" aria-hidden="true"><path d="m3.5 8.4 2.8 2.8 6.2-6.4"/></svg><span class="ui-term__path">Tailscale sign-in</span><span class="ui-term__n">approved</span><span class="ui-term__t">41s</span></div>
-                <div class="ui-term__ln ui-term__log" data-term-out data-term-step><svg class="ui-term__tick" viewBox="0 0 16 16" aria-hidden="true"><path d="m3.5 8.4 2.8 2.8 6.2-6.4"/></svg><span class="ui-term__path">flip-backup.timer</span><span class="ui-term__n">03:30</span><span class="ui-term__t">1s</span></div>
-                <div class="ui-term__ln ui-term__gap" data-term-out aria-hidden="true"></div>
-                <div class="ui-term__ln ui-term__sum" data-term-out><span class="ui-term__key">Address</span><span class="ui-term__val">flip.tail1234.ts.net</span></div>
-                <div class="ui-term__ln ui-term__sum" data-term-out><span class="ui-term__key">Data</span><span class="ui-term__val">~/flip-data</span></div>
-                <div class="ui-term__ln ui-term__done" data-term-out data-term-done><span class="ui-term__ok"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="m4.5 8.3 2.4 2.4 4.6-5"/></svg></span><b>Running</b><span class="ui-term__dim">in 1m 22s</span></div>
-                <div class="ui-term__ln ui-term__cmd" data-term-next><span class="ui-term__cwd">~/<span class="ui-term__up">ubuntu/</span>home</span><span class="ui-term__sig">$</span><span class="ui-term__typed"></span><i class="ui-term__caret" aria-hidden="true"></i></div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div></div>
-  </section>
-
-  <section class="section" id="app" aria-labelledby="app-h">
-    <div class="wrap">
-      <div class="grid">
-        <div class="span-5"><h2 id="app-h">Relists and profit in Flip for Free</h2></div>
-        <div class="span-6 start-7 stack-4">
-          <p class="muted">Open it from your PC or phone. It relists stale listings on its own and shows profit after every eBay fee, postage and packaging cost.</p>
-          <a class="link" href="https://github.com/JosephsStuff/Flip-For-Free#readme">Read what the tracker does</a>
-        </div>
-      </div>
-      <div class="ui app fill" role="img" aria-label="Flip for Free relisting stale eBay listings beside a chart of profit after fees" data-ui-pause-host>
-        <div class="app__pane app__pane--list">
+      <div class="hero__window" data-fx="painterly-landscape" data-fx-seed="7" role="img" aria-label="Flip for Free relisting stale eBay listings on its own">
+        <div class="ly-piece" aria-hidden="true">
           <div class="ui ui-panel ui-win" data-ui="window" data-open="Due" data-work="Relisting" data-done="Relisted">
             <div class="ui-win__bar">
               <span class="ui-dots" aria-hidden="true"><i></i><i></i><i></i></span>
@@ -231,71 +204,51 @@
                   <li class="ui-win__row" data-row><span class="ui-avatar" data-tone="5">DM</span><span class="ui-win__who">Dr. Martens 1460, 7</span><span class="ui-win__sub">£45.00 · promoted at 4%</span><span class="ui-win__st is-done" data-st>Relisted</span><span class="ui-win__age">30d</span></li>
                   <li class="ui-win__row" data-row><span class="ui-avatar" data-tone="3">NB</span><span class="ui-win__who">Nintendo DS Lite</span><span class="ui-win__sub">£39.99 · 2 watchers</span><span class="ui-win__st is-done" data-st>Relisted</span><span class="ui-win__age">29d</span></li>
                   <li class="ui-win__row" data-row><span class="ui-avatar" data-tone="1">PC</span><span class="ui-win__who">Pokémon cards, 60</span><span class="ui-win__sub">£18.00 · 4 watchers</span><span class="ui-win__st is-done" data-st>Relisted</span><span class="ui-win__age">30d</span></li>
-                  <li class="ui-win__row" data-row><span class="ui-avatar" data-tone="4">BV</span><span class="ui-win__who">Barbour jacket, L</span><span class="ui-win__sub">£79.00 · 5 watchers</span><span class="ui-win__st is-done" data-st>Relisted</span><span class="ui-win__age">31d</span></li>
-                  <li class="ui-win__row" data-row><span class="ui-avatar" data-tone="2">KM</span><span class="ui-win__who">Kenwood mixer</span><span class="ui-win__sub">£55.00 · 1 watcher</span><span class="ui-win__st is-done" data-st>Relisted</span><span class="ui-win__age">28d</span></li>
                 </ul>
               </div>
             </div>
           </div>
         </div>
-        <div class="app__pane app__pane--open" data-ui-loop>
-          <div class="ui ui-panel ui-stat" data-ui="stat" data-from="388" data-to="412" data-suffix="">
-            <div class="ui-stat__head">
-              <div class="ui-stat__top">
-                <span class="ui-stat__label">Profit after fees</span>
-                <span class="ui-stat__range">Last 14 days<svg class="ui-icon" viewBox="0 0 16 16" aria-hidden="true"><path d="m4.5 6.5 3.5 3.5 3.5-3.5"/></svg></span>
-              </div>
-              <div class="ui-stat__line">
-                <span class="ui-stat__num" data-stat-num>£412.60</span>
-                <span class="ui-chip ui-chip--plain ui-stat__delta"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M6 9.5v-7M3 5.5l3-3 3 3" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>£24.10</span>
-                <span class="ui-stat__sub">vs. the 14 days before</span>
-              </div>
-            </div>
-            <div class="ui-stat__chart">
-              <svg class="ui-stat__svg" viewBox="0 0 400 120" preserveAspectRatio="none" aria-hidden="true">
-                <path class="ui-stat__grid" d="M0 30.5H400M0 60.5H400M0 90.5H400"/>
-                <path class="ui-stat__cover" fill-rule="evenodd" d=""/>
-                <g class="ui-stat__bars"><rect rx="3" x="0.00" y="59.04" width="21.14" height="60.96"/><rect rx="3" x="29.14" y="40.86" width="21.14" height="79.14"/><rect rx="3" x="58.29" y="64.95" width="21.14" height="55.05"/><rect rx="3" x="87.43" y="36.76" width="21.14" height="83.24"/><rect rx="3" x="116.57" y="52.22" width="21.14" height="67.78"/><rect rx="3" x="145.71" y="34.04" width="21.14" height="85.96"/><rect rx="3" x="174.86" y="48.13" width="21.14" height="71.87"/><rect rx="3" x="204.00" y="29.94" width="21.14" height="90.06"/><rect rx="3" x="233.14" y="45.40" width="21.14" height="74.60"/><rect rx="3" x="262.29" y="25.85" width="21.14" height="94.15"/><rect rx="3" x="291.43" y="41.31" width="21.14" height="78.69"/><rect rx="3" x="320.57" y="23.12" width="21.14" height="96.88"/><rect rx="3" x="349.71" y="37.21" width="21.14" height="82.79"/><rect rx="3" x="378.86" y="16.30" width="21.14" height="103.70"/></g>
-              </svg>
-              <div class="ui-stat__axis" aria-hidden="true"><span>7 Nov</span><span>14 Nov</span><span>Today</span></div>
-            </div>
-          </div>
-        </div>
       </div>
-    </div>
+    </div></div>
   </section>
 
-  <section class="section" id="ebay" aria-labelledby="ebay-h">
+  <section class="section" id="fees" aria-labelledby="fees-h">
     <div class="wrap">
       <div class="grid">
         <div class="span-5 stack-5">
-          <h2 id="ebay-h">eBay developer account first</h2>
-          <p class="t-lead">Flip for Free signs in with your own free eBay keys, and eBay approves every developer account by hand. Register now and do the Oracle steps while you wait.</p>
+          <h2 id="fees-h">Every eBay deduction, taken off</h2>
+          <p class="t-lead">It reads eBay's own finance records, so each sale shows what reached your bank and what you kept.</p>
           <ul class="rows">
-            <li><span class="rows__name">Register at developer.ebay.com</span><span class="rows__value">5 minutes</span></li>
-            <li><span class="rows__name">Wait for eBay's approval email</span><span class="rows__value">about 1 business day</span></li>
-            <li><span class="rows__name">Create a Production keyset</span><span class="rows__value">after approval</span></li>
+            <li><span class="rows__name">Final value and regulatory fees</span><span class="rows__value">from eBay</span></li>
+            <li><span class="rows__name">Postage labels and promoted listings</span><span class="rows__value">from eBay</span></li>
+            <li><span class="rows__name">Packaging and handling</span><span class="rows__value">your amounts</span></li>
+            <li><span class="rows__name">What you paid for the item</span><span class="rows__value">your amount</span></li>
           </ul>
-          <p class="t-small muted">Rejected? Ask for a manual review through eBay's developer support form.</p>
-          <a class="link" href="https://developer.ebay.com/signin?tab=register">Register on eBay's developer site</a>
         </div>
-        <div class="frame frame--split span-6 start-7" aria-label="The four eBay key values Flip for Free asks for" role="img">
+        <div class="frame frame--split span-6 start-7" role="img" aria-label="Profit after fees over the last 14 days, as a daily bar chart">
           <div class="stage stage--fade-b">
-            <div class="at-rise fit" style="--fit-max:380px;--ay:56px">
-              <div class="ui ui-panel ui-checks" data-ui="checklist">
-                <div class="ui-checks__head">
-                  <div class="ui-title">eBay keys for Flip for Free</div>
-                  <span class="ui-spacer"></span>
-                  <div class="ui-meta" data-checks-count>2 of 5</div>
+            <div class="at-rise fit" style="--fit-max:420px;--ay:56px;--ax:max(24px, 50% - 210px)" data-ui-loop>
+              <div class="ui ui-panel ui-stat" data-ui="stat" data-from="388" data-to="412" data-suffix="">
+                <div class="ui-stat__head">
+                  <div class="ui-stat__top">
+                    <span class="ui-stat__label">Profit after fees</span>
+                    <span class="ui-stat__range">Last 14 days<svg class="ui-icon" viewBox="0 0 16 16" aria-hidden="true"><path d="m4.5 6.5 3.5 3.5 3.5-3.5"/></svg></span>
+                  </div>
+                  <div class="ui-stat__line">
+                    <span class="ui-stat__num" data-stat-num>£412.60</span>
+                    <span class="ui-chip ui-chip--plain ui-stat__delta"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M6 9.5v-7M3 5.5l3-3 3 3" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>£24.10</span>
+                    <span class="ui-stat__sub">vs. the 14 days before</span>
+                  </div>
                 </div>
-                <div class="ui-checks__bar"><i data-checks-bar style="--k:0.4"></i></div>
-                <ul class="ui-checks__list">
-                  <li class="ui-check is-done"><span class="ui-check__box"><svg viewBox="0 0 16 16"><path d="m4.5 8.2 2.3 2.3 4.7-5"/></svg></span><span class="ui-check__label">Developer account approved</span></li>
-                  <li class="ui-check is-done"><span class="ui-check__box"><svg viewBox="0 0 16 16"><path d="m4.5 8.2 2.3 2.3 4.7-5"/></svg></span><span class="ui-check__label">App ID (Client ID)</span></li>
-                  <li class="ui-check"><span class="ui-check__box"><svg viewBox="0 0 16 16"><path d="m4.5 8.2 2.3 2.3 4.7-5"/></svg></span><span class="ui-check__label">Dev ID</span></li>
-                  <li class="ui-check"><span class="ui-check__box"><svg viewBox="0 0 16 16"><path d="m4.5 8.2 2.3 2.3 4.7-5"/></svg></span><span class="ui-check__label">Cert ID (Client Secret)</span></li>
-                  <li class="ui-check"><span class="ui-check__box"><svg viewBox="0 0 16 16"><path d="m4.5 8.2 2.3 2.3 4.7-5"/></svg></span><span class="ui-check__label">RuName (eBay Redirect URL name)</span></li>
-                </ul>
+                <div class="ui-stat__chart">
+                  <svg class="ui-stat__svg" viewBox="0 0 400 120" preserveAspectRatio="none" aria-hidden="true">
+                    <path class="ui-stat__grid" d="M0 30.5H400M0 60.5H400M0 90.5H400"/>
+                    <path class="ui-stat__cover" fill-rule="evenodd" d=""/>
+                    <g class="ui-stat__bars"><rect rx="3" x="0.00" y="59.04" width="21.14" height="60.96"/><rect rx="3" x="29.14" y="40.86" width="21.14" height="79.14"/><rect rx="3" x="58.29" y="64.95" width="21.14" height="55.05"/><rect rx="3" x="87.43" y="36.76" width="21.14" height="83.24"/><rect rx="3" x="116.57" y="52.22" width="21.14" height="67.78"/><rect rx="3" x="145.71" y="34.04" width="21.14" height="85.96"/><rect rx="3" x="174.86" y="48.13" width="21.14" height="71.87"/><rect rx="3" x="204.00" y="29.94" width="21.14" height="90.06"/><rect rx="3" x="233.14" y="45.40" width="21.14" height="74.60"/><rect rx="3" x="262.29" y="25.85" width="21.14" height="94.15"/><rect rx="3" x="291.43" y="41.31" width="21.14" height="78.69"/><rect rx="3" x="320.57" y="23.12" width="21.14" height="96.88"/><rect rx="3" x="349.71" y="37.21" width="21.14" height="82.79"/><rect rx="3" x="378.86" y="16.30" width="21.14" height="103.70"/></g>
+                  </svg>
+                  <div class="ui-stat__axis" aria-hidden="true"><span>8 Nov</span><span>15 Nov</span><span>Today</span></div>
+                </div>
               </div>
             </div>
           </div>
@@ -304,149 +257,204 @@
     </div>
   </section>
 
-  <section class="section" id="server" style="--hm: 2" aria-labelledby="server-h">
+  <section class="section statement" id="every-sale" data-moment="word-highlight" aria-label="Every sale">
     <div class="wrap">
-      <div class="section-head">
-          <h2 id="server-h">Create the free server in 3 steps</h2>
-        </div>
-        <div class="grid">
-          <article class="card card--row span-4">
-            <span class="step-num">1</span>
-            <h3>Open an Oracle Cloud account</h3>
-            <p>Sign up at cloud.oracle.com/free and pick UK South (London) as your home region. It can't change later.</p>
-            <div class="panel"><div class="ic-big"><span class="ic-tile ic-tile--40 ic-tile--wide"><img class="ic ic-40 ic-wide" src="assets/icons/oracle.svg" alt="Oracle" width="40" height="5"></span></div></div>
-          </article>
-          <article class="card card--row span-4">
-            <span class="step-num">2</span>
-            <h3>Create an Ubuntu server</h3>
-            <p>Compute, Instances, Create instance. Download the SSH key Oracle makes for you.</p>
-            <div class="panel">
-              <div class="stage stage--fade-b"><div class="at-rise fit" style="--fit-max:340px;--ay:32px;--ax:max(24px, 50% - 170px)">
-                <div class="ui ui-panel ui-toggles" data-ui="toggles" data-ui-still>
-                  <div class="ui-head">
-                    <div class="ui-title">Create instance: flip</div>
-                    <span class="ui-spacer"></span>
-                    <div class="ui-meta" data-tg-count>3 of 4 on</div>
-                  </div>
-                  <ul class="ui-toggles__list">
-                    <li class="ui-tg"><span class="ui-tg__text"><span class="ui-tg__label">Ubuntu 24.04</span><span class="ui-tg__sub">Canonical image</span></span><button class="ui-switch is-on" type="button" role="switch" aria-checked="true" aria-label="Ubuntu 24.04" tabindex="-1"><i></i></button></li>
-                    <li class="ui-tg"><span class="ui-tg__text"><span class="ui-tg__label">Ampere A1.Flex, 6 GB</span><span class="ui-tg__sub">Always Free-eligible</span></span><button class="ui-switch is-on" type="button" role="switch" aria-checked="true" aria-label="Ampere A1.Flex" tabindex="-1"><i></i></button></li>
-                    <li class="ui-tg"><span class="ui-tg__text"><span class="ui-tg__label">Generate a key pair</span><span class="ui-tg__sub">Save the private key</span></span><button class="ui-switch is-on" type="button" role="switch" aria-checked="true" aria-label="Generate a key pair" tabindex="-1"><i></i></button></li>
-                    <li class="ui-tg"><span class="ui-tg__text"><span class="ui-tg__label">E2.1.Micro, 1 GB</span><span class="ui-tg__sub">If Ampere is full</span></span><button class="ui-switch" type="button" role="switch" aria-checked="false" aria-label="E2.1.Micro" tabindex="-1"><i></i></button></li>
-                  </ul>
-                </div>
-              </div></div>
-            </div>
-          </article>
-          <article class="card card--row span-4">
-            <span class="step-num">3</span>
-            <h3>Connect from your PC</h3>
-            <p>Copy the server's public IP, then connect in PowerShell with the key you downloaded.</p>
-            <div class="panel"><div class="ui cmd" data-cmd>
-        <div class="cmd__bar"><span class="ui-dots" aria-hidden="true"><i></i><i></i><i></i></span><span>PowerShell</span><span class="sp"></span><button class="cmd__copy" type="button" data-copy>Copy</button></div>
-<pre><code>icacls $env:USERPROFILE\.ssh\flip.key /inheritance:r /grant:r "$($env:USERNAME):R"
-ssh -i $env:USERPROFILE\.ssh\flip.key ubuntu@YOUR.PUBLIC.IP</code></pre></div></div>
-          </article>
-        </div>
+      <p class="t-label">Every sale</p>
+      <p class="mo-wh__text">Each sale shows the eBay fee, the postage label, the box and what you paid for the item, so every flip shows the money you <strong>kept</strong>.</p>
     </div>
   </section>
 
-  
+  <section class="section" id="features" aria-labelledby="features-h">
+    <div class="wrap">
+      <div class="section-head">
+        <h2 id="features-h">Stock and relists in Flip for Free</h2>
+      </div>
+      <div class="grid">
+        <article class="card card--row card--open span-6">
+          <h3>Bulk buy tracker</h3>
+          <p>Enter a lot's price once. It splits the cost across the items and shows when the lot has paid for itself.</p>
+          <div class="panel">
+            <div class="stage stage--fade-b"><div class="at-rise fit" style="--fit-max:340px;--ay:32px;--ax:max(24px, 50% - 170px)">
+              <div class="ui ui-panel ui-checks" data-ui="checklist">
+                <div class="ui-checks__head">
+                  <div class="ui-title">Car boot binder, £60</div>
+                  <span class="ui-spacer"></span>
+                  <div class="ui-meta" data-checks-count>3 of 5 sold</div>
+                </div>
+                <div class="ui-checks__bar"><i data-checks-bar style="--k:0.6"></i></div>
+                <ul class="ui-checks__list">
+                  <li class="ui-check is-done"><span class="ui-check__box"><svg viewBox="0 0 16 16"><path d="m4.5 8.2 2.3 2.3 4.7-5"/></svg></span><span class="ui-check__label">Dark Magician, 1st edition</span></li>
+                  <li class="ui-check is-done"><span class="ui-check__box"><svg viewBox="0 0 16 16"><path d="m4.5 8.2 2.3 2.3 4.7-5"/></svg></span><span class="ui-check__label">Blue-Eyes White Dragon</span></li>
+                  <li class="ui-check is-done"><span class="ui-check__box"><svg viewBox="0 0 16 16"><path d="m4.5 8.2 2.3 2.3 4.7-5"/></svg></span><span class="ui-check__label">Red-Eyes Black Dragon</span></li>
+                  <li class="ui-check"><span class="ui-check__box"><svg viewBox="0 0 16 16"><path d="m4.5 8.2 2.3 2.3 4.7-5"/></svg></span><span class="ui-check__label">Exodia set, 5 cards</span></li>
+                  <li class="ui-check"><span class="ui-check__box"><svg viewBox="0 0 16 16"><path d="m4.5 8.2 2.3 2.3 4.7-5"/></svg></span><span class="ui-check__label">The rest of the binder</span></li>
+                </ul>
+              </div>
+            </div></div>
+          </div>
+        </article>
+        <article class="card card--row card--open span-6">
+          <h3>Automations for relists and prices</h3>
+          <p>It ends and relists stale listings, trims the price within your limits and promotes items that sit too long.</p>
+          <div class="panel">
+            <div class="stage stage--fade-b"><div class="at-rise fit" style="--fit-max:340px;--ay:32px;--ax:max(24px, 50% - 170px)">
+              <div class="ui ui-panel ui-toggles" data-ui="toggles">
+                <div class="ui-head">
+                  <div class="ui-title">Automations</div>
+                  <span class="ui-spacer"></span>
+                  <div class="ui-meta" data-tg-count>3 of 4 on</div>
+                </div>
+                <ul class="ui-toggles__list">
+                  <li class="ui-tg"><span class="ui-tg__text"><span class="ui-tg__label">End and relist</span><span class="ui-tg__sub">Before eBay's 30-day renew</span></span><button class="ui-switch is-on" type="button" role="switch" aria-checked="true" aria-label="End and relist" tabindex="-1"><i></i></button></li>
+                  <li class="ui-tg"><span class="ui-tg__text"><span class="ui-tg__label">Cut price 5% a relist</span><span class="ui-tg__sub">Never below what you paid</span></span><button class="ui-switch is-on" type="button" role="switch" aria-checked="true" aria-label="Cut price" tabindex="-1"><i></i></button></li>
+                  <li class="ui-tg"><span class="ui-tg__text"><span class="ui-tg__label">Promote after 21 days</span><span class="ui-tg__sub">Cost per sale ad at 4%</span></span><button class="ui-switch" type="button" role="switch" aria-checked="false" aria-label="Promote after 21 days" tabindex="-1"><i></i></button></li>
+                  <li class="ui-tg"><span class="ui-tg__text"><span class="ui-tg__label">Sale alerts</span><span class="ui-tg__sub">With where it's stored</span></span><button class="ui-switch is-on" type="button" role="switch" aria-checked="true" aria-label="Sale alerts" tabindex="-1"><i></i></button></li>
+                </ul>
+              </div>
+            </div></div>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="claude" aria-labelledby="claude-h">
+    <div class="wrap">
+      <div class="section-head section-head--center">
+        <h2 id="claude-h">Claude connector and API</h2>
+        <p class="t-lead">Flip for Free has its own API, so Claude can log stock, costs, Vinted sales and mileage when you ask.</p>
+      </div>
+      <div class="frame frame--wide" role="img" aria-label="Claude logging a £60 bulk buy in Flip for Free from one message">
+        <div class="stage stage--fade-b">
+          <div class="at-rise fit" style="--fit-max:420px;--ay:48px;--ax:max(24px, 50% - 210px)">
+            <div class="ui ui-panel ui-chat" data-ui="chat">
+                <div class="ui-head">
+                  <span class="ui-agent" aria-hidden="true"></span>
+                  <div class="ui-title">Claude</div>
+                  <span class="ui-chat__online">Flip for Free connected</span>
+                  <span class="ui-spacer"></span>
+                </div>
+                <div class="ui-chat__body">
+                  <div class="ui-chat__day">Today, 9:41</div>
+                  <div class="ui-msg ui-msg--me" data-chat-q>
+                    <span class="ui-msg__text">I bought a binder of 40 Yu-Gi-Oh cards for £60 at the car boot, log it.</span>
+                  </div>
+                  <div class="ui-msg ui-msg--bot" data-chat-a>
+                    <span class="ui-agent ui-msg__av" aria-hidden="true"></span>
+                    <span class="ui-msg__col">
+                      <span class="ui-chat__answer">Logged a <b>£60 bulk buy</b> from the car boot with 40 cards at £1.50 each.</span>
+                      <span class="ui-chat__srcs"><span class="ui-chat__src"><svg class="ui-icon" viewBox="0 0 16 16"><path d="M2.5 5 8 2.5 13.5 5v6L8 13.5 2.5 11z"/></svg>Bulk buys</span></span>
+                    </span>
+                  </div>
+                </div>
+                <div class="ui-chat__input">
+                  <span class="ui-chat__ph">Ask Claude</span>
+                  <span class="ui-chat__send" aria-hidden="true"><svg viewBox="0 0 16 16" width="14" height="14"><path d="M8 13V3.5M3.8 7.5 8 3.3l4.2 4.2" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+                </div>
+              </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="tax" aria-labelledby="tax-h">
+    <div class="wrap">
+      <div class="grid">
+        <div class="span-5 stack-5">
+          <h2 id="tax-h">UK Self Assessment figures, ready to file</h2>
+          <p class="t-lead">Live SA103S boxes for each tax year, on the cash or accruals basis, with the £1,000 trading allowance checked for you.</p>
+          <ul class="rows">
+            <li><span class="rows__name">Mileage from your dispatch days</span><span class="rows__value">HMRC rates</span></li>
+            <li><span class="rows__name">Profit and loss for any period</span><span class="rows__value">CSV or PDF</span></li>
+            <li><span class="rows__name">Receipts and expenses</span><span class="rows__value">by HMRC box</span></li>
+          </ul>
+          <p class="t-small muted">A record-keeping aid, not tax advice.</p>
+        </div>
+        <div class="frame frame--split span-6 start-7" role="img" aria-label="January 2027 with three post office trips logged and the Self Assessment deadline on the 31st">
+          <div class="stage stage--fade-b">
+            <div class="at-rise fit" style="--fit-max:420px;--ay:40px;--ax:max(24px, 50% - 210px)">
+              <div class="ui ui-panel ui-calendar" data-ui="calendar" data-start="4" data-end="8" data-month="Jan">
+                <div class="ui-cal__head">
+                  <div class="ui-cal__month">January <span>2027</span></div>
+                  <span class="ui-spacer"></span>
+                  <span class="ui-chip ui-chip--plain ui-chip--ink" data-cal-range>Jan 4 – 8</span>
+                  <span class="ui-cal__nav" aria-hidden="true"><svg class="ui-icon" viewBox="0 0 16 16"><path d="M10 4 6 8l4 4"/></svg></span>
+                  <span class="ui-cal__nav" aria-hidden="true"><svg class="ui-icon" viewBox="0 0 16 16"><path d="m6 4 4 4-4 4"/></svg></span>
+                </div>
+                <div class="ui-cal__dow" aria-hidden="true"><span>Mo</span><span>Tu</span><span>We</span><span>Th</span><span>Fr</span><span>Sa</span><span>Su</span></div>
+                <div class="ui-cal__days">
+                  <span class="ui-cal__d is-out"><b>28</b></span><span class="ui-cal__d is-out"><b>29</b></span><span class="ui-cal__d is-out"><b>30</b></span><span class="ui-cal__d is-out"><b>31</b></span><span class="ui-cal__d" data-d="1"><b>1</b></span><span class="ui-cal__d" data-d="2"><b>2</b></span><span class="ui-cal__d" data-d="3"><b>3</b></span>
+                  <span class="ui-cal__d is-start" data-d="4"><b>4</b></span><span class="ui-cal__d is-in" data-d="5"><b>5</b></span><span class="ui-cal__d is-in" data-d="6"><b>6</b></span><span class="ui-cal__d is-in" data-d="7"><b>7</b></span><span class="ui-cal__d is-end" data-d="8"><b>8</b></span><span class="ui-cal__d" data-d="9"><b>9</b></span><span class="ui-cal__d" data-d="10"><b>10</b></span>
+                  <span class="ui-cal__d" data-d="11"><b>11</b></span><span class="ui-cal__d" data-d="12"><b>12</b></span><span class="ui-cal__d" data-d="13"><b>13</b></span><span class="ui-cal__d" data-d="14"><b>14</b></span><span class="ui-cal__d" data-d="15"><b>15</b></span><span class="ui-cal__d" data-d="16"><b>16</b></span><span class="ui-cal__d" data-d="17"><b>17</b></span>
+                  <span class="ui-cal__d" data-d="18"><b>18</b></span><span class="ui-cal__d" data-d="19"><b>19</b></span><span class="ui-cal__d" data-d="20"><b>20</b></span><span class="ui-cal__d" data-d="21"><b>21</b></span><span class="ui-cal__d" data-d="22"><b>22</b></span><span class="ui-cal__d" data-d="23"><b>23</b></span><span class="ui-cal__d" data-d="24"><b>24</b></span>
+                  <span class="ui-cal__d" data-d="25"><b>25</b></span><span class="ui-cal__d" data-d="26"><b>26</b></span><span class="ui-cal__d" data-d="27"><b>27</b></span><span class="ui-cal__d" data-d="28"><b>28</b></span><span class="ui-cal__d" data-d="29"><b>29</b></span><span class="ui-cal__d" data-d="30"><b>30</b></span><span class="ui-cal__d is-mark" data-d="31"><b>31</b></span>
+                </div>
+                <div class="ui-cal__events">
+                  <div class="ui-cal__ev" data-ev="4"><span class="ui-cal__date"><b>4</b><i>Jan</i></span><span class="ui-cal__evtext"><span class="ui-cal__evtitle">Post office trip</span><span class="ui-cal__evsub">6 parcels, 4.2 miles logged</span></span></div>
+                  <div class="ui-cal__ev" data-ev="8"><span class="ui-cal__date"><b>8</b><i>Jan</i></span><span class="ui-cal__evtext"><span class="ui-cal__evtitle">Post office trip</span><span class="ui-cal__evsub">3 parcels, 4.2 miles logged</span></span></div>
+                  <div class="ui-cal__ev" data-ev="31"><span class="ui-cal__date"><b>31</b><i>Jan</i></span><span class="ui-cal__evtext"><span class="ui-cal__evtitle">Self Assessment deadline</span><span class="ui-cal__evsub">Figures from SA103S boxes 9 to 22</span></span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
 
   <section class="section ground-surface" id="install" style="--hm: 2" aria-labelledby="install-h">
     <div class="wrap">
-      <div class="grid">
-        <div class="span-5 stack-5">
-          <h2 id="install-h">Install Flip for Free with one command</h2>
-          <p class="t-lead">It sets up Flip for Free, restarts it if it stops and schedules a backup at 03:30. Halfway through, open the Tailscale link it prints and approve the server.</p>
-          <ul class="rows">
-            <li><span class="rows__name">Moving from your PC? Download your database first</span><span class="rows__value">Settings, Your data</span></li>
-            <li><span class="rows__name">Then switch on HTTPS in Tailscale's DNS page</span><span class="rows__value">once</span></li>
-          </ul>
-          <a class="link" href="https://github.com/JosephsStuff/Flip-For-Free/blob/main/deploy/DEPLOY_ORACLE.md">Read the full written guide</a>
-        </div>
-        <div class="frame frame--split span-6 start-7">
-          <div class="ui cmd" data-cmd>
-            <div class="cmd__bar"><span class="ui-dots" aria-hidden="true"><i></i><i></i><i></i></span><span>On the server</span><span class="sp"></span><button class="cmd__copy" type="button" data-copy>Copy</button></div>
-<pre><code>curl -fsSL https://raw.githubusercontent.com/\
-JosephsStuff/flip-for-free/main/deploy/install.sh | bash
-
-<span class="c"># if it couldn't switch on Tailscale Serve:</span>
-sudo tailscale serve --bg 8765</code></pre>
-          </div>
-        </div>
-      </div>
-      <div class="grid costs" id="costs" aria-label="Oracle server costs" data-moment="counter-rolls">
-          <div class="stat span-3"><p class="t-stat">£0</p><p class="t-small muted">a month on the Always Free tier</p></div>
-          <div class="stat span-3"><p class="t-stat">6 GB</p><p class="t-small muted">of memory on the Ampere A1 shape</p></div>
-          <div class="stat span-3"><p class="t-stat">30 days</p><p class="t-small muted">of nightly database backups kept</p></div>
-          <div class="stat span-3"><p class="t-stat">45 min</p><p class="t-small muted">from sign-up to signed in with eBay</p></div>
-        </div>
-    </div>
-  </section>
-
-  <section class="section" id="connect" aria-labelledby="connect-h">
-    <div class="wrap">
       <div class="section-head">
-        <h2 id="connect-h">eBay, Tailscale and Claude settings</h2>
+        <h2 id="install-h">Install Flip for Free on your PC or a free server</h2>
+        <p class="t-lead">You use your own free eBay developer keys, so nothing goes through anyone else. eBay approves new developer accounts in about a business day.</p>
       </div>
       <div class="grid">
         <article class="card card--row card--open span-6">
-          <h3>Flip for Free on your PC and phone</h3>
-          <p>Install Tailscale on your PC and phone with the same account, then open the address the installer printed.</p>
-          <div class="panel"><div class="ic-row">
-            <span class="ic-tile ic-tile--40"><img class="ic ic-40 ic-ink" src="assets/icons/tailscale.svg" alt="Tailscale" width="40" height="40"></span>
-            <span class="ic-tile ic-tile--40 ic-tile--wide"><img class="ic ic-40 ic-wide" src="assets/icons/ebay.svg" alt="eBay" width="40" height="16"></span>
-            <span class="ic-tile ic-tile--40"><img class="ic ic-40" src="assets/icons/claude.svg" alt="Claude" width="40" height="40"></span>
-            <span class="ic-tile ic-tile--40"><img class="ic ic-40" src="assets/icons/google-drive.svg" alt="Google Drive" width="40" height="37"></span>
-            <span class="ic-tile ic-tile--40"><img class="ic ic-40 ic-ink" src="assets/icons/github.svg" alt="GitHub" width="40" height="39"></span>
-          </div></div>
-        </article>
-        <article class="card card--row card--open span-6">
-          <h3>eBay RuName and Claude config</h3>
-          <p>On eBay, set both auth URLs on your RuName to the server. In Claude's config, change FLIP_URL.</p>
+          <h3>Flip for Free on your PC</h3>
+          <p>Install Python 3.10 or newer, download the code, then double-click run.bat (Windows) or run.command (Mac).</p>
           <div class="panel">
             <div class="ui cmd" data-cmd>
-              <div class="cmd__bar"><span class="ui-dots" aria-hidden="true"><i></i><i></i><i></i></span><span>eBay RuName and Claude config</span><span class="sp"></span><button class="cmd__copy" type="button" data-copy>Copy</button></div>
-<pre><code>https://flip.&lt;your-tailnet&gt;.ts.net/auth/callback
-
-"FLIP_URL": "https://flip.&lt;your-tailnet&gt;.ts.net"</code></pre>
+              <div class="cmd__bar"><span class="ui-dots" aria-hidden="true"><i></i><i></i><i></i></span><span>Terminal</span><span class="sp"></span><button class="cmd__copy" type="button" data-copy>Copy</button></div>
+<pre><code>git clone https://github.com/JosephsStuff/Flip-For-Free
+cd Flip-For-Free
+pip install -r requirements.txt
+python app.py</code></pre>
             </div>
           </div>
+          <a class="link" href="https://github.com/JosephsStuff/Flip-For-Free#readme">Read the PC setup steps</a>
         </article>
-      </div>
-    </div>
-  </section>
-
-  <section class="section" id="commands" aria-labelledby="commands-h">
-    <div class="wrap">
-      <div class="grid">
-        <div class="span-5 stack-5">
-          <h2 id="commands-h">Flip for Free server commands</h2>
-          <p class="t-lead">Updates, sync timing and database downloads live in Flip for Free's Settings. The server needs a command only for these.</p>
-          <ul class="rows">
-            <li><span class="rows__name">Update to a new version</span><span class="rows__value">Settings, Updates</span></li>
-            <li><span class="rows__name">Set how often it syncs</span><span class="rows__value">every 5 min to 24 h</span></li>
-            <li><span class="rows__name">Download your database</span><span class="rows__value">Settings, Your data</span></li>
-            <li><span class="rows__name">Copy backups to Google Drive</span><span class="rows__value">rclone remote gdrive</span></li>
-          </ul>
-        </div>
-        <div class="panel panel--cmd span-6 start-7">
-          <div class="ui cmd" data-cmd>
-            <div class="cmd__bar"><span class="ui-dots" aria-hidden="true"><i></i><i></i><i></i></span><span>On the server</span><span class="sp"></span><button class="cmd__copy" type="button" data-copy>Copy</button></div>
-<pre><code><span class="c"># is it running? live log?</span>
-sudo systemctl status flip
-journalctl -u flip -f
-
-<span class="c"># back up now</span>
-bash ~/flip-for-free/deploy/backup.sh
-
-<span class="c"># restore a backup</span>
-sudo systemctl stop flip
-gunzip -c ~/flip-data/backups/flip-DATE.db.gz &gt; ~/flip-data/ebay_profit_tracker.db
-sudo systemctl start flip</code></pre>
+        <article class="card card--row card--open span-6">
+          <h3>Flip for Free on a free Oracle server</h3>
+          <p>It keeps syncing and relisting while your PC is off, private to your own devices through Tailscale.</p>
+          <div class="panel">
+            <div class="stage stage--fade-b"><div class="at-rise fit" style="--fit-max:440px;--ay:32px;--ax:max(24px, 50% - 220px)" data-ui-loop>
+              <div class="ui ui-panel ui-term" data-ui="terminal-run">
+                <div class="ui-term__head">
+                  <span class="ui-dots" aria-hidden="true"><i></i><i></i><i></i></span>
+                  <span class="ui-term__title">ubuntu@flip</span>
+                  <span class="ui-meta">bash</span>
+                  <span class="ui-spacer"></span>
+                  <span class="ui-chip ui-chip--plain ui-term__branch">Always Free</span>
+                </div>
+                <div class="ui-term__screen" data-term-screen>
+                  <div class="ui-term__track" data-term-track>
+                    <div class="ui-term__ln ui-term__cmd"><span class="ui-term__cwd">~/<span class="ui-term__up">ubuntu/</span>home</span><span class="ui-term__sig">$</span><span class="ui-term__typed" data-term-cmd>curl -fsSL … | bash</span></div>
+                    <div class="ui-term__ln ui-term__meter" data-term-out data-term-meter><span class="ui-term__bar" style="--p:1"><i></i></span><span class="ui-term__count" data-term-count>4 of 4 steps</span></div>
+                    <div class="ui-term__ln ui-term__log" data-term-out data-term-step><svg class="ui-term__tick" viewBox="0 0 16 16" aria-hidden="true"><path d="m3.5 8.4 2.8 2.8 6.2-6.4"/></svg><span class="ui-term__path">Python and packages</span><span class="ui-term__n">venv</span><span class="ui-term__t">38s</span></div>
+                    <div class="ui-term__ln ui-term__log" data-term-out data-term-step><svg class="ui-term__tick" viewBox="0 0 16 16" aria-hidden="true"><path d="m3.5 8.4 2.8 2.8 6.2-6.4"/></svg><span class="ui-term__path">flip.service</span><span class="ui-term__n">on boot</span><span class="ui-term__t">2s</span></div>
+                    <div class="ui-term__ln ui-term__log" data-term-out data-term-step><svg class="ui-term__tick" viewBox="0 0 16 16" aria-hidden="true"><path d="m3.5 8.4 2.8 2.8 6.2-6.4"/></svg><span class="ui-term__path">Tailscale sign-in</span><span class="ui-term__n">approved</span><span class="ui-term__t">41s</span></div>
+                    <div class="ui-term__ln ui-term__log" data-term-out data-term-step><svg class="ui-term__tick" viewBox="0 0 16 16" aria-hidden="true"><path d="m3.5 8.4 2.8 2.8 6.2-6.4"/></svg><span class="ui-term__path">flip-backup.timer</span><span class="ui-term__n">03:30</span><span class="ui-term__t">1s</span></div>
+                    <div class="ui-term__ln ui-term__done" data-term-out data-term-done><span class="ui-term__ok"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="m4.5 8.3 2.4 2.4 4.6-5"/></svg></span><b>Running</b><span class="ui-term__dim">in 1m 22s</span></div>
+                    <div class="ui-term__ln ui-term__cmd" data-term-next><span class="ui-term__cwd">~/<span class="ui-term__up">ubuntu/</span>home</span><span class="ui-term__sig">$</span><span class="ui-term__typed"></span><i class="ui-term__caret" aria-hidden="true"></i></div>
+                  </div>
+                </div>
+              </div>
+            </div></div>
           </div>
-        </div>
+          <a class="link" href="oracle.html">Follow the Oracle server guide</a>
+        </article>
       </div>
     </div>
   </section>
@@ -456,13 +464,13 @@ sudo systemctl start flip</code></pre>
       <div class="grid">
         <div class="span-5 stack-4">
           <h2 id="questions-h">Questions</h2>
-          <p class="muted">Anything else is answered in the written guide on GitHub.</p>
+          <p class="muted">More detail is in the README on GitHub.</p>
         </div>
         <div class="faq span-6 start-7">
-          <div class="faq__item"><h3>Can Oracle delete my free server?</h3><p>Oracle may reclaim one that sits mostly idle for 7 days. Keep the Google Drive backup on, and log in to the console now and then: unused accounts are suspended after 30 days.</p></div>
-          <div class="faq__item"><h3>Can I keep Flip for Free on my PC too?</h3><p>No. Close the PC copy once the server runs, or both would relist and promote the same listings.</p></div>
-          <div class="faq__item"><h3>Who can reach the Flip for Free server?</h3><p>Only devices signed in to your Tailscale account. Flip for Free listens on the server itself, and you can close port 22 once Tailscale SSH works.</p></div>
-          <div class="faq__item"><h3>Does Flip for Free use anyone else's account?</h3><p>No. Each person uses their own eBay keys, server and Tailscale account.</p></div>
+          <div class="faq__item"><h3>Is Flip for Free really free?</h3><p>Yes, including for your own reselling business. Only selling, rebranding or hosting it as a competing product needs a commercial licence.</p></div>
+          <div class="faq__item"><h3>Where is my Flip for Free data kept?</h3><p>In one database file in a folder you choose, such as Google Drive, so another computer can open it. Download a copy from Settings at any time.</p></div>
+          <div class="faq__item"><h3>Does Flip for Free see my eBay password?</h3><p>No. You sign in on eBay's own page, and the app gets a token it can renew. Sign out to cancel it.</p></div>
+          <div class="faq__item"><h3>How do Flip for Free updates work?</h3><p>Settings, Updates installs the newest version from GitHub after backing up your database, or does it on its own each day.</p></div>
         </div>
       </div>
     </div>
@@ -473,10 +481,10 @@ sudo systemctl start flip</code></pre>
   <div class="wrap">
     <div class="closing__cta close--type">
       <div class="section-head">
-        <h2 id="close-h">Set up Flip for Free on Oracle</h2>
-        <p class="t-small muted">Free for good. About 45 minutes once eBay approves you.</p>
+        <h2 id="close-h">Install Flip for Free</h2>
+        <p class="t-small muted">Free for your selling, on your PC or a free server.</p>
       </div>
-      <a class="btn btn--primary btn--xl btn--wide" href="#ebay">Start the setup<svg class="m-arrow" viewBox="0 0 12 12" aria-hidden="true"><path class="m-arrow__stem" d="M1 6h8"/><path class="m-arrow__head" d="M4.5 2.5 8 6l-3.5 3.5"/></svg></a>
+      <a class="btn btn--primary btn--xl btn--wide" href="#install">Install Flip for Free<svg class="m-arrow" viewBox="0 0 12 12" aria-hidden="true"><path class="m-arrow__stem" d="M1 6h8"/><path class="m-arrow__head" d="M4.5 2.5 8 6l-3.5 3.5"/></svg></a>
     </div>
     <div class="closing__links">
       <div class="grid">
@@ -484,10 +492,10 @@ sudo systemctl start flip</code></pre>
           <a class="nav__logo" href="#top"><img class="brand-mark" src="assets/flip-mark.svg" alt="" width="32" height="32">Flip for Free</a>
           <p class="footer__lede">A free eBay profit tracker for UK sellers.</p>
         </div>
-        <div class="span-2 footer__col"><h3>Tracker</h3><ul><li><a href="#app">Relists and profit</a></li><li><a href="https://github.com/JosephsStuff/Flip-For-Free">Code on GitHub</a></li></ul></div>
-        <div class="span-2 footer__col"><h3>Setup</h3><ul><li><a href="#ebay">eBay account</a></li><li><a href="#server">Server</a></li></ul></div>
-        <div class="span-2 footer__col"><h3>Install</h3><ul><li><a href="#install">One command</a></li><li><a href="#connect">Devices</a></li></ul></div>
-        <div class="span-2 footer__col"><h3>Commands</h3><ul><li><a href="#commands">Server commands</a></li><li><a href="#questions">Questions</a></li></ul></div>
+        <div class="span-2 footer__col"><h3>Features</h3><ul><li><a href="#fees">Fees and profit</a></li><li><a href="#features">Stock and relists</a></li><li><a href="#claude">Claude connector</a></li><li><a href="#tax">UK tax</a></li></ul></div>
+        <div class="span-2 footer__col"><h3>Install</h3><ul><li><a href="#install">PC or server</a></li><li><a href="oracle.html">Oracle guide</a></li></ul></div>
+        <div class="span-2 footer__col"><h3>Code</h3><ul><li><a href="https://github.com/JosephsStuff/Flip-For-Free">GitHub</a></li><li><a href="https://github.com/JosephsStuff/Flip-For-Free/blob/main/CHANGELOG.md">Changelog</a></li></ul></div>
+        <div class="span-2 footer__col"><h3>Help</h3><ul><li><a href="#questions">Questions</a></li><li><a href="https://github.com/JosephsStuff/Flip-For-Free/issues">Report a problem</a></li></ul></div>
       </div>
       <div class="footer__legal">
         <span>&copy; 2026 Flip for Free &nbsp; <a href="https://github.com/JosephsStuff/Flip-For-Free/blob/main/LICENSE">Free to use (FSL-1.1-MIT)</a> &nbsp; Not affiliated with eBay, Oracle or Tailscale</span>
@@ -499,7 +507,7 @@ sudo systemctl start flip</code></pre>
 </footer>
 
 <nav class="actionbar" aria-label="Quick actions">
-  <a class="btn btn--primary" href="#ebay">Start the setup</a>
+  <a class="btn btn--primary" href="#install">Install Flip for Free</a>
 </nav>
 
 <script type="module" src="assets/system.js"></script>
