@@ -16,12 +16,14 @@
   </div>
   <div class="row">
     {% if it.restock_url %}<a class="btn ghost" href="{{ it.restock_url }}" target="_blank" rel="noopener noreferrer" title="{{ it.restock_url }}">{{ icon('repeat') }} Restock ↗</a>{% endif %}
-    {% if it.status in ('listed', 'unlisted') %}<a class="btn" href="{{ url_for('manual_sale', item=it.id, channel='Market stall') }}">Sold at a market</a>
-    <a class="btn ghost" href="{{ url_for('manual_sale', item=it.id) }}">Sold elsewhere</a>
-    <a class="btn ghost" href="{{ url_for('cardtrader_item', item_id=it.id) }}">CardTrader</a>
-    <a class="btn ghost" href="{{ url_for('shopify_item', item_id=it.id) }}">Shopify</a>
+    {% if it.status in ('listed', 'unlisted') %}<div class="actions" role="group" aria-label="Item actions">
+    <a class="btn" href="{{ url_for('manual_sale', item=it.id, channel='Vinted' if it.vinted_listed_at else None) }}">Record a sale</a>
+    <a class="btn ghost" href="{{ url_for('manual_sale', item=it.id, channel='Market stall') }}">Sold at a market</a>
+    <span class="sep" aria-hidden="true"></span>
+    <a class="btn ghost" href="{{ url_for('cardtrader_item', item_id=it.id) }}">List on CardTrader</a>
+    <a class="btn ghost" href="{{ url_for('shopify_item', item_id=it.id) }}">List on Shopify</a>
     <a class="btn ghost" href="{{ url_for('vinted_copy', item_id=it.id) }}">{{ 'On Vinted' if it.vinted_listed_at else 'Copy to Vinted' }}</a>
-    {% if it.vinted_listed_at %}<a class="btn ghost" href="{{ url_for('manual_sale', item=it.id, channel='Vinted') }}">Sold on Vinted</a>{% endif %}{% endif %}
+    </div>{% endif %}
   </div>
 </div>
 
@@ -63,7 +65,7 @@
     <h2>Timeline</h2>
     <ul class="timeline">
       {% for e in events %}
-        <li class="{{ e.kind }}">{{ e.detail }}<span class="when">{{ e.at|d }}{% if e.legacy_item_id %} · <a href="https://www.ebay.co.uk/itm/{{ e.legacy_item_id }}" target="_blank" rel="noopener">#{{ e.legacy_item_id }}</a>{% endif %}</span></li>
+        <li class="{{ e.kind }}">{{ e.detail|tidy_event }}<span class="when">{{ e.at|d }}{% if e.legacy_item_id %} · <a href="https://www.ebay.co.uk/itm/{{ e.legacy_item_id }}" target="_blank" rel="noopener">#{{ e.legacy_item_id }}</a>{% endif %}</span></li>
       {% else %}<li>No history yet.</li>{% endfor %}
     </ul>
   </section>

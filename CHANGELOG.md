@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.7.2
+- On phones, the Sales and Inventory lists show one card per row with buyer paid, eBay took, money made, price paid
+  and profit (or status, location and cost) visible, instead of a table you had to scroll sideways.
+- The full menu fits on a 1280px laptop again ("Accounting" was cut off); the last sync time moves to the Sync
+  button's tooltip on narrower screens.
+- Item page: "Record a sale" is the main action, with "List on CardTrader", "List on Shopify" and "Copy to Vinted"
+  grouped separately; the timeline no longer shows eBay's internal line numbers.
+
 ## 1.7.1
 - Fix: a sale on CardTrader or Shopify from before an item was listed on another shop could still take stock off that
   shop when the item was also live on eBay. Each listing is now only adjusted for sales made after it existed.

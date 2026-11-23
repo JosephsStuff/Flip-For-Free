@@ -32,7 +32,7 @@
     <a class="iconbtn bell" href="{{ url_for('notifications') }}" title="Notifications" aria-label="Notifications" id="bell">{{ icon('bell') }}<span class="badge" id="bellCount" {% if not unread %}hidden{% endif %}>{{ unread }}</span></a>
     <a class="iconbtn {{ 'on' if (request.endpoint or '') == 'settings_page' }}" href="{{ url_for('settings_page') }}" title="Settings" aria-label="Settings">{{ icon('settings') }}</a>
     <span class="synctext" id="syncText" title="Last sync">{% if sync_status.running %}Syncing…{% else %}Synced {{ last_sync|ago }}{% endif %}</span>
-    <button class="btn small" id="syncBtn" {% if demo %}disabled title="Disabled in demo mode"{% endif %}>Sync now</button>
+    <button class="btn small" id="syncBtn" {% if demo %}disabled title="Disabled in demo mode"{% else %}title="Last synced {{ last_sync|ago }}"{% endif %}>Sync now</button>
     {% if not demo %}
     <form method="post" action="{{ url_for('logout') }}" class="inline">
       <button class="linkbtn" title="Sign out">{{ user_name or 'Account' }} {{ icon('logout', 'sm') }}</button>

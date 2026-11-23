@@ -65,6 +65,12 @@ def fmt_date(v):
         return str(v)[:10]
 
 
+@app.template_filter("tidy_event")
+def tidy_event(text):
+    """Timeline text without eBay's internal line numbers ('Sold 1 for £135.46 (line 13106464319)')."""
+    return re.sub(r"\s*\(line [\w-]+\)", "", text or "")
+
+
 @app.template_filter("ago")
 def ago(v):
     if not v:

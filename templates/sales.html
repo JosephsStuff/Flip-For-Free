@@ -49,7 +49,7 @@
   </div>
 
   <div class="tablewrap">
-  <table class="data">
+  <table class="data stack-sm">
     <thead><tr>
       <th class="cb"><input type="checkbox" id="checkAll" aria-label="Select all"></th>
       <th>Sold</th><th>Item</th><th class="num">Qty</th><th class="num">Buyer paid</th>
@@ -60,20 +60,20 @@
     {% for s in sales %}
       <tr class="{{ 'refunded' if s.ebay_deductions.get('Refunds') }}">
         <td class="cb"><input type="checkbox" name="ids" value="{{ s.line_item_id }}"></td>
-        <td class="nowrap">{{ s.sold_at|d }}</td>
+        <td class="nowrap" data-label="Sold">{{ s.sold_at|d }}</td>
         <td class="title"><a href="{{ url_for('manual_sale', line_id=s.line_item_id) if s.source in ('manual', 'cardtrader', 'shopify') else url_for('sale_detail', line_id=s.line_item_id, back=request.full_path) }}">{{ s.title }}</a>
           {% if s.estimated %}<span class="tag" title="Fees estimated until eBay's money data arrives">est.</span>{% endif %}
           {% if s.status %}<span class="tag red">{{ s.status }}</span>{% elif s.ebay_deductions.get('Refunds') %}<span class="tag red">refund</span>{% endif %}
           {% if s.channel and s.channel != 'eBay' %}<span class="tag">{{ s.channel }}</span>{% endif %}
         </td>
-        <td class="num">{{ s.quantity }}</td>
-        <td class="num">{{ s.gross|gbp }}</td>
-        <td class="num neg">{{ s.ebay_deductions_total|gbp }}</td>
-        <td class="num muted">{{ s.own_costs_total|gbp('') if s.own_costs_total else '' }}</td>
-        <td class="num">{{ s.money_made|gbp }}</td>
-        <td class="num">{% if s.in_bulk %}{% if s.item_cost is not none %}{{ s.item_cost|gbp }}<small class="muted"> share</small>{% else %}<span class="muted small">bulk</span>{% endif %}{% elif s.item_cost is none %}<a class="addcost" href="{{ url_for('sale_detail', line_id=s.line_item_id, back=request.full_path) }}">+ add</a>{% else %}{{ s.item_cost|gbp }}{% endif %}</td>
-        <td class="num {{ cls(s.profit) }}"><b>{{ s.profit|gbp('') }}</b></td>
-        <td>{% if s.bulk_name %}<a class="tag green" href="{{ url_for('bulk_detail', bulk_id=s.bulk_buy_id) }}">{{ s.bulk_name }}</a>{% endif %}</td>
+        <td class="num" data-label="Qty">{{ s.quantity }}</td>
+        <td class="num" data-label="Buyer paid">{{ s.gross|gbp }}</td>
+        <td class="num neg" data-label="eBay took">{{ s.ebay_deductions_total|gbp }}</td>
+        <td class="num muted" data-label="Your costs">{{ s.own_costs_total|gbp('') if s.own_costs_total else '' }}</td>
+        <td class="num" data-label="Money made">{{ s.money_made|gbp }}</td>
+        <td class="num" data-label="Price paid">{% if s.in_bulk %}{% if s.item_cost is not none %}{{ s.item_cost|gbp }}<small class="muted"> share</small>{% else %}<span class="muted small">bulk</span>{% endif %}{% elif s.item_cost is none %}<a class="addcost" href="{{ url_for('sale_detail', line_id=s.line_item_id, back=request.full_path) }}">+ add</a>{% else %}{{ s.item_cost|gbp }}{% endif %}</td>
+        <td class="num {{ cls(s.profit) }}" data-label="Profit"><b>{{ s.profit|gbp('') }}</b></td>
+        <td data-label="Bulk buy">{% if s.bulk_name %}<a class="tag green" href="{{ url_for('bulk_detail', bulk_id=s.bulk_buy_id) }}">{{ s.bulk_name }}</a>{% endif %}</td>
       </tr>
     {% else %}
       <tr><td colspan="11" class="empty-row">No sales match.</td></tr>

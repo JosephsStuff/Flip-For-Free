@@ -79,24 +79,24 @@
     <button class="btn small" name="action" value="bulk">Set bulk buy</button>
   </div>
   <div class="tablewrap">
-  <table class="data">
+  <table class="data stack-sm inv">
     <thead><tr><th class="cb"><input type="checkbox" id="checkAll" aria-label="Select all"></th><th></th><th>Item</th><th>Status</th><th>Stored at</th><th>Bought from</th><th class="num">Cost each</th><th class="num">Listed at</th><th class="num">Days listed</th><th>Bulk buy</th></tr></thead>
     <tbody>
     {% for it in items %}
       <tr>
         <td class="cb"><input type="checkbox" name="ids" value="{{ it.id }}"></td>
-        <td style="width:46px">{% if it.image_url %}<img class="thumb" src="{{ it.image_url }}" alt="" loading="lazy" referrerpolicy="no-referrer">{% else %}<span class="thumb"></span>{% endif %}</td>
+        <td class="thumbcell" style="width:46px">{% if it.image_url %}<img class="thumb" src="{{ it.image_url }}" alt="" loading="lazy" referrerpolicy="no-referrer">{% else %}<span class="thumb"></span>{% endif %}</td>
         <td class="title"><a href="{{ url_for('item_detail', item_id=it.id) }}">{{ it.title }}</a>
           {% if it.restock_url %}<a class="tag green" href="{{ it.restock_url }}" target="_blank" rel="noopener noreferrer" title="Restock: {{ it.restock_url }}">{{ icon('repeat', 'sm') }} restock</a>{% endif %}{% if it.vinted_listed_at %}<a class="tag" href="{{ url_for('vinted_copy', item_id=it.id) }}" title="Also listed on Vinted">Vinted</a>{% endif %}
           {% if (it.quantity or 1) > 1 %}<span class="tag">{{ it.remaining }}/{{ it.quantity }} left</span>{% endif %}
           {% if it.promoted %}<span class="tag green">promoted</span>{% endif %}</td>
-        <td><span class="status {{ it.status|replace(' ', '-') }}">{{ 'not listed' if it.status == 'unlisted' else it.status }}</span></td>
-        <td>{{ it.location or '' }}{% if not it.location and it.status != 'sold' %}<span class="muted small">—</span>{% endif %}</td>
-        <td class="muted">{{ it.source or '' }}</td>
-        <td class="num">{% if it.unit_cost is not none %}{{ it.unit_cost|gbp }}{% if it.bulk_buy_id and not it.cost_locked %}<small class="muted"> share</small>{% endif %}{% else %}<a class="addcost" href="{{ url_for('item_detail', item_id=it.id) }}">+ add</a>{% endif %}</td>
-        <td class="num">{{ it.list_price|gbp('') }}</td>
-        <td class="num">{{ it.days_listed if it.days_listed is not none and it.status == 'listed' else '' }}</td>
-        <td>{% if it.bulk_name %}<a class="tag green" href="{{ url_for('bulk_detail', bulk_id=it.bulk_buy_id) }}">{{ it.bulk_name }}</a>{% endif %}</td>
+        <td data-label="Status"><span class="status {{ it.status|replace(' ', '-') }}">{{ 'not listed' if it.status == 'unlisted' else it.status }}</span></td>
+        <td data-label="Stored at">{{ it.location or '' }}{% if not it.location and it.status != 'sold' %}<span class="muted small">—</span>{% endif %}</td>
+        <td class="muted" data-label="Bought from">{{ it.source or '' }}</td>
+        <td class="num" data-label="Cost each">{% if it.unit_cost is not none %}{{ it.unit_cost|gbp }}{% if it.bulk_buy_id and not it.cost_locked %}<small class="muted"> share</small>{% endif %}{% else %}<a class="addcost" href="{{ url_for('item_detail', item_id=it.id) }}">+ add</a>{% endif %}</td>
+        <td class="num" data-label="Listed at">{{ it.list_price|gbp('') }}</td>
+        <td class="num" data-label="Days listed">{{ it.days_listed if it.days_listed is not none and it.status == 'listed' else '' }}</td>
+        <td data-label="Bulk buy">{% if it.bulk_name %}<a class="tag green" href="{{ url_for('bulk_detail', bulk_id=it.bulk_buy_id) }}">{{ it.bulk_name }}</a>{% endif %}</td>
       </tr>
     {% else %}
       <tr><td colspan="10" class="empty-row">Nothing here yet. Add stock you've bought, import a spreadsheet, or sync to pull in your eBay listings.</td></tr>
