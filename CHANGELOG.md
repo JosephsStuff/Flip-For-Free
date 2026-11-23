@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.4.3
+- The "Accounts" menu is now called "Accounting".
+
 ## 1.4.2
 - Fix: while a sync was running (especially the first, long one) other pages could hang and then show
   "database is locked", e.g. Automations. The sync no longer keeps the database locked while it waits for eBay.

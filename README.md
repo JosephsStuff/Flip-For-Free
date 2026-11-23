@@ -53,7 +53,7 @@
 - **Goal planner**: turns a monthly or yearly profit, revenue or items-sold goal into daily and weekly targets, with progress rings for today, this week and this month. A recap arrives in your notifications on the 1st of each month.
 - **Calculators**: "Should I buy it?" profit calculator (pre-filled with your own fee rates), break-even buy price, and sell-through rate.
 
-**Accounts**
+**Accounting**
 - **Profit & loss statement** for a financial year, quarter, month or any dates: revenue, cost of goods sold, each eBay fee, postage and packaging, promoted listings, expenses, mileage and write-offs, then net profit. Unsold stock is shown separately as an asset. Download as CSV, print to PDF, or email it to your accountant. Set your own financial year start in Settings.
 - **Write-offs**: mark an item lost, damaged or donated, and its cost shows on your P&L.
 - **Receipts**: attach a photo or PDF to any expense. Receipts are saved in a "Profit Tracker receipts" folder next to your database, so they sync with it.

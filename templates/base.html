@@ -25,7 +25,7 @@
     <a href="{{ url_for('insights') }}" class="{{ 'on' if ep == 'insights' or ep.startswith('price') }}">Insights</a>
     <a href="{{ url_for('performance') }}" class="{{ 'on' if ep in ('performance', 'tools') }}">Performance</a>
     <a href="{{ url_for('automations') }}" class="{{ 'on' if ep.startswith('automation') }}">Automations</a>
-    <a href="{{ url_for('pnl_page') }}" class="{{ 'on' if ep.startswith('tax') or ep.startswith('pnl') or ep.startswith('mileage') or ep in ('expenses', 'receipt') }}">Accounts</a>
+    <a href="{{ url_for('pnl_page') }}" class="{{ 'on' if ep.startswith('tax') or ep.startswith('pnl') or ep.startswith('mileage') or ep in ('expenses', 'receipt') }}">Accounting</a>
   </nav>
   <div class="topright">
     <a class="iconbtn bell" href="{{ url_for('notifications') }}" title="Notifications" id="bell">🔔<span class="badge" id="bellCount" {% if not unread %}hidden{% endif %}>{{ unread }}</span></a>
