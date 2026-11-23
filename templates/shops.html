@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% block title %}Other shops · Settings{% endblock %}
+{% block content %}
+<p class="crumbs"><a href="{{ url_for('settings_page') }}">← Settings</a></p>
+<h1>Other shops</h1>
+<p class="muted">Connect CardTrader and Shopify to list items there, bring their orders in as sales, and keep stock
+  in step with eBay. Vinted, Depop and Facebook don't allow this for normal sellers, so use "Copy to Vinted" on an item
+  for those.</p>
+
+<div class="cols">
+  <section class="card">
+    <h2>CardTrader</h2>
+    {% if c.cardtrader %}
+      <p>{{ icon('check') }} Connected{% if c.ct_account %} as <b>{{ c.ct_account }}</b>{% endif %}.
+        {{ counts.get('CardTrader', 0) }} listing{{ 's' if counts.get('CardTrader', 0) != 1 }} made through Flip.</p>
+      <form method="post"><input type="hidden" name="action" value="ct_disconnect">
+        <button class="btn ghost danger" onclick="return confirm('Disconnect CardTrader? Your listings there stay as they are.')">Disconnect</button></form>
+    {% else %}
+      <ol class="howto">
+        <li>Sign in at cardtrader.com and open your profile <b>Settings</b>.</li>
+        <li>Find the <b>API</b> section and copy your API token.</li>
+        <li>Paste it below. It's stored only in your Flip for Free database.</li>
+      </ol>
+      <form method="post" class="stack">
+        <input type="hidden" name="action" value="ct_connect">
+        <label>CardTrader API token<input name="ct_token" type="password" autocomplete="off" required></label>
+        <div><button class="btn">Connect CardTrader</button></div>
+      </form>
+    {% endif %}
+  </section>
+
+  <section class="card">
+    <h2>Shopify</h2>
+    {% if c.shopify %}
+      <p>{{ icon('check') }} Connected to <b>{{ c.shopify_name or c.shopify_shop }}</b> ({{ c.shopify_shop }}).
+        {{ counts.get('Shopify', 0) }} product{{ 's' if counts.get('Shopify', 0) != 1 }} made through Flip.</p>
+      <p>Stock is kept at: <b>{{ c.shopify_location or 'no location chosen' }}</b>
+        · <a href="?locations=1#loc">change</a></p>
+      {% if locations %}<form method="post" class="row" id="loc" style="align-items:flex-end">
+        <input type="hidden" name="action" value="shopify_location">
+        <label style="flex:1">Location<select name="location_id">{% for l in locations %}<option value="{{ l.id }}" {{ 'selected' if l.id == c.shopify_location_id }}>{{ l.name }}</option>{% endfor %}</select></label>
+        <button class="btn ghost">Use this location</button></form>{% endif %}
+      <form method="post"><input type="hidden" name="action" value="shopify_disconnect">
+        <button class="btn ghost danger" onclick="return confirm('Disconnect Shopify? Your products there stay as they are.')">Disconnect</button></form>
+    {% else %}
+      <ol class="howto">
+        <li>In Shopify, open the <b>Dev Dashboard</b> (Settings → Apps → Develop apps) and create an app.</li>
+        <li>In the app's version settings, add these Admin API access scopes: <code>{{ scopes }}</code>, then release
+          the version and <b>install the app on your store</b>.</li>
+        <li>Copy the app's <b>Client ID</b> and <b>Client secret</b> into the form below.</li>
+      </ol>
+      <p class="hint">The app and your store must be in the same Shopify organisation. Flip asks Shopify for a fresh
+        24-hour access token whenever it needs one.</p>
+      <form method="post" class="stack">
+        <input type="hidden" name="action" value="shopify_connect">
+        <label>Store address<input name="shopify_shop" placeholder="my-shop.myshopify.com" required></label>
+        <label>Client ID<input name="shopify_client_id" autocomplete="off" required></label>
+        <label>Client secret<input name="shopify_client_secret" type="password" autocomplete="off" required></label>
+        <div><button class="btn">Connect Shopify</button></div>
+      </form>
+    {% endif %}
+  </section>
+</div>
+
+<section class="card">
+  <h2>Keeping stock in step</h2>
+  <form method="post" class="stack">
+    <input type="hidden" name="action" value="prefs">
+    <label class="check"><input type="checkbox" name="stock_sync_auto" value="1" {{ 'checked' if c.stock_sync_auto }}>
+      When something sells on eBay, CardTrader or Shopify, take it off the item's listings on the other shops
+      automatically (checked at every sync)</label>
+    <div class="grid2">
+      <label>Shopify payment fee (%) <small class="muted">e.g. your Shopify Payments rate; used for profit</small>
+        <input name="shopify_fee_pct" inputmode="decimal" value="{{ c.shopify_fee_pct }}"></label>
+      <label>Shopify fixed fee per order (£)<input name="shopify_fee_fixed" class="money" inputmode="decimal" value="{{ c.shopify_fee_fixed }}"></label>
+    </div>
+    <p class="hint">CardTrader fees come from each order. Prices in other currencies are converted to pounds with the
+      European Central Bank's daily rate.</p>
+    <div><button class="btn">Save</button></div>
+  </form>
+  {% if c.cardtrader or c.shopify %}
+  <form method="post" class="row" style="margin-top:var(--s-4); align-items:center">
+    <input type="hidden" name="action" value="sync"><button class="btn ghost">Sync shops now</button>
+    <span class="muted small">{% if c.last_sync %}Last synced {{ c.last_sync|d }}: {{ c.last_result }}{% else %}Not synced yet. It also runs with every eBay sync.{% endif %}</span>
+  </form>{% endif %}
+</section>
+{% endblock %}

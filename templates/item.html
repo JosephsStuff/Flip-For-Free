@@ -18,6 +18,8 @@
     {% if it.restock_url %}<a class="btn ghost" href="{{ it.restock_url }}" target="_blank" rel="noopener noreferrer" title="{{ it.restock_url }}">{{ icon('repeat') }} Restock ↗</a>{% endif %}
     {% if it.status in ('listed', 'unlisted') %}<a class="btn" href="{{ url_for('manual_sale', item=it.id, channel='Market stall') }}">Sold at a market</a>
     <a class="btn ghost" href="{{ url_for('manual_sale', item=it.id) }}">Sold elsewhere</a>
+    <a class="btn ghost" href="{{ url_for('cardtrader_item', item_id=it.id) }}">CardTrader</a>
+    <a class="btn ghost" href="{{ url_for('shopify_item', item_id=it.id) }}">Shopify</a>
     <a class="btn ghost" href="{{ url_for('vinted_copy', item_id=it.id) }}">{{ 'On Vinted' if it.vinted_listed_at else 'Copy to Vinted' }}</a>
     {% if it.vinted_listed_at %}<a class="btn ghost" href="{{ url_for('manual_sale', item=it.id, channel='Vinted') }}">Sold on Vinted</a>{% endif %}{% endif %}
   </div>

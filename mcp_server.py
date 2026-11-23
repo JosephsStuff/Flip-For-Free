@@ -148,8 +148,8 @@ def record_sale(title: str, item_price: float, channel: str = "Vinted", sold_at:
                 notes: str | None = None, update_ebay: bool = False) -> dict:
     """Record a sale made outside eBay (Vinted, Facebook Marketplace, Depop, Etsy, car boot, in person...).
     Link it to an inventory item with item_id so its cost and bulk buy are used. Don't use for eBay sales:
-    those sync automatically. update_ebay=True also lowers the item's live eBay listing quantity (or ends it if
-    none are left) so it can't sell twice: only set it when the user asks for that."""
+    those sync automatically. update_ebay=True also lowers the item's listings on eBay, CardTrader and Shopify (or
+    ends them if none are left) so it can't sell twice: only set it when the user asks for that."""
     return _call("POST", "/sales", body=_clean({
         "title": title, "item_price": item_price, "channel": channel, "sold_at": sold_at, "quantity": quantity,
         "delivery_charged": delivery_charged, "fees": fees, "postage_cost": postage_cost,

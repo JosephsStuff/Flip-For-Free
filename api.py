@@ -164,7 +164,7 @@ ENDPOINTS = [
                                        "handling_cost, other_cost, bulk_buy_id (null to remove), notes."),
     ("POST", "/sales", "Record a sale from another marketplace: title*, item_price*, sold_at, channel, quantity, "
                        "delivery_charged, fees, postage_cost, packaging_cost, handling_cost, cost, item_id, notes, update_ebay "
-                       "(true: lower or end the item's eBay listing)."),
+                       "(true: lower or end the item's listings on eBay, CardTrader and Shopify)."),
     ("GET", "/items", "Inventory. ?status=instock|listed|unlisted|sold|all&q=&location=&source=&missing_cost=1"),
     ("GET", "/items/<id>", "One item, with its listings, sales and timeline."),
     ("POST", "/items", "Add stock: title* (or titles: [..] for several), quantity, cost (each), source, "
@@ -369,9 +369,9 @@ def register(app):
             s = profit.compute_sales(conn, "s.line_item_id = ?", (lid,))[0]
             ebay_note = None
             if item_id and str(b.get("update_ebay", "")).lower() in ("1", "true", "yes"):
-                import crosslist
-                ebay_note = crosslist.take_off_ebay(conn, item_id, max(parse_int(b.get("quantity")) or 1, 1),
-                                                    b.get("channel") or "Other") or "No live eBay listing for this item."
+                import stores
+                ebay_note = stores.propagate_sale(conn, lid, item_id, max(parse_int(b.get("quantity")) or 1, 1),
+                                                  b.get("channel") or "Other") or "No live listings for this item."
         finally:
             conn.close()
         out = _sale_json(s)

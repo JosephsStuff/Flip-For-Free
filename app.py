@@ -1260,6 +1260,8 @@ import icons  # noqa: E402  one SVG icon set for the templates
 icons.register(app)
 import crosslist  # noqa: E402  copy listings to Vinted by hand; keep eBay in step with sales elsewhere
 crosslist.register(app)
+import stores  # noqa: E402  CardTrader and Shopify: listing, order import, stock in step
+stores.register(app)
 
 LOCAL_ADDRS = {"127.0.0.1", "::1", "::ffff:127.0.0.1"}
 # In Docker, requests from your own computer arrive from Docker's own network, not 127.0.0.1.

@@ -31,6 +31,13 @@ _COND = {"1000": "New with tags", "1500": "New without tags", "1750": "New witho
          "5000": "Good", "6000": "Satisfactory", "7000": "Satisfactory"}
 
 
+def _demo() -> bool:
+    try:
+        return bool(current_app.config.get("DEMO"))
+    except RuntimeError:                       # background sync: no app context, never demo
+        return False
+
+
 # --------------------------------------------------------------------------- #
 # Text
 # --------------------------------------------------------------------------- #
@@ -119,7 +126,7 @@ def _demo_details(listing: dict) -> dict:
 
 def listing_details(conn, listing: dict, refresh: bool = False) -> dict:
     lid = listing["legacy_item_id"]
-    if current_app.config.get("DEMO"):
+    if _demo():
         return _demo_details(listing)
     row = conn.execute("SELECT data, fetched_at FROM listing_details WHERE legacy_item_id=?", (lid,)).fetchone()
     if row and not refresh:
@@ -161,7 +168,7 @@ def take_off_ebay(conn, item_id: int, quantity: int, channel: str) -> str:
     listings = ebay_stock_for_item(conn, item_id)
     if not listings:
         return ""
-    if current_app.config.get("DEMO"):
+    if _demo():
         return "Demo mode: on your real account the eBay listing would be updated now."
     from ebay_api import EbayClient, EbayError
     client, done, left_to_take = EbayClient(), [], quantity

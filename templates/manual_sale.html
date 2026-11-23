@@ -24,9 +24,9 @@
     <label>Price paid (£) <small class="muted">if not from inventory</small><input name="cost" class="money" inputmode="decimal" value="{{ '%.2f'|format(row.cost) if row and row.cost is not none else '' }}"></label>
     <label class="span3">Notes<input name="notes" value="{{ row.notes or '' if row else '' }}"></label>
     {% if not row %}<label class="check span3" id="ebayBox" {{ '' if ebay_stock else 'hidden' }}><input type="checkbox" name="update_ebay" value="1" checked>
-      <span>Also take it off eBay: lower the eBay listing's quantity, or end it if none are left <small class="muted" id="ebayInfo"></small></span></label>{% endif %}
+      <span>Also take it off your other shops: lower the quantity on eBay, CardTrader and Shopify, or end the listing if none are left <small class="muted" id="ebayInfo"></small></span></label>{% endif %}
     <div class="span3 row between"><button class="btn">Save sale</button>
-      {% if row %}<button class="btn ghost danger" formaction="{{ url_for('manual_sale_delete', line_id=row.line_item_id) }}" onclick="return confirm('Delete this sale?')">Delete</button>{% endif %}</div>
+      {% if row and row.source == 'manual' %}<button class="btn ghost danger" formaction="{{ url_for('manual_sale_delete', line_id=row.line_item_id) }}" onclick="return confirm('Delete this sale?')">Delete</button>{% endif %}</div>
   </form>
 </section>
 {% endblock %}
@@ -35,6 +35,6 @@
  function f(){const o=s.selectedOptions[0]; if(o&&o.dataset.title&&!t.value) t.value=o.dataset.title;}
  s.addEventListener('change',()=>{t.value='';f();}); f();
  const stock={{ ebay_stock|tojson }}, box=document.getElementById('ebayBox'), info=document.getElementById('ebayInfo');
- function e(){ if(!box) return; const n=stock[s.value]; box.hidden=!n; if(n) info.textContent='('+n+' on eBay now)'; }
+ function e(){ if(!box) return; const n=stock[s.value]; box.hidden=!n; if(n) info.textContent='('+n+' listed now)'; }
  s.addEventListener('change',e); e();})();
 </script>{% endblock %}

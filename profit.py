@@ -212,7 +212,7 @@ def compute_sales(conn, where: str = "1=1", params: tuple = ()) -> list[dict]:
 
     breakdowns = {}
     for oid in order_ids:
-        if oid.startswith("M-"):
+        if oid.startswith(("M-", "CT-", "SH-")):     # manual, CardTrader and Shopify sales carry their own fees
             continue
         breakdowns.update(_order_breakdown(oid, order_lines[oid], orders.get(oid), txs[oid]))
     alloc = bulk_allocations(conn)

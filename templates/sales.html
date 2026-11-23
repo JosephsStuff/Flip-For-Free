@@ -61,7 +61,7 @@
       <tr class="{{ 'refunded' if s.ebay_deductions.get('Refunds') }}">
         <td class="cb"><input type="checkbox" name="ids" value="{{ s.line_item_id }}"></td>
         <td class="nowrap">{{ s.sold_at|d }}</td>
-        <td class="title"><a href="{{ url_for('manual_sale', line_id=s.line_item_id) if s.source == 'manual' else url_for('sale_detail', line_id=s.line_item_id, back=request.full_path) }}">{{ s.title }}</a>
+        <td class="title"><a href="{{ url_for('manual_sale', line_id=s.line_item_id) if s.source in ('manual', 'cardtrader', 'shopify') else url_for('sale_detail', line_id=s.line_item_id, back=request.full_path) }}">{{ s.title }}</a>
           {% if s.estimated %}<span class="tag" title="Fees estimated until eBay's money data arrives">est.</span>{% endif %}
           {% if s.status %}<span class="tag red">{{ s.status }}</span>{% elif s.ebay_deductions.get('Refunds') %}<span class="tag red">refund</span>{% endif %}
           {% if s.channel and s.channel != 'eBay' %}<span class="tag">{{ s.channel }}</span>{% endif %}

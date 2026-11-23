@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.7.0
+- **CardTrader**: connect with your API token (Settings → Other shops). On an item, Flip guesses the set from the
+  card code in the title, ranks the matching cards in CardTrader's catalogue, shows CardTrader's cheapest listings for
+  that card and its condition/language/edition fields, and lists it. Change the price or quantity, or remove it, from
+  the item. CardTrader orders are imported as sales (fees and postage included, converted to GBP with ECB rates).
+- **Shopify**: connect a Dev Dashboard app (client credentials; 24-hour tokens renewed automatically). Create a product
+  from an item's eBay listing (title, cleaned description, price, stock, photos) and publish it to the Online Store.
+  Shopify orders are imported as sales, with your Shopify payment fee settings applied.
+- **Stock in step across shops**: a sale on any shop lowers the item's stock on the others, once per sale, and only
+  for sales made after the item was listed there. Problems raise a notification.
+
 ## 1.6.0
 - **Copy to Vinted** (on each item): the eBay title, the description with the formatting removed plus item specifics,
   the closest Vinted condition, a suggested price that keeps your eBay take-home, and the listing's photos as a zip,

@@ -369,3 +369,11 @@ label small { font-weight: 400; line-height: 1.4; }
 .photostrip { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--s-2); margin-bottom: var(--s-3); }
 .photostrip img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: var(--r-sm); border: 1px solid var(--line); }
 .row.between { justify-content: space-between; align-items: baseline; }
+/* CardTrader card picker */
+.bpgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: var(--s-3); margin-top: var(--s-3); }
+.bp { display: flex; flex-direction: column; gap: var(--s-2); padding: var(--s-2); border: 1px solid var(--line); border-radius: var(--r-md); color: var(--ink); text-decoration: none; font-size: var(--t-small); }
+.bp:hover, .bp.on { border-color: var(--accent); }
+.bp.on { box-shadow: 0 0 0 2px var(--accent-soft); }
+.bp img { width: 100%; aspect-ratio: 63 / 88; object-fit: cover; border-radius: var(--r-sm); background: var(--chip); }
+.photo-pick { position: relative; display: block; }
+.photo-pick input { position: absolute; top: var(--s-1); left: var(--s-1); }

@@ -264,7 +264,41 @@ CREATE TABLE IF NOT EXISTS listings (
 CREATE INDEX IF NOT EXISTS idx_listings_item ON listings(item_id);
 CREATE INDEX IF NOT EXISTS idx_listings_status ON listings(status);
 
--- Product timeline
+-- your listings on other shops that Flip created or linked (CardTrader, Shopify)
+CREATE TABLE IF NOT EXISTS channel_listings (
+    id                INTEGER PRIMARY KEY AUTOINCREMENT,
+    item_id           INTEGER REFERENCES items(id) ON DELETE CASCADE,
+    channel           TEXT NOT NULL,
+    external_id       TEXT NOT NULL,     -- CardTrader product id / Shopify product GID
+    variant_id        TEXT,
+    inventory_item_id TEXT,
+    blueprint_id      INTEGER,
+    title             TEXT,
+    quantity          INTEGER,
+    price             REAL,              -- in `currency`
+    currency          TEXT,
+    url               TEXT,
+    status            TEXT DEFAULT 'active',
+    created_at        TEXT,
+    updated_at        TEXT,
+    UNIQUE(channel, external_id)
+);
+CREATE INDEX IF NOT EXISTS idx_channel_listings_item ON channel_listings(item_id);
+
+-- sales whose quantity has already been taken off your other shops (so it only happens once)
+CREATE TABLE IF NOT EXISTS stock_sync_done (
+    line_item_id TEXT PRIMARY KEY,
+    at           TEXT NOT NULL,
+    result       TEXT
+);
+
+-- CardTrader catalogue cache (games, expansions, blueprints, categories)
+CREATE TABLE IF NOT EXISTS ct_cache (
+    key        TEXT PRIMARY KEY,
+    data       TEXT NOT NULL,
+    fetched_at TEXT NOT NULL
+);
+
 -- eBay listing details fetched on demand for copying a listing to another marketplace
 CREATE TABLE IF NOT EXISTS listing_details (
     legacy_item_id TEXT PRIMARY KEY,
@@ -272,6 +306,7 @@ CREATE TABLE IF NOT EXISTS listing_details (
     fetched_at     TEXT NOT NULL
 );
 
+-- Product timeline
 CREATE TABLE IF NOT EXISTS item_events (
     id             INTEGER PRIMARY KEY AUTOINCREMENT,
     item_id        INTEGER,

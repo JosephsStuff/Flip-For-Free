@@ -17,7 +17,8 @@ from common import (PERIODS, closed_guard, closed_years, login_required, parse_f
                     period_range, sales_where, tax_year_label, tax_year_of)
 from db import Settings, add_event, connect, now_iso, write_lock
 
-CHANNELS = ["eBay", "Vinted", "Facebook Marketplace", "Depop", "Etsy", "Amazon", "Gumtree", "Market stall",
+CHANNELS = ["eBay", "Vinted", "CardTrader", "Shopify", "Facebook Marketplace", "Depop", "Etsy", "Amazon", "Gumtree",
+            "Market stall",
             "Car boot", "In person", "Other"]
 
 
@@ -394,8 +395,8 @@ def register(app):  # noqa: C901  (one place to see every route)
         try:
             row = None
             if line_id:
-                row = conn.execute("SELECT * FROM sales WHERE line_item_id=? AND source='manual'",
-                                   (line_id,)).fetchone()
+                row = conn.execute("SELECT * FROM sales WHERE line_item_id=? AND source IN "
+                                   "('manual', 'cardtrader', 'shopify')", (line_id,)).fetchone()
                 if not row:
                     abort(404)
             if request.method == "POST":
@@ -441,8 +442,9 @@ def register(app):  # noqa: C901  (one place to see every route)
                     conn.commit()
                 note = ""
                 if not row and item_id and f.get("update_ebay"):
-                    import crosslist
-                    note = crosslist.take_off_ebay(conn, item_id, vals["quantity"], vals["channel"])
+                    import stores
+                    note = stores.propagate_sale(conn, lid, item_id, vals["quantity"], vals["channel"])
+                    note = ("Also: " + note + ".") if note else ""
                     if vals["channel"] == "Vinted":
                         with write_lock():
                             conn.execute("UPDATE items SET vinted_listed_at=NULL, vinted_url=NULL WHERE id=? AND "
@@ -454,8 +456,11 @@ def register(app):  # noqa: C901  (one place to see every route)
             items = load_items(conn, "i.archived = 0")
             items = [i for i in items if i["status"] != "sold" or (row and i["id"] == row["item_id"])]
             ebay_stock = {str(r[0]): r[1] for r in conn.execute(
-                """SELECT item_id, SUM(COALESCE(quantity_available, 0)) FROM listings
-                   WHERE status='active' AND item_id IS NOT NULL GROUP BY item_id HAVING SUM(quantity_available) > 0""")}
+                """SELECT item_id, SUM(q) FROM (
+                       SELECT item_id, COALESCE(quantity_available, 0) AS q FROM listings
+                        WHERE status='active' AND item_id IS NOT NULL
+                       UNION ALL SELECT item_id, COALESCE(quantity, 0) FROM channel_listings WHERE status='active')
+                   GROUP BY item_id HAVING SUM(q) > 0""")}
         finally:
             conn.close()
         return render_template("manual_sale.html", row=dict(row) if row else None, items=items, ebay_stock=ebay_stock,

@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% block title %}CardTrader · {{ it.title }}{% endblock %}
+{% block content %}
+<p class="crumbs"><a href="{{ url_for('item_detail', item_id=it.id) }}">← {{ it.title }}</a></p>
+<h1>List on CardTrader</h1>
+{% if not connected %}
+  <section class="card center"><p>CardTrader isn't connected yet.</p>
+    <a class="btn" href="{{ url_for('shops_settings') }}">Connect CardTrader</a></section>
+{% else %}
+{% if error %}<div class="flash warn">{{ icon('alert') }} {{ error }}</div>{% endif %}
+
+{% if listings %}
+<section class="card">
+  <h2>On CardTrader now</h2>
+  <div class="tablewrap"><table class="data">
+    <thead><tr><th>Card</th><th class="num">Price ({{ listings[0].currency or '' }})</th><th class="num">Quantity</th><th></th></tr></thead>
+    <tbody>{% for L in listings %}
+      <tr><td class="title">{{ L.title }}</td>
+        <td colspan="3"><form method="post" class="inline-form" style="justify-content:flex-end">
+          <input type="hidden" name="listing_id" value="{{ L.id }}">
+          <input name="price" class="money" inputmode="decimal" value="{{ '%.2f'|format(L.price or 0) }}" style="max-width:110px" aria-label="Price">
+          <input name="quantity" inputmode="numeric" value="{{ L.quantity }}" style="max-width:80px" aria-label="Quantity">
+          <button class="btn small" name="action" value="update">Save</button>
+          <button class="btn small danger" name="action" value="remove" onclick="return confirm('Remove this listing from CardTrader?')">Remove</button>
+        </form></td></tr>{% endfor %}</tbody></table></div>
+</section>
+{% endif %}
+
+<section class="card">
+  <h2>1. Find the card</h2>
+  <form method="get" class="grid3">
+    <label>Game<select name="game" onchange="this.form.expansion.value='';this.form.submit()">{% for g in games %}<option value="{{ g.id }}" {{ 'selected' if g.id == game_id }}>{{ g.display_name or g.name }}</option>{% endfor %}</select></label>
+    <label>Set<select name="expansion"><option value="">Choose a set…</option>{% for x in expansions %}<option value="{{ x.id }}" {{ 'selected' if x.id == expansion_id }}>{{ x.name }}{% if x.code %} ({{ x.code|upper }}){% endif %}</option>{% endfor %}</select></label>
+    <label>Card name contains<input name="q" value="{{ q }}" placeholder="optional"></label>
+    <div class="span3"><button class="btn ghost">Search</button>
+      {% if code %}<span class="muted small">Set code from the title: <b>{{ code }}</b>{% if number %}, card {{ number }}{% endif %}.</span>{% endif %}</div>
+  </form>
+  {% if candidates %}
+    <div class="bpgrid">{% for b in candidates %}
+      <a class="bp {{ 'on' if chosen and chosen.id == b.id }}" href="?game={{ game_id }}&expansion={{ expansion_id }}&q={{ q|urlencode }}&blueprint={{ b.id }}#price">
+        {% if b.image_url %}<img src="{{ b.image_url if b.image_url.startswith('http') else 'https://www.cardtrader.com' ~ b.image_url }}" alt="" loading="lazy" referrerpolicy="no-referrer">{% endif %}
+        <span>{{ b.name }}{% if b.version %} <span class="muted">({{ b.version }})</span>{% endif %}</span></a>{% endfor %}</div>
+  {% elif expansion_id %}<p class="muted">No cards in that set match. Try another name or set.</p>
+  {% else %}<p class="muted">Choose the set the card is from. Titles with a set code like LOB-124 are matched automatically.</p>{% endif %}
+</section>
+
+{% if chosen %}
+<section class="card" id="price">
+  <h2>2. Condition, price and quantity</h2>
+  <form method="post" class="grid3">
+    <input type="hidden" name="action" value="create">
+    <input type="hidden" name="blueprint_id" value="{{ chosen.id }}">
+    <input type="hidden" name="card_name" value="{{ chosen.name }}">
+    <input type="hidden" name="currency" value="{{ currency or '' }}">
+    <p class="span3"><b>{{ chosen.name }}</b>{% if chosen.version %} ({{ chosen.version }}){% endif %}</p>
+    {% for p in props %}
+      {% if p.type == 'boolean' %}
+        <label class="check"><input type="hidden" name="prop_{{ p.name }}" value="false"><input type="checkbox" name="prop_{{ p.name }}" value="true"> {{ p.name|replace('_', ' ')|capitalize }}</label>
+      {% elif p.possible_values %}
+        <label>{{ p.name|replace('_', ' ')|capitalize }}<select name="prop_{{ p.name }}"><option value="">—</option>{% for v in p.possible_values %}<option {{ 'selected' if (p.name == 'condition' and v == 'Near Mint') or (p.name.endswith('language') and v == 'en') }}>{{ v }}</option>{% endfor %}</select></label>
+      {% endif %}
+    {% endfor %}
+    <label>Price{% if currency %} ({{ currency }}){% endif %}<input name="price" class="money" inputmode="decimal" required value="{{ '%.2f'|format(suggested) if suggested else '' }}">
+      {% if suggested %}<small class="muted">Your eBay price ({{ ebay_price|gbp }}) in {{ currency }}</small>{% endif %}</label>
+    <label>Quantity<input name="quantity" inputmode="numeric" value="{{ stock_left or 1 }}"></label>
+    <label class="span3">Description <small class="muted">(optional, shown to buyers)</small><input name="description" maxlength="250"></label>
+    <div class="span3"><button class="btn">List on CardTrader</button></div>
+  </form>
+  {% if market %}
+  <h3>Cheapest on CardTrader now</h3>
+  <div class="tablewrap"><table class="data compact">
+    <thead><tr><th class="num">Price</th><th>Condition</th><th>Language</th><th class="num">Qty</th><th>Seller</th></tr></thead>
+    <tbody>{% for m in market %}<tr><td class="num">{{ '%.2f'|format(m.price) }} {{ m.currency or '' }}</td>
+      <td>{{ m.props.get('condition', '—') }}</td><td>{% for k, v in m.props.items() if k.endswith('language') %}{{ v }}{% endfor %}</td>
+      <td class="num">{{ m.qty }}</td><td class="muted">{{ m.seller or '' }}</td></tr>{% endfor %}</tbody></table></div>
+  {% endif %}
+</section>
+{% endif %}
+{% endif %}
+{% endblock %}

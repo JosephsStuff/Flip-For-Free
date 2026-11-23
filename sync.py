@@ -129,6 +129,14 @@ def run_sync(full: bool = False) -> dict:
         link_sales_to_items(conn)
         detect_issues(conn)
         conn.commit()
+        STATUS.update(message="Checking your other shops...", progress="")
+        try:
+            import stores
+            result["stores"] = stores.sync_stores(conn)
+        except Exception as e:  # noqa: BLE001 - other shops must never break the eBay sync
+            import errors
+            errors.record("Other shops sync", e)
+            result["stores"] = f"Other shops failed: {e}"
         try:
             import features2
             features2.monthly_recap(conn)
@@ -137,6 +145,8 @@ def run_sync(full: bool = False) -> dict:
 
         msg = (f"{result['orders']} orders, {result['transactions']} money transactions, "
                f"{result.get('listings', 0)} active listings synced.")
+        if result.get("stores"):
+            msg += " Other shops: " + result["stores"][:200] + "."
         if result.get("listings_error"):
             msg += " Listings failed: " + result["listings_error"][:200]
         if result["finances_error"]:

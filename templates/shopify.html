@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}Shopify · {{ it.title }}{% endblock %}
+{% block content %}
+<p class="crumbs"><a href="{{ url_for('item_detail', item_id=it.id) }}">← {{ it.title }}</a></p>
+<h1>Shopify</h1>
+{% if not connected %}
+  <section class="card center"><p>Shopify isn't connected yet.</p>
+    <a class="btn" href="{{ url_for('shops_settings') }}">Connect Shopify</a></section>
+{% else %}
+{% if error %}<div class="flash warn">{{ icon('alert') }} Couldn't load the eBay listing ({{ error }}), so the form starts from the item instead.</div>{% endif %}
+
+{% if listings %}
+<section class="card">
+  <h2>In your Shopify store</h2>
+  <div class="tablewrap"><table class="data">
+    <thead><tr><th>Product</th><th>Status</th><th></th></tr></thead>
+    <tbody>{% for L in listings %}
+      <tr><td class="title">{% if L.url %}<a href="{{ L.url }}" target="_blank" rel="noopener noreferrer">{{ L.title }} ↗</a>{% else %}{{ L.title }}{% endif %}</td>
+        <td><span class="pill">{{ L.status }}</span></td>
+        <td><form method="post" class="inline-form" style="justify-content:flex-end; flex-wrap:wrap">
+          <input type="hidden" name="listing_id" value="{{ L.id }}">
+          <input name="price" class="money" inputmode="decimal" value="{{ '%.2f'|format(L.price or 0) }}" style="max-width:110px" aria-label="Price">
+          <input name="quantity" inputmode="numeric" value="{{ L.quantity }}" style="max-width:80px" aria-label="Quantity">
+          <button class="btn small" name="action" value="update">Save</button>
+          {% if L.status == 'draft' %}<button class="btn small ghost" name="action" value="activate">Make live</button>
+          {% else %}<button class="btn small ghost" name="action" value="draft">Hide (draft)</button>{% endif %}
+          <button class="btn small danger" name="action" value="remove" onclick="return confirm('Delete this product from Shopify?')">Delete</button>
+        </form></td></tr>{% endfor %}</tbody></table></div>
+</section>
+{% endif %}
+
+<section class="card">
+  <h2>Add to Shopify</h2>
+  {% if not c.shopify_location_id %}<div class="flash warn">{{ icon('alert') }} Choose where stock is kept in <a href="{{ url_for('shops_settings') }}?locations=1">Settings → Other shops</a> first.</div>{% endif %}
+  <form method="post" class="stack">
+    <input type="hidden" name="action" value="create">
+    <label>Title<input name="title" value="{{ title }}" required></label>
+    <div class="grid3">
+      <label>Price ({{ c.shopify_currency }})<input name="price" class="money" inputmode="decimal" value="{{ '%.2f'|format(price) if price else '' }}" required></label>
+      <label>Quantity<input name="quantity" inputmode="numeric" value="{{ stock_left or 1 }}"></label>
+      <label>SKU<input name="sku" value="{{ it.sku or '' }}"></label>
+    </div>
+    <label>Description <small class="muted">(from the eBay listing, as simple HTML)</small>
+      <textarea name="description_html" rows="8">{{ description_html }}</textarea></label>
+    {% if pictures %}<fieldset class="stack" style="border:0;padding:0;margin:0"><legend class="muted small">Photos (Shopify copies them from eBay)</legend>
+      <div class="photostrip">{% for p in pictures[:10] %}<label class="photo-pick"><input type="checkbox" name="image" value="{{ p }}" checked><img src="{{ p }}" alt="Photo {{ loop.index }}" referrerpolicy="no-referrer" loading="lazy"></label>{% endfor %}</div></fieldset>{% endif %}
+    <label class="check"><input type="checkbox" name="draft" value="1"> Add as a draft (not visible in the store yet)</label>
+    <div><button class="btn" {{ 'disabled' if not c.shopify_location_id }}>Add to Shopify</button></div>
+  </form>
+</section>
+{% endif %}
+{% endblock %}

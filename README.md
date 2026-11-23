@@ -48,6 +48,14 @@
   price that keeps the same take-home and its photos (as a zip), ready to paste into the Vinted app. Mark it as listed
   on Vinted and you're reminded to take it down there if it sells on eBay. Flip never signs in to or posts on Vinted:
   Vinted's terms only allow its own Pro API (for invited sellers) to do that.
+- **CardTrader**: list a card from your inventory on CardTrader. Flip reads the set code in the title (LOB-124,
+  SDY-006…) to find the right card in CardTrader's catalogue, shows the cheapest listings in the same condition, and
+  fills in CardTrader's own fields (condition, language, 1st edition…). CardTrader orders come in as sales, converted
+  to pounds at the European Central Bank's daily rate.
+- **Shopify**: turn an item into a Shopify product (title, description, price, stock, eBay photos) and bring Shopify
+  orders in as sales. Connects with an app from Shopify's Dev Dashboard.
+- **Stock kept in step**: when something sells on eBay, CardTrader, Shopify or anywhere you record, that quantity is
+  taken off its listings on the other shops, once per sale.
 - **Sales elsewhere update eBay**: when you record a sale from Vinted or anywhere else, Flip can lower the item's eBay
   listing quantity, or end it if none are left, so it can't sell twice.
 - Sold price history for everything you've sold.
