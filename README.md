@@ -4,8 +4,6 @@
 
 **Website:** https://josephsstuff.github.io/Flip-For-Free/
 
-A local web app that signs in with your eBay account, pulls in everything you've sold, takes off every eBay deduction, and shows what you actually made. It also tracks profit per item and per bulk buy.
-
 ## What it does
 **Sync with eBay** (sign in with your own eBay developer keys; nothing goes through anyone else)
 - Pulls in sold orders, active listings and every fee, refund, postage label and ad charge. The first sync goes back 2 years.
