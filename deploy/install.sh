@@ -5,6 +5,9 @@
 set -euo pipefail
 
 REPO_URL="${FLIP_REPO:-https://github.com/JosephsStuff/flip-for-free.git}"
+# Wait for Ubuntu's own first-boot updates instead of failing on the package lock; never ask questions.
+export DEBIAN_FRONTEND=noninteractive NEEDRESTART_MODE=a
+APT="env DEBIAN_FRONTEND=noninteractive NEEDRESTART_MODE=a apt-get -o DPkg::Lock::Timeout=600"
 DATA_DIR="${FLIP_DATA_DIR:-$HOME/flip-data}"
 
 # Run straight from GitHub (curl … | bash) or from an unzipped copy.
@@ -13,7 +16,7 @@ if [ -n "$SCRIPT_DIR" ] && [ -f "$SCRIPT_DIR/../app.py" ]; then
   APP_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 else
   APP_DIR="$HOME/flip-for-free"
-  sudo apt-get update -qq && sudo apt-get install -y -qq git >/dev/null
+  sudo $APT update -qq && sudo $APT install -y -qq git >/dev/null
   if [ -d "$APP_DIR/.git" ]; then git -C "$APP_DIR" pull --ff-only; else git clone "$REPO_URL" "$APP_DIR"; fi
 fi
 USER_NAME="$(id -un)"
@@ -22,8 +25,8 @@ PORT=8765
 say() { printf '\n\033[1;32m==> %s\033[0m\n' "$*"; }
 
 say "Installing system packages"
-sudo apt-get update -qq
-sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -qq python3 python3-venv python3-pip git curl unzip >/dev/null
+sudo $APT update -qq
+sudo $APT install -y -qq python3 python3-venv python3-pip git curl unzip >/dev/null
 
 say "Setting up Python environment"
 python3 -m venv "$APP_DIR/.venv"
