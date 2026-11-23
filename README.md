@@ -2,7 +2,7 @@
 
 **Flip for Free** is a free eBay profit tracker for UK resellers. It signs in with your own eBay keys, takes off every eBay fee, postage label and packing cost, tracks bulk buys and time to sell, relists and reprices for you, and gives you UK Self Assessment figures. It runs on your PC, a free Oracle server or Docker.
 
-**Website:** https://josephsstuff.github.io/Flip-For-Free/
+**Website:** https://josephsstuff.github.io/Flip-For-Free/ · [Install guide](https://josephsstuff.github.io/Flip-For-Free/install.html) · [API](https://josephsstuff.github.io/Flip-For-Free/api.html) · [How it works](https://josephsstuff.github.io/Flip-For-Free/how-it-works.html) · [Contributing](CONTRIBUTING.md) · [Design decisions](docs/adr/README.md)
 
 ## What it does
 **Sync with eBay** (sign in with your own eBay developer keys; nothing goes through anyone else)

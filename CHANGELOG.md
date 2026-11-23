@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.7.4
+- Docs for contributors: CONTRIBUTING.md (run, test, where things are, how the docs site is generated) and seven
+  architecture decision records in docs/adr explaining why Flip works the way it does.
+
 ## 1.7.3
 - Accessibility: every page now passes an automated WCAG 2.1 AA check (axe-core) in light and dark mode, down from
   over 600 issues. Every checkbox, dropdown and text box has a name a screen reader can read ("Select Blue-Eyes White
