@@ -1,10 +1,10 @@
 <!doctype html>
-<html lang="en" data-type="software" data-radius="soft" data-ground="painting" data-buttons="arrow" data-motion>
+<html lang="en-GB">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Flip for Free – free eBay profit tracker for UK sellers</title>
-<meta name="description" content="Flip for Free is a free eBay profit tracker for UK sellers: every fee taken off, bulk buys, auto relisting, UK Self Assessment figures. Runs on your PC or a free server.">
+<meta name="description" content="Flip for Free is a free eBay profit tracker for UK sellers: every fee taken off, bulk buys, auto relisting, CardTrader and Shopify, UK Self Assessment figures. Runs on your PC or a free server.">
 <meta property="og:type" content="website">
 <meta property="og:title" content="Flip for Free – free eBay profit tracker for UK sellers">
 <meta property="og:description" content="Every eBay fee taken off, bulk buys, auto relisting and UK tax figures. Free.">
@@ -15,608 +15,207 @@
 <meta property="og:url" content="https://josephsstuff.github.io/Flip-For-Free/">
 <meta property="og:site_name" content="Flip for Free">
 <meta property="og:locale" content="en_GB">
+<meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Flip for Free – free eBay profit tracker for UK sellers">
-<meta name="twitter:description" content="Flip for Free is a free eBay profit tracker for UK sellers: every fee taken off, bulk buys, auto relisting, UK Self Assessment figures. Runs on your PC or a free server.">
+<meta name="twitter:description" content="Every eBay fee taken off, bulk buys, auto relisting and UK tax figures. Free.">
 <meta name="twitter:image" content="https://josephsstuff.github.io/Flip-For-Free/share.jpg">
 <meta name="robots" content="index, follow, max-image-preview:large">
-<meta name="keywords" content="Flip for Free, eBay profit tracker, eBay fee calculator, reseller profit tracker, eBay UK, bulk buy tracker, eBay relist, Self Assessment eBay, free reselling software">
+<meta name="keywords" content="Flip for Free, eBay profit tracker, eBay fee calculator, reseller profit tracker, eBay UK, bulk buy tracker, eBay relist, CardTrader, Self Assessment eBay, free reselling software">
+<meta name="theme-color" content="#1d2321">
+<link rel="canonical" href="https://josephsstuff.github.io/Flip-For-Free/">
 <link rel="sitemap" type="application/xml" href="sitemap.xml">
-<meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
-<meta name="theme-color" content="#2b2f2d">
-<link rel="canonical" href="https://josephsstuff.github.io/Flip-For-Free/">
-<meta name="site-kind" content="software">
-<meta name="page-type" content="software">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Funnel+Display:wght@400..700&family=Funnel+Sans:wght@400..600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/system.css">
-<link rel="stylesheet" href="assets/ui/cards.css">
-<link rel="stylesheet" href="assets/motion/motion.css">
-<link rel="stylesheet" href="assets/backgrounds/backgrounds.css">
-<link rel="stylesheet" href="assets/layout/layout.css">
-<link rel="stylesheet" href="assets/icons/icon.css">
-<style>
-:root {
-  --p-bg: #2b2f2d; --p-surface: #343937; --p-ink: #f2f4f3; --p-muted: #bcc0be;
-  --p-accent: #3ecf8e; --p-accent-ink: #2b2f2d; --p-action: #3ecf8e; --p-action-ink: #2b2f2d;
-  --p-inv-bg: #f2f4f3; --p-inv-surface: #e2e5e4; --p-inv-ink: #2b2f2d; --p-inv-muted: #606362;
-  --p-inv-accent: #2b2f2d; --p-inv-accent-ink: #f2f4f3; --p-inv-action: #2b2f2d; --p-inv-action-ink: #f2f4f3;
-  --font-display: "Funnel Display", system-ui, sans-serif;
-  --font-text: "Funnel Sans", system-ui, sans-serif;
-  --font-mono: "DM Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
-  --display-weight: 400;
-  --display-tracking: -0.03em;
-  --display-tracking-xl: -0.04em;
-  --ly-scale: 0.98;
-}
-</style>
-<link rel="stylesheet" href="assets/ui/base.css">
-<link rel="stylesheet" href="assets/ui/terminal-run/fragment.css">
-<link rel="stylesheet" href="assets/ui/window/fragment.css">
-<link rel="stylesheet" href="assets/ui/stat/fragment.css">
-<link rel="stylesheet" href="assets/ui/checklist/fragment.css">
-<link rel="stylesheet" href="assets/ui/toggles/fragment.css">
-<link rel="stylesheet" href="assets/ui/chat/fragment.css">
-<link rel="stylesheet" href="assets/ui/calendar/fragment.css">
-<link rel="modulepreload" href="assets/moments/moments.js">
-<link rel="modulepreload" href="assets/moments/lib.js">
-<link rel="modulepreload" href="assets/moments/word-highlight/moment.js">
-<script>document.documentElement.classList.add('m-enter');setTimeout(()=>document.documentElement.classList.add('m-enter-done'),700)</script>
-<script src="assets/backgrounds/backgrounds.js"></script>
-<script>document.documentElement.classList.add('mo-js');setTimeout(()=>document.documentElement.classList.add('mo-safe'),2500)</script>
-<!-- page CSS: only inside visuals, and one --p-h per card group -->
-<style>
-  /* the hero frame's painted ground when WebGL is not there */
-  .hero__window { background:
-    radial-gradient(120% 60% at 70% 118%, #6f7f3a 0 40%, transparent 41%),
-    radial-gradient(90% 50% at 10% 108%, #57703f 0 42%, transparent 43%),
-    radial-gradient(80% 40% at 60% 92%, #9fb2c4 0 40%, transparent 41%),
-    linear-gradient(#5f93cc, #a9c7e4 70%, #c8d6dd); }
-  .hero__window .ly-piece { width: min(640px, calc(100% - 32px)); }
-  .hero__window .ui-win { width: 100%; --fx-bg: #ffffff; --fx-surface: #f3f4f3; --fx-ink: #1c1f1e; --fx-muted: #5f6562; --fx-accent: #3ecf8e; --fx-accent-ink: #0d2419; }
-  @media (max-width: 639px) { .hero__window .ui-win__side, .hero__window .ui-win__cols span:nth-child(4), .hero__window .ui-win__age { display: none; } .hero__window .ui-win__body { grid-template-columns: minmax(0, 1fr); } }
-  #install .ui-term { --fx-bg: #161918; --fx-surface: #1f2321; --fx-ink: #e9ecee; --fx-muted: #9aa0a6; --fx-accent: #3ecf8e; }
-  #install .panel { --p-h: 280px; }
-  #install .panel .cmd { position: absolute; inset: 32px 24px auto 24px; }
-  @media (max-width: 639px) { #install .panel .cmd { inset: 16px 16px auto 16px; } }
-  #features .panel { --p-h: 340px; }
-  #claude .frame--wide { height: 520px; background: var(--ground-bg); }
-  @media (max-width: 639px) { #claude .frame--wide { height: 460px; } }
-  :is(#fees, #tax) .frame--split { background: var(--ground-bg); }
-  #tax .frame--split { min-height: 560px; }
-  .hero__window .ui-term { width: 100%; --fx-bg: #161918; --fx-surface: #1f2321; --fx-ink: #e9ecee; --fx-muted: #9aa0a6; --fx-accent: #3ecf8e; --fx-accent-ink: #0d2419; }
-  .hero__window .ly-piece { --fx-bg: #161918; --fx-surface: #1f2321; --fx-ink: #e9ecee; --fx-muted: #9aa0a6; --fx-accent: #3ecf8e; }
-
-  /* app-frame (sections-library.md, app-frame) */
-  .app.ui { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); margin-top: var(--s-7); background: var(--u-bg); border: 1px solid var(--u-border); border-radius: var(--u-r); box-shadow: var(--u-shadow); }
-  .app > .app__pane { position: relative; min-width: 0; min-height: 0; overflow: hidden; }
-  .app > .app__pane + .app__pane { border-left: 1px solid var(--u-line); }
-  .app > .app__pane > .ui-panel { width: 100%; border: 0; border-radius: 0; box-shadow: none; }
-  .app > .app__pane::after { content: ""; position: absolute; inset: auto 0 0 0; height: 64px; background: linear-gradient(transparent, var(--u-bg)); pointer-events: none; }
-  @media (min-width: 1024px) and (max-width: 1279px) { .app.ui { grid-template-columns: minmax(0, 4fr) minmax(0, 8fr); } }
-  @media (max-width: 1023px) {
-    .app.ui { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); }
-    .app > .app__pane--list { max-height: 252px; }
-    .app > .app__pane--list::after { display: none; }
-    .app .ui-win__side { display: none; }
-    .app .ui-win__body { grid-template-columns: minmax(0, 1fr); }
-    .app > .app__pane + .app__pane { border-left: 0; border-top: 1px solid var(--u-line); }
-  }
-  @media (max-width: 639px) {
-    .app.ui { grid-template-rows: minmax(0, 1fr); }
-    .app > .app__pane--list { display: none; }
-    .app > .app__pane + .app__pane { border-top: 0; }
-  }
-  .app__pane--open { padding: var(--s-6); display: grid; align-content: start; gap: var(--s-5); }
-  .app__pane--open > .ui-stat { border: 1px solid var(--u-line); }
-
-  /* the command panels: the real commands, selectable and copyable, drawn as a terminal */
-  .cmd { background: #0e100f; color: #e9ecee; border: 1px solid rgb(255 255 255 / .08); border-radius: 12px; overflow: hidden; font: 400 14px/1.6 var(--font-mono); }
-  .cmd__bar { display: flex; align-items: center; gap: var(--s-3); padding: 0 var(--s-2) 0 var(--s-4); min-height: 48px; border-bottom: 1px solid rgb(255 255 255 / .07); color: #9aa0a6; font: 500 13px/1 var(--font-text); }
-  .cmd__bar .ui-dots { margin-right: var(--s-2); }
-  .cmd__bar span.sp { flex: 1; }
-  .cmd__copy { min-height: 44px; min-width: 64px; padding: 0 var(--s-4); border: 0; border-radius: 8px; background: rgb(255 255 255 / .08); color: #e9ecee; font: 500 13px/1 var(--font-text); cursor: pointer; }
-  .cmd__copy:hover { background: rgb(255 255 255 / .14); }
-  .cmd pre { margin: 0; padding: var(--s-5); white-space: pre-wrap; overflow-wrap: anywhere; }
-  .cmd pre .c { color: #a9aeab; }
-  .cmd pre .p { color: var(--p-accent); user-select: none; }
-  .cmd + .cmd { margin-top: var(--s-5); }
-  .cmd { min-width: 0; max-width: 100%; }
-  .grid > [class*="span-"] { min-width: 0; }
-  .rows__value { min-width: 0; overflow-wrap: anywhere; text-align: right; }
-  .app__pane--open > .ui-stat { min-width: 0; width: 100%; max-width: 420px; }
-  .app.ui { --fx-bg: #ffffff; --fx-surface: #f3f4f3; --fx-ink: #1c1f1e; --fx-muted: #5f6562; --fx-accent: #3ecf8e; --fx-accent-ink: #0d2419; }
-  :is(#ebay, #install) .frame--split { background: var(--ground-bg); }
-  @media (max-width: 639px) { .app__pane--open { padding: var(--s-4); } .ui-stat__range { display: none; } }
-  .frame--split .cmd { position: absolute; left: 32px; right: 32px; top: 40px; }
-  @media (max-width: 639px) { .frame--split .cmd { left: 16px; right: 16px; top: 24px; } .cmd { font-size: 13px; } }
-
-  #server .panel { --p-h: 300px; }
-  #connect .panel { --p-h: 340px; }
-  @media (max-width: 639px) { #server .panel { --p-h: 220px; } #server .card:nth-child(3) .panel { --p-h: 300px; } #connect .panel { --p-h: 260px; } }
-  :is(#connect, #server) .panel .cmd { position: absolute; inset: 32px 24px auto 24px; }
-  @media (max-width: 639px) { :is(#connect, #server) .panel .cmd { inset: 16px 16px auto 16px; } }
-  #server .panel .cmd pre { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 13px; }
-  .panel .ic-big { position: absolute; inset: 0; display: grid; place-items: center; }
-  .panel .ic-big .ic-tile { transform: scale(2.2); }
-  .ic-row { position: absolute; inset: 0; display: flex; flex-wrap: wrap; align-content: center; justify-content: center; gap: var(--s-5); padding: var(--s-6); }
-  .ic-row .ic-tile { transform: scale(1.4); margin: var(--s-3); }
-  #install .costs { margin-top: var(--s-8); }
-  .panel.panel--cmd { height: auto; padding: var(--s-7) var(--s-6); }
-  @media (max-width: 639px) { .panel.panel--cmd { padding: var(--s-5) var(--s-4); } }
-  #connect .panel { background: var(--ground-surface); }
-  .brand-mark { width: 32px; height: 32px; margin-right: var(--s-2); }
-</style>
-<script type="application/ld+json">
-{
- "@context": "https://schema.org",
- "@graph": [
-  {
-   "@type": "WebSite",
-   "@id": "https://josephsstuff.github.io/Flip-For-Free/#website",
-   "url": "https://josephsstuff.github.io/Flip-For-Free/",
-   "name": "Flip for Free",
-   "alternateName": [
-    "FlipForFree",
-    "Flip for Free eBay profit tracker"
-   ],
-   "inLanguage": "en-GB"
-  },
-  {
-   "@type": "SoftwareApplication",
-   "@id": "https://josephsstuff.github.io/Flip-For-Free/#app",
-   "name": "Flip for Free",
-   "url": "https://josephsstuff.github.io/Flip-For-Free/",
-   "description": "Free eBay profit tracker for UK sellers. Takes off every eBay fee and cost, tracks bulk buys and time to sell, relists and reprices automatically, and gives UK Self Assessment figures. Runs on your PC, a free Oracle server or Docker.",
-   "applicationCategory": "BusinessApplication",
-   "applicationSubCategory": "Reselling and eBay profit tracking",
-   "operatingSystem": "Windows, macOS, Linux, Docker",
-   "softwareVersion": "1.4.0",
-   "offers": {
-    "@type": "Offer",
-    "price": "0",
-    "priceCurrency": "GBP"
-   },
-   "image": "https://josephsstuff.github.io/Flip-For-Free/share.jpg",
-   "downloadUrl": "https://github.com/JosephsStuff/Flip-For-Free",
-   "codeRepository": "https://github.com/JosephsStuff/Flip-For-Free",
-   "license": "https://github.com/JosephsStuff/Flip-For-Free/blob/main/LICENSE",
-   "featureList": [
-    "Every eBay fee, postage label and promoted listing taken off",
-    "Bulk buy cost tracking",
-    "Time to sell",
-    "Automatic relisting, repricing and promotion",
-    "Sale alerts with storage location",
-    "UK Self Assessment SA103S figures",
-    "Mileage from dispatch dates",
-    "Claude connector and API"
-   ]
-  },
-  {
-   "@type": "FAQPage",
-   "mainEntity": [
-    {
-     "@type": "Question",
-     "name": "Is Flip for Free really free?",
-     "acceptedAnswer": {
-      "@type": "Answer",
-      "text": "Yes, including for your own reselling business. Only selling, rebranding or hosting it as a competing product needs a commercial licence."
-     }
-    },
-    {
-     "@type": "Question",
-     "name": "Where is my Flip for Free data kept?",
-     "acceptedAnswer": {
-      "@type": "Answer",
-      "text": "In one database file in a folder you choose, such as Google Drive. You can download a copy from Settings at any time."
-     }
-    },
-    {
-     "@type": "Question",
-     "name": "Does Flip for Free see my eBay password?",
-     "acceptedAnswer": {
-      "@type": "Answer",
-      "text": "No. You sign in on eBay's own page with your own free eBay developer keys, and the app gets a token it can renew."
-     }
-    },
-    {
-     "@type": "Question",
-     "name": "How do Flip for Free updates work?",
-     "acceptedAnswer": {
-      "@type": "Answer",
-      "text": "Settings, Updates installs the newest version from GitHub after backing up your database, or does it automatically each day."
-     }
-    }
-   ]
-  }
- ]
-}
-</script>
+<link rel="preload" as="image" href="shots/dashboard.webp">
+<link rel="stylesheet" href="landing.css">
+<script type="application/ld+json">{"@context": "https://schema.org", "@graph": [{"@type": "WebSite", "@id": "https://josephsstuff.github.io/Flip-For-Free/#website", "url": "https://josephsstuff.github.io/Flip-For-Free/", "name": "Flip for Free", "alternateName": ["FlipForFree", "Flip for Free eBay profit tracker"], "inLanguage": "en-GB"}, {"@type": "SoftwareApplication", "@id": "https://josephsstuff.github.io/Flip-For-Free/#app", "name": "Flip for Free", "url": "https://josephsstuff.github.io/Flip-For-Free/", "description": "Free eBay profit tracker for UK sellers. Takes off every eBay fee and cost, tracks bulk buys and time to sell, relists automatically, lists on CardTrader and Shopify, keeps stock in step, and prepares UK Self Assessment figures. Runs on your computer or a free server.", "applicationCategory": "BusinessApplication", "applicationSubCategory": "Reselling and eBay profit tracking", "operatingSystem": "Windows, macOS, Linux, Docker", "softwareVersion": "1.4.0", "offers": {"@type": "Offer", "price": "0", "priceCurrency": "GBP"}, "image": "https://josephsstuff.github.io/Flip-For-Free/share.jpg", "downloadUrl": "https://github.com/JosephsStuff/Flip-For-Free", "codeRepository": "https://github.com/JosephsStuff/Flip-For-Free", "license": "https://github.com/JosephsStuff/Flip-For-Free/blob/main/LICENSE", "featureList": ["Every eBay fee, postage label and promoted listing taken off", "Bulk buy cost tracking", "Time to sell", "Automatic relisting, repricing and promotion", "Sale alerts with storage location", "UK Self Assessment SA103S figures", "Mileage from dispatch dates", "Claude connector and API"]}, {"@type": "FAQPage", "@id": "https://josephsstuff.github.io/Flip-For-Free/#faq", "mainEntity": [{"@type": "Question", "name": "Is Flip for Free really free?", "acceptedAnswer": {"@type": "Answer", "text": "Yes. It's free for your own selling, on your own computer or a free server. You only pay if you sell Flip for Free itself as a product."}}, {"@type": "Question", "name": "Do I need an eBay developer account?", "acceptedAnswer": {"@type": "Answer", "text": "Yes, a free one. Register at developer.ebay.com; eBay approves new accounts in about a day. You then create your own keys, so nobody else has access to your eBay account."}}, {"@type": "Question", "name": "How does it work out the true profit?", "acceptedAnswer": {"@type": "Answer", "text": "It reads eBay's own money records for each order (fees, ads, postage labels, refunds, regulatory fees) and matches them to the penny, then takes off your postage, packaging and what you paid."}}, {"@type": "Question", "name": "Does it work with Vinted?", "acceptedAnswer": {"@type": "Answer", "text": "Vinted doesn't allow other tools to post for you, so Flip prepares the title, description, price and photos for you to paste in, and reminds you to take the listing down if it sells on eBay."}}, {"@type": "Question", "name": "Can I use it on my phone?", "acceptedAnswer": {"@type": "Answer", "text": "Yes. Pair your phone on your home Wi-Fi, or run Flip for Free on a free Oracle Cloud server and open it anywhere privately with Tailscale."}}, {"@type": "Question", "name": "Where is my data kept?", "acceptedAnswer": {"@type": "Answer", "text": "In one database file in a folder you choose, such as Google Drive. Nothing is sent to us; there is no 'us' server."}}, {"@type": "Question", "name": "Does it do my tax return?", "acceptedAnswer": {"@type": "Answer", "text": "It prepares the figures for the Self Assessment self-employment pages, box by box, with checks for missing data. It's a record-keeping helper, not tax advice."}}, {"@type": "Question", "name": "Can Claude use it?", "acceptedAnswer": {"@type": "Answer", "text": "Yes. It has a Claude connector and a full JSON API, so you can say things like 'log a £60 binder of 40 cards from the car boot'."}}]}]}</script>
 </head>
 <body>
-<!-- type: software (a free eBay profit tracker for UK sellers; this is its homepage, the Oracle guide is oracle.html)
-     deal: hero centred, nav centre (nav-cards dealt; no photographs to put in its cards, so dealt again from the list: nav-centre),
-           close close-type, footer footer-columns, rhythm surface-pairs, buttons arrow, mark wordmark,
-           palette: the client's own colours through start.mjs brand (mint #3ECF8E on grey #2B2F2D, from the new Flip for Free logo; the dealt soot-pale-lime clashed with it),
-           type funnel, effect painterly-landscape in the hero frame
-     moments: word-highlight in #every-sale (dealt by moments.mjs pick; liquid-type was the other) -->
-
-<header class="nav nav--centre">
-  <div class="wrap nav__bar">
-    <a class="skip-link" href="#top">Skip to content</a>
-    <a class="nav__logo" href="#top"><img class="brand-mark" src="assets/flip-mark.svg" alt="" width="32" height="32">Flip for Free</a>
-    <nav class="nav__links" aria-label="Main">
-      <div class="nav__item"><a class="nav__link" href="#fees">Features</a></div>
-      <div class="nav__item"><a class="nav__link" href="#tax">Tax</a></div>
-      <div class="nav__item"><a class="nav__link" href="#install">Install</a></div>
-      <div class="nav__item"><a class="nav__link" href="oracle.html">Server guide</a></div>
-      <div class="nav__item"><a class="nav__link" href="#questions">Questions</a></div>
+<a class="skip" href="#main">Skip to content</a>
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="./"><img src="favicon.svg" alt="">Flip for Free</a>
+    <nav aria-label="Site">
+      <a href="#tour">Screens</a><a href="#features">Features</a><a href="install.html" class="keep">Install</a>
+      <a href="how-it-works.html">How it works</a><a href="api.html">API</a>
+      <a href="https://github.com/JosephsStuff/Flip-For-Free" class="keep">GitHub</a>
     </nav>
-    <div class="nav__actions">
-      <a class="btn btn--primary" href="#install">Install Flip for Free</a>
-    </div>
-    <button class="nav__toggle" type="button" aria-expanded="false" aria-label="Menu">
-      <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><path d="M2 5h14M2 13h14" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
-    </button>
   </div>
 </header>
 
-<main id="top">
-  <section class="hero hero--centred" data-enter aria-labelledby="hero-h">
-    <div class="wrap"><div class="hero-text">
-      <div class="hero__c">
-        <a class="pill" href="https://github.com/JosephsStuff/Flip-For-Free"><span>Version 1.1.1</span><span class="muted">See the code on GitHub</span></a>
-        <h1 id="hero-h">eBay profit after every fee, free</h1>
-        <p class="hero__lead">Flip for Free signs in with your own eBay keys, takes off every fee and cost, and shows what each item and bulk buy made. Runs on your PC or a free server.</p>
-        <div class="btn-row"><a class="btn btn--primary" href="#install">Install Flip for Free<svg class="m-arrow" viewBox="0 0 12 12" aria-hidden="true"><path class="m-arrow__stem" d="M1 6h8"/><path class="m-arrow__head" d="M4.5 2.5 8 6l-3.5 3.5"/></svg></a><a class="btn btn--secondary" href="#fees">See the features</a></div>
-      </div>
-      <div class="hero__window" data-fx="painterly-landscape" data-fx-seed="7" role="img" aria-label="Flip for Free relisting stale eBay listings on its own">
-        <div class="ly-piece" aria-hidden="true">
-          <div class="ui ui-panel ui-win" data-ui="window" data-open="Due" data-work="Relisting" data-done="Relisted">
-            <div class="ui-win__bar">
-              <span class="ui-dots" aria-hidden="true"><i></i><i></i><i></i></span>
-              <span class="ui-win__crumb">Flip for Free <i>/</i> <b>Relists</b></span>
-              <span class="ui-spacer"></span>
-              <span class="ui-win__search" aria-hidden="true"><svg class="ui-icon" viewBox="0 0 16 16"><circle cx="7" cy="7" r="4.5"/><path d="m10.5 10.5 3 3"/></svg><span class="ui-win__ph">Search</span><span class="ui-kbd">/</span></span>
-            </div>
-            <div class="ui-win__body">
-              <nav class="ui-win__side" aria-hidden="true">
-                <span class="ui-win__nav"><svg class="ui-icon" viewBox="0 0 16 16"><path d="M2.5 13.5h11M4 11V7M8 11V4M12 11V8"/></svg>Dashboard</span>
-                <span class="ui-win__nav"><svg class="ui-icon" viewBox="0 0 16 16"><path d="M2.5 4.5h11v8h-11z"/><path d="M2.5 7h11"/></svg>Sales<em>214</em></span>
-                <span class="ui-win__nav is-on"><svg class="ui-icon" viewBox="0 0 16 16"><path d="M13 5.5A5 5 0 0 0 3.6 4M3 10.5A5 5 0 0 0 12.4 12"/><path d="M3.5 1.8v2.5H6M12.5 14.2v-2.5H10"/></svg>Relists<em>9</em></span>
-                <span class="ui-win__nav"><svg class="ui-icon" viewBox="0 0 16 16"><path d="M2.5 5 8 2.5 13.5 5v6L8 13.5 2.5 11z"/></svg>Bulk buys<em>6</em></span>
-                <span class="ui-win__label">Tax</span>
-                <span class="ui-win__nav"><span class="ui-win__hash">#</span>2026/27</span>
-                <span class="ui-win__nav"><span class="ui-win__hash">#</span>Mileage</span>
-              </nav>
-              <div class="ui-win__main">
-                <div class="ui-win__cols" aria-hidden="true"><span>Listing</span><span>Detail</span><span>Status</span><span>Age</span></div>
-                <ul class="ui-win__rows">
-                  <li class="ui-win__row" data-row><span class="ui-avatar" data-tone="1">YG</span><span class="ui-win__who">Yu-Gi-Oh binder lot</span><span class="ui-win__sub">£24.99 · 3 watchers</span><span class="ui-win__st" data-st>Due</span><span class="ui-win__age">29d</span></li>
-                  <li class="ui-win__row" data-row><span class="ui-avatar" data-tone="3">ZC</span><span class="ui-win__who">Zara wool coat, M</span><span class="ui-win__sub">£32.00 · 1 watcher</span><span class="ui-win__st" data-st>Due</span><span class="ui-win__age">30d</span></li>
-                  <li class="ui-win__row" data-row><span class="ui-avatar" data-tone="4">LG</span><span class="ui-win__who">Lego Technic 42115</span><span class="ui-win__sub">£189.00 · 7 watchers</span><span class="ui-win__st" data-st>Due</span><span class="ui-win__age">28d</span></li>
-                  <li class="ui-win__row" data-row><span class="ui-avatar" data-tone="2">PS</span><span class="ui-win__who">PS2 slim, boxed</span><span class="ui-win__sub">£64.50 · floor £55</span><span class="ui-win__st is-done" data-st>Relisted</span><span class="ui-win__age">31d</span></li>
-                  <li class="ui-win__row" data-row><span class="ui-avatar" data-tone="5">DM</span><span class="ui-win__who">Dr. Martens 1460, 7</span><span class="ui-win__sub">£45.00 · promoted at 4%</span><span class="ui-win__st is-done" data-st>Relisted</span><span class="ui-win__age">30d</span></li>
-                  <li class="ui-win__row" data-row><span class="ui-avatar" data-tone="3">NB</span><span class="ui-win__who">Nintendo DS Lite</span><span class="ui-win__sub">£39.99 · 2 watchers</span><span class="ui-win__st is-done" data-st>Relisted</span><span class="ui-win__age">29d</span></li>
-                  <li class="ui-win__row" data-row><span class="ui-avatar" data-tone="1">PC</span><span class="ui-win__who">Pokémon cards, 60</span><span class="ui-win__sub">£18.00 · 4 watchers</span><span class="ui-win__st is-done" data-st>Relisted</span><span class="ui-win__age">30d</span></li>
-                </ul>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div></div>
-  </section>
-
-  <section class="section" id="fees" aria-labelledby="fees-h">
-    <div class="wrap">
-      <div class="grid">
-        <div class="span-5 stack-5">
-          <h2 id="fees-h">Every eBay deduction, taken off</h2>
-          <p class="t-lead">It reads eBay's own finance records, so each sale shows what reached your bank and what you kept.</p>
-          <ul class="rows">
-            <li><span class="rows__name">Final value and regulatory fees</span><span class="rows__value">from eBay</span></li>
-            <li><span class="rows__name">Postage labels and promoted listings</span><span class="rows__value">from eBay</span></li>
-            <li><span class="rows__name">Packaging and handling</span><span class="rows__value">your amounts</span></li>
-            <li><span class="rows__name">What you paid for the item</span><span class="rows__value">your amount</span></li>
-          </ul>
-        </div>
-        <div class="frame frame--split span-6 start-7" role="img" aria-label="Profit after fees over the last 14 days, as a daily bar chart">
-          <div class="stage stage--fade-b">
-            <div class="at-rise fit" style="--fit-max:420px;--ay:56px;--ax:max(24px, 50% - 210px)" data-ui-loop>
-              <div class="ui ui-panel ui-stat" data-ui="stat" data-from="388" data-to="412" data-suffix="">
-                <div class="ui-stat__head">
-                  <div class="ui-stat__top">
-                    <span class="ui-stat__label">Profit after fees</span>
-                    <span class="ui-stat__range">Last 14 days<svg class="ui-icon" viewBox="0 0 16 16" aria-hidden="true"><path d="m4.5 6.5 3.5 3.5 3.5-3.5"/></svg></span>
-                  </div>
-                  <div class="ui-stat__line">
-                    <span class="ui-stat__num" data-stat-num>£412.60</span>
-                    <span class="ui-chip ui-chip--plain ui-stat__delta"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M6 9.5v-7M3 5.5l3-3 3 3" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>£24.10</span>
-                    <span class="ui-stat__sub">vs. the 14 days before</span>
-                  </div>
-                </div>
-                <div class="ui-stat__chart">
-                  <svg class="ui-stat__svg" viewBox="0 0 400 120" preserveAspectRatio="none" aria-hidden="true">
-                    <path class="ui-stat__grid" d="M0 30.5H400M0 60.5H400M0 90.5H400"/>
-                    <path class="ui-stat__cover" fill-rule="evenodd" d=""/>
-                    <g class="ui-stat__bars"><rect rx="3" x="0.00" y="59.04" width="21.14" height="60.96"/><rect rx="3" x="29.14" y="40.86" width="21.14" height="79.14"/><rect rx="3" x="58.29" y="64.95" width="21.14" height="55.05"/><rect rx="3" x="87.43" y="36.76" width="21.14" height="83.24"/><rect rx="3" x="116.57" y="52.22" width="21.14" height="67.78"/><rect rx="3" x="145.71" y="34.04" width="21.14" height="85.96"/><rect rx="3" x="174.86" y="48.13" width="21.14" height="71.87"/><rect rx="3" x="204.00" y="29.94" width="21.14" height="90.06"/><rect rx="3" x="233.14" y="45.40" width="21.14" height="74.60"/><rect rx="3" x="262.29" y="25.85" width="21.14" height="94.15"/><rect rx="3" x="291.43" y="41.31" width="21.14" height="78.69"/><rect rx="3" x="320.57" y="23.12" width="21.14" height="96.88"/><rect rx="3" x="349.71" y="37.21" width="21.14" height="82.79"/><rect rx="3" x="378.86" y="16.30" width="21.14" height="103.70"/></g>
-                  </svg>
-                  <div class="ui-stat__axis" aria-hidden="true"><span>8 Nov</span><span>15 Nov</span><span>Today</span></div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <section class="section statement" id="every-sale" data-moment="word-highlight" aria-label="Every sale">
-    <div class="wrap">
-      <p class="t-label">Every sale</p>
-      <p class="mo-wh__text">Each sale shows the eBay fee, the postage label, the box and what you paid for the item, so every flip shows the money you <strong>kept</strong>.</p>
-    </div>
-  </section>
-
-  <section class="section" id="features" aria-labelledby="features-h">
-    <div class="wrap">
-      <div class="section-head">
-        <h2 id="features-h">Stock and relists in Flip for Free</h2>
-      </div>
-      <div class="grid">
-        <article class="card card--row card--open span-6">
-          <h3>Bulk buy tracker</h3>
-          <p>Enter a lot's price once. It splits the cost across the items and shows when the lot has paid for itself.</p>
-          <div class="panel">
-            <div class="stage stage--fade-b"><div class="at-rise fit" style="--fit-max:340px;--ay:32px;--ax:max(24px, 50% - 170px)">
-              <div class="ui ui-panel ui-checks" data-ui="checklist">
-                <div class="ui-checks__head">
-                  <div class="ui-title">Car boot binder, £60</div>
-                  <span class="ui-spacer"></span>
-                  <div class="ui-meta" data-checks-count>3 of 5 sold</div>
-                </div>
-                <div class="ui-checks__bar"><i data-checks-bar style="--k:0.6"></i></div>
-                <ul class="ui-checks__list">
-                  <li class="ui-check is-done"><span class="ui-check__box"><svg viewBox="0 0 16 16"><path d="m4.5 8.2 2.3 2.3 4.7-5"/></svg></span><span class="ui-check__label">Dark Magician, 1st edition</span></li>
-                  <li class="ui-check is-done"><span class="ui-check__box"><svg viewBox="0 0 16 16"><path d="m4.5 8.2 2.3 2.3 4.7-5"/></svg></span><span class="ui-check__label">Blue-Eyes White Dragon</span></li>
-                  <li class="ui-check is-done"><span class="ui-check__box"><svg viewBox="0 0 16 16"><path d="m4.5 8.2 2.3 2.3 4.7-5"/></svg></span><span class="ui-check__label">Red-Eyes Black Dragon</span></li>
-                  <li class="ui-check"><span class="ui-check__box"><svg viewBox="0 0 16 16"><path d="m4.5 8.2 2.3 2.3 4.7-5"/></svg></span><span class="ui-check__label">Exodia set, 5 cards</span></li>
-                  <li class="ui-check"><span class="ui-check__box"><svg viewBox="0 0 16 16"><path d="m4.5 8.2 2.3 2.3 4.7-5"/></svg></span><span class="ui-check__label">The rest of the binder</span></li>
-                </ul>
-              </div>
-            </div></div>
-          </div>
-        </article>
-        <article class="card card--row card--open span-6">
-          <h3>Automations for relists and prices</h3>
-          <p>It ends and relists stale listings, trims the price within your limits and promotes items that sit too long.</p>
-          <div class="panel">
-            <div class="stage stage--fade-b"><div class="at-rise fit" style="--fit-max:340px;--ay:32px;--ax:max(24px, 50% - 170px)">
-              <div class="ui ui-panel ui-toggles" data-ui="toggles">
-                <div class="ui-head">
-                  <div class="ui-title">Automations</div>
-                  <span class="ui-spacer"></span>
-                  <div class="ui-meta" data-tg-count>3 of 4 on</div>
-                </div>
-                <ul class="ui-toggles__list">
-                  <li class="ui-tg"><span class="ui-tg__text"><span class="ui-tg__label">End and relist</span><span class="ui-tg__sub">Before eBay's 30-day renew</span></span><button class="ui-switch is-on" type="button" role="switch" aria-checked="true" aria-label="End and relist" tabindex="-1"><i></i></button></li>
-                  <li class="ui-tg"><span class="ui-tg__text"><span class="ui-tg__label">Cut price 5% a relist</span><span class="ui-tg__sub">Never below what you paid</span></span><button class="ui-switch is-on" type="button" role="switch" aria-checked="true" aria-label="Cut price" tabindex="-1"><i></i></button></li>
-                  <li class="ui-tg"><span class="ui-tg__text"><span class="ui-tg__label">Promote after 21 days</span><span class="ui-tg__sub">Cost per sale ad at 4%</span></span><button class="ui-switch" type="button" role="switch" aria-checked="false" aria-label="Promote after 21 days" tabindex="-1"><i></i></button></li>
-                  <li class="ui-tg"><span class="ui-tg__text"><span class="ui-tg__label">Sale alerts</span><span class="ui-tg__sub">With where it's stored</span></span><button class="ui-switch is-on" type="button" role="switch" aria-checked="true" aria-label="Sale alerts" tabindex="-1"><i></i></button></li>
-                </ul>
-              </div>
-            </div></div>
-          </div>
-        </article>
-      </div>
-    </div>
-  </section>
-
-  <section class="section" id="claude" aria-labelledby="claude-h">
-    <div class="wrap">
-      <div class="section-head section-head--center">
-        <h2 id="claude-h">Claude connector and API</h2>
-        <p class="t-lead">Flip for Free has its own API, so Claude can log stock, costs, Vinted sales and mileage when you ask.</p>
-      </div>
-      <div class="frame frame--wide" role="img" aria-label="Claude logging a £60 bulk buy in Flip for Free from one message">
-        <div class="stage stage--fade-b">
-          <div class="at-rise fit" style="--fit-max:420px;--ay:48px;--ax:max(24px, 50% - 210px)">
-            <div class="ui ui-panel ui-chat" data-ui="chat">
-                <div class="ui-head">
-                  <span class="ui-agent" aria-hidden="true"></span>
-                  <div class="ui-title">Claude</div>
-                  <span class="ui-chat__online">Flip for Free connected</span>
-                  <span class="ui-spacer"></span>
-                </div>
-                <div class="ui-chat__body">
-                  <div class="ui-chat__day">Today, 9:41</div>
-                  <div class="ui-msg ui-msg--me" data-chat-q>
-                    <span class="ui-msg__text">I bought a binder of 40 Yu-Gi-Oh cards for £60 at the car boot, log it.</span>
-                  </div>
-                  <div class="ui-msg ui-msg--bot" data-chat-a>
-                    <span class="ui-agent ui-msg__av" aria-hidden="true"></span>
-                    <span class="ui-msg__col">
-                      <span class="ui-chat__answer">Logged a <b>£60 bulk buy</b> from the car boot with 40 cards at £1.50 each.</span>
-                      <span class="ui-chat__srcs"><span class="ui-chat__src"><svg class="ui-icon" viewBox="0 0 16 16"><path d="M2.5 5 8 2.5 13.5 5v6L8 13.5 2.5 11z"/></svg>Bulk buys</span></span>
-                    </span>
-                  </div>
-                </div>
-                <div class="ui-chat__input">
-                  <span class="ui-chat__ph">Ask Claude</span>
-                  <span class="ui-chat__send" aria-hidden="true"><svg viewBox="0 0 16 16" width="14" height="14"><path d="M8 13V3.5M3.8 7.5 8 3.3l4.2 4.2" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-                </div>
-              </div>
-
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <section class="section" id="tax" aria-labelledby="tax-h">
-    <div class="wrap">
-      <div class="grid">
-        <div class="span-5 stack-5">
-          <h2 id="tax-h">UK Self Assessment figures, ready to file</h2>
-          <p class="t-lead">Live SA103S boxes for each tax year, on the cash or accruals basis, with the £1,000 trading allowance checked for you.</p>
-          <ul class="rows">
-            <li><span class="rows__name">Mileage from your dispatch days</span><span class="rows__value">HMRC rates</span></li>
-            <li><span class="rows__name">Profit and loss for any period</span><span class="rows__value">CSV or PDF</span></li>
-            <li><span class="rows__name">Receipts and expenses</span><span class="rows__value">by HMRC box</span></li>
-          </ul>
-          <p class="t-small muted">A record-keeping aid, not tax advice.</p>
-        </div>
-        <div class="frame frame--split span-6 start-7" role="img" aria-label="January 2027 with three post office trips logged and the Self Assessment deadline on the 31st">
-          <div class="stage stage--fade-b">
-            <div class="at-rise fit" style="--fit-max:420px;--ay:40px;--ax:max(24px, 50% - 210px)">
-              <div class="ui ui-panel ui-calendar" data-ui="calendar" data-start="4" data-end="8" data-month="Jan">
-                <div class="ui-cal__head">
-                  <div class="ui-cal__month">January <span>2027</span></div>
-                  <span class="ui-spacer"></span>
-                  <span class="ui-chip ui-chip--plain ui-chip--ink" data-cal-range>Jan 4 – 8</span>
-                  <span class="ui-cal__nav" aria-hidden="true"><svg class="ui-icon" viewBox="0 0 16 16"><path d="M10 4 6 8l4 4"/></svg></span>
-                  <span class="ui-cal__nav" aria-hidden="true"><svg class="ui-icon" viewBox="0 0 16 16"><path d="m6 4 4 4-4 4"/></svg></span>
-                </div>
-                <div class="ui-cal__dow" aria-hidden="true"><span>Mo</span><span>Tu</span><span>We</span><span>Th</span><span>Fr</span><span>Sa</span><span>Su</span></div>
-                <div class="ui-cal__days">
-                  <span class="ui-cal__d is-out"><b>28</b></span><span class="ui-cal__d is-out"><b>29</b></span><span class="ui-cal__d is-out"><b>30</b></span><span class="ui-cal__d is-out"><b>31</b></span><span class="ui-cal__d" data-d="1"><b>1</b></span><span class="ui-cal__d" data-d="2"><b>2</b></span><span class="ui-cal__d" data-d="3"><b>3</b></span>
-                  <span class="ui-cal__d is-start" data-d="4"><b>4</b></span><span class="ui-cal__d is-in" data-d="5"><b>5</b></span><span class="ui-cal__d is-in" data-d="6"><b>6</b></span><span class="ui-cal__d is-in" data-d="7"><b>7</b></span><span class="ui-cal__d is-end" data-d="8"><b>8</b></span><span class="ui-cal__d" data-d="9"><b>9</b></span><span class="ui-cal__d" data-d="10"><b>10</b></span>
-                  <span class="ui-cal__d" data-d="11"><b>11</b></span><span class="ui-cal__d" data-d="12"><b>12</b></span><span class="ui-cal__d" data-d="13"><b>13</b></span><span class="ui-cal__d" data-d="14"><b>14</b></span><span class="ui-cal__d" data-d="15"><b>15</b></span><span class="ui-cal__d" data-d="16"><b>16</b></span><span class="ui-cal__d" data-d="17"><b>17</b></span>
-                  <span class="ui-cal__d" data-d="18"><b>18</b></span><span class="ui-cal__d" data-d="19"><b>19</b></span><span class="ui-cal__d" data-d="20"><b>20</b></span><span class="ui-cal__d" data-d="21"><b>21</b></span><span class="ui-cal__d" data-d="22"><b>22</b></span><span class="ui-cal__d" data-d="23"><b>23</b></span><span class="ui-cal__d" data-d="24"><b>24</b></span>
-                  <span class="ui-cal__d" data-d="25"><b>25</b></span><span class="ui-cal__d" data-d="26"><b>26</b></span><span class="ui-cal__d" data-d="27"><b>27</b></span><span class="ui-cal__d" data-d="28"><b>28</b></span><span class="ui-cal__d" data-d="29"><b>29</b></span><span class="ui-cal__d" data-d="30"><b>30</b></span><span class="ui-cal__d is-mark" data-d="31"><b>31</b></span>
-                </div>
-                <div class="ui-cal__events">
-                  <div class="ui-cal__ev" data-ev="4"><span class="ui-cal__date"><b>4</b><i>Jan</i></span><span class="ui-cal__evtext"><span class="ui-cal__evtitle">Post office trip</span><span class="ui-cal__evsub">6 parcels, 4.2 miles logged</span></span></div>
-                  <div class="ui-cal__ev" data-ev="8"><span class="ui-cal__date"><b>8</b><i>Jan</i></span><span class="ui-cal__evtext"><span class="ui-cal__evtitle">Post office trip</span><span class="ui-cal__evsub">3 parcels, 4.2 miles logged</span></span></div>
-                  <div class="ui-cal__ev" data-ev="31"><span class="ui-cal__date"><b>31</b><i>Jan</i></span><span class="ui-cal__evtext"><span class="ui-cal__evtitle">Self Assessment deadline</span><span class="ui-cal__evsub">Figures from SA103S boxes 9 to 22</span></span></div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <section class="section ground-surface" id="install" style="--hm: 2" aria-labelledby="install-h">
-    <div class="wrap">
-      <div class="section-head">
-        <h2 id="install-h">Install Flip for Free on your PC or a free server</h2>
-        <p class="t-lead">You use your own free eBay developer keys, so nothing goes through anyone else. eBay approves new developer accounts in about a business day.</p>
-      </div>
-      <div class="grid">
-        <article class="card card--row card--open span-6">
-          <h3>Flip for Free on your PC</h3>
-          <p>Install Python 3.10 or newer, download the code, then double-click run.bat (Windows) or run.command (Mac).</p>
-          <div class="panel">
-            <div class="ui cmd" data-cmd>
-              <div class="cmd__bar"><span class="ui-dots" aria-hidden="true"><i></i><i></i><i></i></span><span>Terminal</span><span class="sp"></span><button class="cmd__copy" type="button" data-copy>Copy</button></div>
-<pre><code>git clone https://github.com/JosephsStuff/Flip-For-Free
-cd Flip-For-Free
-pip install -r requirements.txt
-python app.py</code></pre>
-            </div>
-          </div>
-          <a class="link" href="https://github.com/JosephsStuff/Flip-For-Free#readme">Read the PC setup steps</a>
-        </article>
-        <article class="card card--row card--open span-6">
-          <h3>Flip for Free on a free Oracle server</h3>
-          <p>It keeps syncing and relisting while your PC is off, private to your own devices through Tailscale.</p>
-          <div class="panel">
-            <div class="stage stage--fade-b"><div class="at-rise fit" style="--fit-max:440px;--ay:32px;--ax:max(24px, 50% - 220px)" data-ui-loop>
-              <div class="ui ui-panel ui-term" data-ui="terminal-run">
-                <div class="ui-term__head">
-                  <span class="ui-dots" aria-hidden="true"><i></i><i></i><i></i></span>
-                  <span class="ui-term__title">ubuntu@flip</span>
-                  <span class="ui-meta">bash</span>
-                  <span class="ui-spacer"></span>
-                  <span class="ui-chip ui-chip--plain ui-term__branch">Always Free</span>
-                </div>
-                <div class="ui-term__screen" data-term-screen>
-                  <div class="ui-term__track" data-term-track>
-                    <div class="ui-term__ln ui-term__cmd"><span class="ui-term__cwd">~/<span class="ui-term__up">ubuntu/</span>home</span><span class="ui-term__sig">$</span><span class="ui-term__typed" data-term-cmd>curl -fsSL … | bash</span></div>
-                    <div class="ui-term__ln ui-term__meter" data-term-out data-term-meter><span class="ui-term__bar" style="--p:1"><i></i></span><span class="ui-term__count" data-term-count>4 of 4 steps</span></div>
-                    <div class="ui-term__ln ui-term__log" data-term-out data-term-step><svg class="ui-term__tick" viewBox="0 0 16 16" aria-hidden="true"><path d="m3.5 8.4 2.8 2.8 6.2-6.4"/></svg><span class="ui-term__path">Python and packages</span><span class="ui-term__n">venv</span><span class="ui-term__t">38s</span></div>
-                    <div class="ui-term__ln ui-term__log" data-term-out data-term-step><svg class="ui-term__tick" viewBox="0 0 16 16" aria-hidden="true"><path d="m3.5 8.4 2.8 2.8 6.2-6.4"/></svg><span class="ui-term__path">flip.service</span><span class="ui-term__n">on boot</span><span class="ui-term__t">2s</span></div>
-                    <div class="ui-term__ln ui-term__log" data-term-out data-term-step><svg class="ui-term__tick" viewBox="0 0 16 16" aria-hidden="true"><path d="m3.5 8.4 2.8 2.8 6.2-6.4"/></svg><span class="ui-term__path">Tailscale sign-in</span><span class="ui-term__n">approved</span><span class="ui-term__t">41s</span></div>
-                    <div class="ui-term__ln ui-term__log" data-term-out data-term-step><svg class="ui-term__tick" viewBox="0 0 16 16" aria-hidden="true"><path d="m3.5 8.4 2.8 2.8 6.2-6.4"/></svg><span class="ui-term__path">flip-backup.timer</span><span class="ui-term__n">03:30</span><span class="ui-term__t">1s</span></div>
-                    <div class="ui-term__ln ui-term__done" data-term-out data-term-done><span class="ui-term__ok"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="m4.5 8.3 2.4 2.4 4.6-5"/></svg></span><b>Running</b><span class="ui-term__dim">in 1m 22s</span></div>
-                    <div class="ui-term__ln ui-term__cmd" data-term-next><span class="ui-term__cwd">~/<span class="ui-term__up">ubuntu/</span>home</span><span class="ui-term__sig">$</span><span class="ui-term__typed"></span><i class="ui-term__caret" aria-hidden="true"></i></div>
-                  </div>
-                </div>
-              </div>
-            </div></div>
-          </div>
-          <a class="link" href="oracle.html">Follow the Oracle server guide</a>
-        </article>
-      </div>
-    </div>
-  </section>
-
-  <section class="section" id="questions" aria-labelledby="questions-h">
-    <div class="wrap">
-      <div class="grid">
-        <div class="span-5 stack-4">
-          <h2 id="questions-h">Questions</h2>
-          <p class="muted">More detail is in the README on GitHub.</p>
-        </div>
-        <div class="faq span-6 start-7">
-          <div class="faq__item"><h3>Is Flip for Free really free?</h3><p>Yes, including for your own reselling business. Only selling, rebranding or hosting it as a competing product needs a commercial licence.</p></div>
-          <div class="faq__item"><h3>Where is my Flip for Free data kept?</h3><p>In one database file in a folder you choose, such as Google Drive, so another computer can open it. Download a copy from Settings at any time.</p></div>
-          <div class="faq__item"><h3>Does Flip for Free see my eBay password?</h3><p>No. You sign in on eBay's own page, and the app gets a token it can renew. Sign out to cancel it.</p></div>
-          <div class="faq__item"><h3>How do Flip for Free updates work?</h3><p>Settings, Updates installs the newest version from GitHub after backing up your database, or does it on its own each day.</p></div>
-        </div>
-      </div>
-    </div>
-  </section>
-</main>
-
-<footer class="footer closing" id="contact" aria-labelledby="close-h">
+<main id="main">
+<section class="hero" aria-labelledby="hero-h">
   <div class="wrap">
-    <div class="closing__cta close--type">
-      <div class="section-head">
-        <h2 id="close-h">Install Flip for Free</h2>
-        <p class="t-small muted">Free for your selling, on your PC or a free server.</p>
+    <div>
+      <p class="eyebrow">Free eBay profit tracker · made for UK resellers</p>
+      <h1 id="hero-h">See what you <em>actually</em> made on every sale.</h1>
+      <p class="lede">Flip for Free takes every eBay fee, ad, postage label and refund off each sale, then your
+        postage, packaging and what you paid for it. It's free, it runs on your own computer, and you sign in with your
+        own eBay keys.</p>
+      <div class="cta">
+        <a class="btn primary" href="install.html">Install it free</a>
+        <a class="btn ghost" href="#tour">See the screens</a>
       </div>
-      <a class="btn btn--primary btn--xl btn--wide" href="#install">Install Flip for Free<svg class="m-arrow" viewBox="0 0 12 12" aria-hidden="true"><path class="m-arrow__stem" d="M1 6h8"/><path class="m-arrow__head" d="M4.5 2.5 8 6l-3.5 3.5"/></svg></a>
+      <p class="small">Windows, Mac, Linux, Docker, or a free server that's always on.</p>
     </div>
-    <div class="closing__links">
-      <div class="grid">
-        <div class="span-4 stack-4">
-          <a class="nav__logo" href="#top"><img class="brand-mark" src="assets/flip-mark.svg" alt="" width="32" height="32">Flip for Free</a>
-          <p class="footer__lede">A free eBay profit tracker for UK sellers.</p>
-        </div>
-        <div class="span-2 footer__col"><h3>Features</h3><ul><li><a href="#fees">Fees and profit</a></li><li><a href="#features">Stock and relists</a></li><li><a href="#claude">Claude connector</a></li><li><a href="#tax">UK tax</a></li></ul></div>
-        <div class="span-2 footer__col"><h3>Install</h3><ul><li><a href="#install">PC or server</a></li><li><a href="oracle.html">Oracle guide</a></li></ul></div>
-        <div class="span-2 footer__col"><h3>Code</h3><ul><li><a href="https://github.com/JosephsStuff/Flip-For-Free">GitHub</a></li><li><a href="https://github.com/JosephsStuff/Flip-For-Free/blob/main/CHANGELOG.md">Changelog</a></li></ul></div>
-        <div class="span-2 footer__col"><h3>Help</h3><ul><li><a href="#questions">Questions</a></li><li><a href="https://github.com/JosephsStuff/Flip-For-Free/issues">Report a problem</a></li></ul></div>
+    <figure class="receipt" aria-label="Example: the money trail of one sale">
+      <div class="head"><b>Seiko SNK809 watch</b><span>Sold 23 Nov<br>Example sale</span></div>
+      <ol>
+        <li style="--i:0"><span>Buyer paid</span><span>£102.96</span></li>
+        <li style="--i:1"><span>Final value fee</span><span class="neg">−£13.37</span></li>
+        <li style="--i:2"><span>Regulatory fee</span><span class="neg">−£0.36</span></li>
+        <li style="--i:3"><span>Promoted listing</span><span class="neg">−£3.09</span></li>
+        <li style="--i:4"><span>eBay postage label</span><span class="neg">−£3.20</span></li>
+        <li style="--i:5" class="sub"><span>eBay pays you</span><span>£82.94</span></li>
+        <li style="--i:6"><span>Packaging</span><span class="neg">−£0.30</span></li>
+        <li style="--i:7"><span>Paid at the car boot</span><span class="neg">−£12.00</span></li>
+        <li style="--i:8" class="total"><span>True profit</span><span>£70.64</span></li>
+      </ol>
+      <p class="note">Every line comes from eBay's own money records for that order, matched to the penny.</p>
+    </figure>
+  </div>
+</section>
+
+<div class="punch"><div class="wrap"><p>Your eBay payout says <span>£82.94</span>. The watch actually made you
+  <span>£70.64</span>. Flip for Free shows you that for every sale, automatically.</p></div></div>
+
+<section class="block" id="tour" aria-labelledby="tour-h">
+  <div class="wrap">
+    <p class="kicker">The real app, with demo data</p>
+    <h2 id="tour-h">Everything you sell, in one place.</h2>
+    <p class="intro">No spreadsheets and no exports. Press Sync and your orders, fees and listings arrive from eBay.</p>
+    <div class="tour">
+      <div role="tablist" aria-label="Screens">
+        <button role="tab" aria-selected="true" aria-controls="tour-img" data-src="shots/dashboard.webp" data-alt="Dashboard: true profit, what eBay took, money made and a 12-month chart">Dashboard<small>Profit, fees and stock for any period</small></button>
+        <button role="tab" aria-selected="false" aria-controls="tour-img" data-src="shots/sale.webp" data-alt="One sale broken down from buyer paid to profit">One sale<small>Every deduction, line by line</small></button>
+        <button role="tab" aria-selected="false" aria-controls="tour-img" data-src="shots/sales.webp" data-alt="Sales list with buyer paid, eBay took, costs and profit">Sales<small>Fill in missing costs fast</small></button>
+        <button role="tab" aria-selected="false" aria-controls="tour-img" data-src="shots/bulk.webp" data-alt="A bulk buy with its items, money made back and return on investment">Bulk buys<small>Is that car-boot lot paying off?</small></button>
+        <button role="tab" aria-selected="false" aria-controls="tour-img" data-src="shots/item.webp" data-alt="An item with its details, listings and timeline">Items<small>Cost, location and timeline</small></button>
+        <button role="tab" aria-selected="false" aria-controls="tour-img" data-src="shots/tax.webp" data-alt="UK Self Assessment figures by SA103S box">Tax<small>Self Assessment boxes, filled in</small></button>
       </div>
-      <div class="footer__legal">
-        <span>&copy; 2026 Flip for Free &nbsp; <a href="https://github.com/JosephsStuff/Flip-For-Free/blob/main/LICENSE">Free to use (FSL-1.1-MIT)</a> &nbsp; Not affiliated with eBay, Oracle or Tailscale</span>
-        <div class="socials"></div>
-        <span class="credits">Product names and logos are trademarks of their owners</span>
+      <div class="frame"><div class="dots" aria-hidden="true"><i></i><i></i><i></i></div>
+        <img id="tour-img" role="tabpanel" src="shots/dashboard.webp" alt="Dashboard: true profit, what eBay took, money made and a 12-month chart" width="1600" height="1000">
       </div>
     </div>
   </div>
+</section>
+
+<section class="block" id="features" aria-labelledby="feat-h" style="padding-top:0">
+  <div class="wrap">
+    <p class="kicker">What it does</p>
+    <h2 id="feat-h">Built around how reselling really works.</h2>
+    <p class="intro">Car-boot binders, house-clearance lots, the one card that pays for the lot, items that sit for months.</p>
+    <div class="features">
+      <article class="feat wide"><span class="tag">Bulk buys</span><h3>Split a lot's cost across what's in it</h3>
+        <p>Log a £60 binder once. Its cost is spread over the cards (evenly or by price), the valuable one keeps its own
+          cost, and you see when the lot has paid for itself.</p>
+        <img src="shots/bulk-crop.webp" alt="Bulk buy page" loading="lazy" width="1200" height="750"></article>
+      <article class="feat wide"><span class="tag">Automations</span><h3>Relist stale listings, promote only what's slow</h3>
+        <p>End and relist Good 'Til Cancelled listings before eBay's 30-day renewal, step the price down to a floor, and
+          add promoted-listing ads only after something's gone unsold for a while.</p>
+        <img src="shots/automations-crop.webp" alt="Automations settings" loading="lazy" width="1200" height="750"></article>
+      <article class="feat"><span class="tag">Time to sell</span><h3>How long things really take</h3>
+        <p>Average days to sell, and "one sells every 11 days" for multi-quantity listings, counted from the first
+          listing even after relists.</p>
+        <img src="shots/insights-crop.webp" alt="Insights page" loading="lazy" width="1200" height="750"></article>
+      <article class="feat"><span class="tag">UK tax</span><h3>Self Assessment, box by box</h3>
+        <p>SA103S figures on cash or accrual basis, expenses with receipts, HMRC mileage including post office runs,
+          and checks for missing data before you file.</p>
+        <img src="shots/tax-crop.webp" alt="Tax page" loading="lazy" width="1200" height="750"></article>
+      <article class="feat"><span class="tag">Inventory</span><h3>Know where everything is</h3>
+        <p>What you paid, where you bought it, which box it's in, and its whole history from bought to sold.</p>
+        <img src="shots/inventory-crop.webp" alt="Inventory list" loading="lazy" width="1200" height="750"></article>
+    </div>
+
+    <h3 style="font:650 28px/1.2 var(--display); margin:var(--s-8) 0 var(--s-2)">Sell in more places without selling twice</h3>
+    <p class="intro" style="margin-bottom:0">When something sells anywhere, its stock comes off everywhere else.</p>
+    <div class="shops">
+      <div class="shop"><b>eBay</b><span>Orders, fees, listings and relists, all automatic.</span></div>
+      <div class="shop"><b>CardTrader</b><span>Finds the right card from the set code, shows the going rate, and lists it.</span></div>
+      <div class="shop"><b>Shopify</b><span>Turns an item into a product with its eBay photos; orders come back as sales.</span></div>
+      <div class="shop"><b>Vinted</b><span>Copy-ready title, description, price and photos to paste in yourself.</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="block" aria-labelledby="yours-h" style="padding-top:0">
+  <div class="wrap split">
+    <div class="phone"><img src="shots/phone-dashboard.webp" alt="Flip for Free on a phone" loading="lazy" width="780" height="1688"></div>
+    <div>
+      <p class="kicker">Yours, not ours</p>
+      <h2 id="yours-h">Your data never leaves your hands.</h2>
+      <ul class="points">
+        <li><b>Your own eBay keys</b>Nobody else gets access to your eBay account. You sign in on eBay's own page.</li>
+        <li><b>One file, in a folder you choose</b>Put it in Google Drive or OneDrive to use it on two computers. Back it up by copying one file.</li>
+        <li><b>On your phone too</b>Pair your phone on your Wi-Fi, or run it on a free server and open it anywhere, privately, with Tailscale.</li>
+        <li><b>Claude can do the typing</b>"I sold a coat on Vinted for £28 yesterday" and it's recorded. There's a full <a href="api.html">API</a> as well.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section class="block" id="install" aria-labelledby="install-h" style="padding-top:0">
+  <div class="wrap">
+    <div class="install">
+      <p class="kicker" style="color:var(--mint)">Free, about 15 minutes</p>
+      <h2 id="install-h">Pick where it runs.</h2>
+      <p class="intro">You'll need a free eBay developer account first; eBay approves those in about a day.</p>
+      <div class="ways">
+        <a class="way" href="install.html#windows"><b>Your computer</b><span>Windows, Mac or Linux. Download, double-click, done.</span></a>
+        <a class="way" href="oracle.html"><b>A free server</b><span>Oracle Cloud's free tier, on all the time, private to your devices.</span></a>
+        <a class="way" href="install.html#docker"><b>Docker</b><span>Docker Desktop, a NAS or your own server.</span></a>
+      </div>
+      <pre><code># Just want a look? Fake data, no eBay account needed:
+git clone https://github.com/JosephsStuff/Flip-For-Free.git && cd Flip-For-Free
+python app.py --demo</code></pre>
+    </div>
+  </div>
+</section>
+
+<section class="block" id="questions" aria-labelledby="faq-h" style="padding-top:0">
+  <div class="wrap">
+    <h2 id="faq-h">Questions</h2>
+    <div class="faq">
+      <details><summary>Is Flip for Free really free?</summary><p>Yes. It&#x27;s free for your own selling, on your own computer or a free server. You only pay if you sell Flip for Free itself as a product.</p></details>
+      <details><summary>Do I need an eBay developer account?</summary><p>Yes, a free one. Register at developer.ebay.com; eBay approves new accounts in about a day. You then create your own keys, so nobody else has access to your eBay account.</p></details>
+      <details><summary>How does it work out the true profit?</summary><p>It reads eBay&#x27;s own money records for each order (fees, ads, postage labels, refunds, regulatory fees) and matches them to the penny, then takes off your postage, packaging and what you paid.</p></details>
+      <details><summary>Does it work with Vinted?</summary><p>Vinted doesn&#x27;t allow other tools to post for you, so Flip prepares the title, description, price and photos for you to paste in, and reminds you to take the listing down if it sells on eBay.</p></details>
+      <details><summary>Can I use it on my phone?</summary><p>Yes. Pair your phone on your home Wi-Fi, or run Flip for Free on a free Oracle Cloud server and open it anywhere privately with Tailscale.</p></details>
+      <details><summary>Where is my data kept?</summary><p>In one database file in a folder you choose, such as Google Drive. Nothing is sent to us; there is no &#x27;us&#x27; server.</p></details>
+      <details><summary>Does it do my tax return?</summary><p>It prepares the figures for the Self Assessment self-employment pages, box by box, with checks for missing data. It&#x27;s a record-keeping helper, not tax advice.</p></details>
+      <details><summary>Can Claude use it?</summary><p>Yes. It has a Claude connector and a full JSON API, so you can say things like &#x27;log a £60 binder of 40 cards from the car boot&#x27;.</p></details>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>Flip for Free · free for your own selling · FSL-1.1-MIT</span>
+    <nav aria-label="Footer"><a href="install.html">Install</a><a href="how-it-works.html">How it works</a><a href="api.html">API</a>
+      <a href="oracle.html">Free server</a><a href="code-map.html">Code map</a><a href="https://github.com/JosephsStuff/Flip-For-Free/blob/main/CHANGELOG.md">Changelog</a>
+      <a href="https://github.com/JosephsStuff/Flip-For-Free/issues">Report a problem</a></nav>
+  </div>
 </footer>
-
-<nav class="actionbar" aria-label="Quick actions">
-  <a class="btn btn--primary" href="#install">Install Flip for Free</a>
-</nav>
-
-<script type="module" src="assets/system.js"></script>
-<script type="module" src="assets/motion/motion.js"></script>
-<script type="module" src="assets/layout/layout.js"></script>
 <script>
-document.addEventListener('click', function (e) {
-  var b = e.target.closest('[data-copy]'); if (!b) return;
-  var code = b.closest('[data-cmd]').querySelector('code');
-  var t = code.innerText.replace(/^#.*$/gm, '').replace(/\n{2,}/g, '\n').trim();
-  (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(function () { b.textContent = 'Copied'; setTimeout(function () { b.textContent = 'Copy'; }, 1500); }, function () { b.textContent = 'Select it'; });
-});
+(function () {
+  var tabs = document.querySelectorAll('.tour [role="tab"]'), img = document.getElementById('tour-img');
+  tabs.forEach(function (t, i) {
+    t.addEventListener('click', function () {
+      tabs.forEach(function (x) { x.setAttribute('aria-selected', x === t); x.tabIndex = x === t ? 0 : -1; });
+      img.src = t.dataset.src; img.alt = t.dataset.alt;
+    });
+    t.tabIndex = i ? -1 : 0;
+    t.addEventListener('keydown', function (e) {
+      var k = { ArrowDown: 1, ArrowRight: 1, ArrowUp: -1, ArrowLeft: -1 }[e.key];
+      if (!k) return; e.preventDefault(); var n = tabs[(i + k + tabs.length) % tabs.length]; n.focus(); n.click();
+    });
+  });
+  tabs.forEach(function (t) { var p = new Image(); p.src = t.dataset.src; });   // warm the cache for instant switching
+})();
 </script>
 </body>
 </html>
