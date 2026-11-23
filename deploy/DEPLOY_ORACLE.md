@@ -32,7 +32,7 @@ before you can create them. Sign up first; you can do the Oracle steps while you
 4. **Shape:** click *Change shape* and pick one marked **Always Free-eligible**:
    - **Ampere VM.Standard.A1.Flex** with 1 OCPU and 6 GB memory (best), or
    - **VM.Standard.E2.1.Micro** (AMD, 1 GB) if Ampere says "out of capacity". Flip runs fine on it.
-5. **Networking:** leave the defaults (a new network with a public IP).
+5. **Networking:** create the network first (**Networking → Virtual cloud networks → Actions → Start VCN Wizard → Create VCN with Internet Connectivity**), then in the instance form choose that VCN and its **public subnet**, with **Automatically assign public IPv4 address** on. A network made inside the instance form can end up with no public IP, and then the server can't download anything.
 6. **SSH keys:** choose **Generate a key pair for me** and **download the private key**. Keep it safe:
    it's the only way into the server until Tailscale is set up.
 7. Click **Create**. When it shows *Running*, copy the **Public IP address**.

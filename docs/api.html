@@ -1,0 +1,1159 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Flip for Free API: endpoints, keys and examples</title>
+<meta name="description" content="The Flip for Free JSON API: create a key, then read profit, sales, stock and tax, and record sales, items, expenses and mileage. Real examples in curl, Python and JavaScript.">
+<link rel="canonical" href="https://josephsstuff.github.io/Flip-For-Free/api.html">
+<meta property="og:title" content="Flip for Free API: endpoints, keys and examples">
+<meta property="og:description" content="The Flip for Free JSON API: create a key, then read profit, sales, stock and tax, and record sales, items, expenses and mileage. Real examples in curl, Python and JavaScript.">
+<meta property="og:image" content="https://josephsstuff.github.io/Flip-For-Free/share.jpg">
+<meta property="og:url" content="https://josephsstuff.github.io/Flip-For-Free/api.html">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Funnel+Display:wght@400..700&family=Funnel+Sans:wght@400..600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="docs.css">
+
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="bar"><a class="brand" href="index.html"><img src="favicon.svg" alt="">Flip for Free</a><nav aria-label="Site"><a href="index.html">Home</a><a href="install.html">Install</a><a href="how-it-works.html">How it works</a><a href="api.html" aria-current=page>API</a><a href="oracle.html">Free server</a><a href="https://github.com/JosephsStuff/Flip-For-Free">GitHub</a></nav></header>
+<div class="doc"><aside class="toc" aria-label="On this page"><p>On this page</p><ol><li><a href="#start">Getting started</a></li><li><a href="#conventions">Conventions</a></li><li><a href="#claude">Claude connector</a></li><li><a href="#reports">Profit and reports</a></li><li><a href="#sales">Sales</a></li><li><a href="#items">Inventory</a></li><li><a href="#bulk">Bulk buys</a></li><li><a href="#listings">eBay listings</a></li><li><a href="#money">Expenses and mileage</a></li><li><a href="#alerts">Notifications and sync</a></li><li><a href="#openapi">OpenAPI file</a></li></ol></aside><main id="main">
+<h1>Flip for Free API</h1>
+<p class="lede">Everything you can see in Flip for Free, you can read and change from a script, a spreadsheet or
+Claude. The API runs inside your own copy, on your computer or your own server: nobody else has your data.</p>
+
+<h2 id="start">Getting started</h2>
+<ol class="steps">
+<li><b>Create a key.</b> In Flip for Free go to <b>Settings → API keys</b>, name the key (for example "Spreadsheet")
+and copy it. It starts with <code>flip_</code> and is only shown once. Delete it there to stop it working.</li>
+<li><b>Find your address.</b> On your computer it's <code>https://localhost:8765</code>. On a server it's your
+Tailscale address, such as <code>https://flip.your-tailnet.ts.net</code>.</li>
+<li><b>Make a request.</b> Send the key as a bearer token. Your own copy uses a self-signed certificate, hence
+<code>-k</code> (curl) or <code>verify=False</code> (Python) on <code>localhost</code>; a Tailscale address has a
+real certificate.
+<pre><code>export FLIP_KEY=flip_your_key_here
+curl -k https://localhost:8765/api/v1/summary?period=30d -H "Authorization: Bearer $FLIP_KEY"</code></pre></li>
+</ol>
+
+<h2 id="conventions">Conventions</h2>
+<table>
+<tr><th>Topic</th><th>How it works</th></tr>
+<tr><td>Base path</td><td><code>/api/v1</code>. <code>GET /api/v1</code> lists every endpoint as JSON.</td></tr>
+<tr><td>Money</td><td>Pounds (GBP) as numbers, e.g. <code>12.5</code>. CardTrader and Shopify sales in other currencies are converted with the European Central Bank's daily rate.</td></tr>
+<tr><td>Dates</td><td><code>YYYY-MM-DD</code>. Timestamps in responses are ISO 8601 in UTC.</td></tr>
+<tr><td>Periods</td><td><code>?period=</code> <code>today</code>, <code>7d</code>, <code>30d</code>, <code>month</code>, <code>last_month</code>, <code>90d</code>, <code>ytd</code>, <code>fy</code> (financial year), <code>all</code>, <code>custom</code> with <code>start</code> and <code>end</code>, or a saved range <code>r:&lt;id&gt;</code>.</td></tr>
+<tr><td>Errors</td><td>A JSON body <code>{"error": "…"}</code> with the HTTP status: 400 bad input, 401 missing or wrong key, 404 not found, 409 would change a filed tax year.</td></tr>
+<tr><td>Filed tax years</td><td>Changes that would alter a tax year you've marked as filed are refused with 409 unless the body includes <code>"confirm_closed": true</code>.</td></tr>
+<tr><td>Writes</td><td>Send JSON with <code>Content-Type: application/json</code>. PATCH changes only the fields you send.</td></tr>
+</table>
+
+<h2 id="claude">Claude connector</h2>
+<p>Flip for Free also runs a Model Context Protocol (MCP) server, so Claude can use the same API with plain English:
+<i>"I sold a Zara coat on Vinted for £28 yesterday"</i> or <i>"which sales are missing a cost?"</i>.</p>
+<ol class="steps">
+<li>Create an API key in <b>Settings → API keys</b> (name it "Claude desktop").</li>
+<li>Install the connector's library once, in the Flip for Free folder: <code>pip install -r requirements.txt</code></li>
+<li>In the Claude desktop app open <b>Settings → Developer → Edit Config</b> and add (with your own folder and key):
+<pre><code>{
+  "mcpServers": {
+    "flip-for-free": {
+      "command": "python",
+      "args": ["C:\Users\you\flip-for-free\mcp_server.py"],
+      "env": { "FLIP_URL": "https://localhost:8765", "FLIP_API_KEY": "flip_your_key_here" }
+    }
+  }
+}</code></pre></li>
+<li>Restart Claude. The tools below appear while Flip for Free is running.</li>
+</ol>
+<table><tr><th>Tool</th><th>What it does</th></tr>
+<tr><td><code>get_summary</code></td><td>Profit summary: sales, money made after eBay fees and your packing costs, cost of goods, profit, and how many sales are missing a cost. period: today, 7d, 30d, month, last_month, 90d, ytd, fy, all, or custom (with start/end as YYYY-MM-DD).</td></tr><tr><td><code>get_time_to_sell</code></td><td>How long things take to sell. Single-quantity listings: average and median days from first listed (across relists) to sold, a spread, and what&#x27;s been listed longest. Multi-quantity listings: how often one sells (&quot;one every N days&quot;), units per week, stock left and roughly when each will sell out.</td></tr><tr><td><code>get_tax_summary</code></td><td>UK Self Assessment (SA103S) figures for a tax year (year = the year it starts, e.g. 2026 for 2026/27), plus data checks to fix before filing. basis: cash or accrual.</td></tr><tr><td><code>list_notifications</code></td><td>Recent alerts: new sales (with storage location), problems eBay charged for, automation results. kind: sale, issue or automation.</td></tr><tr><td><code>start_sync</code></td><td>Pull the latest orders, fees and listings from eBay now.</td></tr><tr><td><code>list_sales</code></td><td>Sales with the full breakdown (what the buyer paid, eBay deductions, your costs, profit). Use missing_cost_only=True to find sales that still need what you paid.</td></tr><tr><td><code>update_sale_costs</code></td><td>Set your costs on one sale. cost = what you paid for the item(s) in this sale. postage_cost only for postage bought outside eBay. Only the fields you pass are changed.</td></tr><tr><td><code>record_sale</code></td><td>Record a sale made outside eBay (Vinted, Facebook Marketplace, Depop, Etsy, car boot, in person...). Link it to an inventory item with item_id so its cost and bulk buy are used. Don&#x27;t use for eBay sales: those sync automatically. update_ebay=True also lowers the item&#x27;s listings on eBay, CardTrader and Shopify (or ends them if none are left) so it can&#x27;t sell twice: only set it when the user asks for that.</td></tr><tr><td><code>list_items</code></td><td>Inventory items. status: instock (listed + not listed), listed, unlisted, sold or all.</td></tr><tr><td><code>get_item</code></td><td>One inventory item with its eBay listings, sales and timeline.</td></tr><tr><td><code>add_items</code></td><td>Add stock you&#x27;ve bought. One item is created per title, all sharing the other details. For things from a bulk buy, pass bulk_buy_id and leave cost_each empty (they share the lot&#x27;s cost), unless fixed_cost_in_bulk=True for a valuable item with its own cost.</td></tr><tr><td><code>update_item</code></td><td>Change an inventory item. Only fields you pass change. link_listing = an eBay item ID to attach.</td></tr><tr><td><code>write_off_item</code></td><td>Write an item off as lost, damaged or donated (its cost then shows on the P&amp;L).</td></tr><tr><td><code>list_listings</code></td><td>The user&#x27;s eBay listings (synced). status: active, ended, sold or all.</td></tr><tr><td><code>list_bulk_buys</code></td><td>Bulk buys (job lots, binders, car boot hauls) with cost, money made back, profit and ROI.</td></tr><tr><td><code>create_bulk_buy</code></td><td>Create a bulk buy. item_count = how many items were in the lot (used to split the cost). split_method: even, or price (weighted by each item&#x27;s price). item_titles logs its items now.</td></tr><tr><td><code>update_bulk_buy</code></td><td>Change a bulk buy. Only fields you pass change.</td></tr><tr><td><code>link_listings_to_bulk_buy</code></td><td>Put existing eBay listings (by eBay item ID) into a bulk buy; their past and future sales count towards it.</td></tr><tr><td><code>list_expenses</code></td><td>Business expenses for a UK tax year (year it starts, e.g. 2026 = 6 Apr 2026 – 5 Apr 2027).</td></tr><tr><td><code>add_expense</code></td><td>Log a business expense. category: stock, travel, wages, premises, repairs, professional, finance, office (postage, packaging, phone, stationery), software, advertising, platform, equipment, other. Don&#x27;t log eBay fees or eBay postage labels: those sync automatically.</td></tr><tr><td><code>add_mileage</code></td><td>Log a business journey (sourcing trip, collecting a lot, post office run). return_trip doubles the miles.</td></tr></table>
+
+<h2 id="reports">Profit and reports</h2><section class="ep" id="GET--summary"><div class="ep-head"><span class="m GET">GET</span><h3>/api/v1/summary</h3></div><p>Profit summary for a period. ?period=today|7d|30d|month|last_month|90d|ytd|fy|all|custom&amp;start=&amp;end= (custom), or a saved range &#x27;r:&lt;id&gt;&#x27;.</p><p class=status>Profit for the last 30 days.</p><div class="tabs" role="tablist" aria-label="Example request"><button role="tab" aria-selected="true" data-for="GET--summary-curl">curl</button><button role="tab" aria-selected="false" data-for="GET--summary-py">Python</button><button role="tab" aria-selected="false" data-for="GET--summary-js">JavaScript</button></div><pre id="GET--summary-curl"><code>curl -k -X GET &quot;https://localhost:8765/api/v1/summary?period=30d&quot; \
+  -H &quot;Authorization: Bearer $FLIP_KEY&quot;</code></pre><pre id="GET--summary-py" hidden><code>import os, requests
+
+r = requests.get(
+    &quot;https://localhost:8765/api/v1/summary?period=30d&quot;,
+    headers={&quot;Authorization&quot;: &quot;Bearer &quot; + os.environ[&quot;FLIP_KEY&quot;]},
+    verify=False,  # your own copy uses a self-signed certificate
+)
+print(r.json())</code></pre><pre id="GET--summary-js" hidden><code>const r = await fetch(&quot;https://localhost:8765/api/v1/summary?period=30d&quot;, {
+  method: &quot;GET&quot;,
+  headers: { Authorization: `Bearer ${process.env.FLIP_KEY}` },
+});
+console.log(await r.json());</code></pre><p class="status">Response · HTTP 200 (from the demo data)</p><pre><code>{
+  &quot;account_charges&quot;: 7.19,
+  &quot;active_listings&quot;: 21,
+  &quot;buyers_paid&quot;: 2067.28,
+  &quot;cost_of_goods_sold&quot;: 187.72,
+  &quot;deductions_breakdown&quot;: {
+    &quot;Depop fees&quot;: 5.21,
+    &quot;Final value fee&quot;: 221.13,
+    &quot;Packaging&quot;: 1.8,
+    &quot;Per-order fee&quot;: 5.1,
+    &quot;Postage (paid by you)&quot;: 16.0,
+    &quot;Promoted listings&quot;: 5.71,
+    &quot;Regulatory operating fee&quot;: 6.04,
+    &quot;eBay postage labels&quot;: 15.83
+  },
+  &quot;ebay_and_platform_deductions&quot;: 259.02,
+  &quot;end&quot;: null,
+  &quot;items_not_listed&quot;: 6,
+  &quot;items_sold&quot;: 23,
+  &quot;money_made&quot;: 1790.46,
+  &quot;period&quot;: &quot;30d&quot;,
+  &quot;profit_after_cost_of_goods&quot;: 1602.74,
+  &quot;sales&quot;: 23,
+  &quot;sales_missing_cost&quot;: 0,
+  &quot;sales_with_estimated_fees&quot;: 4,
+  &quot;start&quot;: &quot;2026-10-23&quot;,
+  &quot;your_sale_costs&quot;: 17.8
+}</code></pre></section><section class="ep" id="GET--time-to-sell"><div class="ep-head"><span class="m GET">GET</span><h3>/api/v1/time-to-sell</h3></div><p>Time to sell. Single-quantity listings: average/median days from first listed to sold. Multi-quantity listings: how often one sells (&#x27;one every N days&#x27;), stock left and sell-out estimate. ?period=…&amp;start=&amp;end=</p><div class="tabs" role="tablist" aria-label="Example request"><button role="tab" aria-selected="true" data-for="GET--time-to-sell-curl">curl</button><button role="tab" aria-selected="false" data-for="GET--time-to-sell-py">Python</button><button role="tab" aria-selected="false" data-for="GET--time-to-sell-js">JavaScript</button></div><pre id="GET--time-to-sell-curl"><code>curl -k -X GET &quot;https://localhost:8765/api/v1/time-to-sell?period=90d&quot; \
+  -H &quot;Authorization: Bearer $FLIP_KEY&quot;</code></pre><pre id="GET--time-to-sell-py" hidden><code>import os, requests
+
+r = requests.get(
+    &quot;https://localhost:8765/api/v1/time-to-sell?period=90d&quot;,
+    headers={&quot;Authorization&quot;: &quot;Bearer &quot; + os.environ[&quot;FLIP_KEY&quot;]},
+    verify=False,  # your own copy uses a self-signed certificate
+)
+print(r.json())</code></pre><pre id="GET--time-to-sell-js" hidden><code>const r = await fetch(&quot;https://localhost:8765/api/v1/time-to-sell?period=90d&quot;, {
+  method: &quot;GET&quot;,
+  headers: { Authorization: `Bearer ${process.env.FLIP_KEY}` },
+});
+console.log(await r.json());</code></pre><p class="status">Response · HTTP 200 (from the demo data)</p><pre><code>{
+  &quot;end&quot;: null,
+  &quot;multi_quantity&quot;: {
+    &quot;by_listing&quot;: [
+      {
+        &quot;active&quot;: true,
+        &quot;days_since_last_sale&quot;: 12.0,
+        &quot;item_id&quot;: 9,
+        &quot;one_sells_every_days&quot;: 11.4,
+        &quot;sells_out_in_days&quot;: 22.7,
+        &quot;stock_left&quot;: 2,
+        &quot;title&quot;: &quot;PS2 Game Bundle x5&quot;,
+        &quot;units_per_week&quot;: 0.6,
+        &quot;units_sold&quot;: 8
+      },
+      {
+        &quot;active&quot;: true,
+        &quot;days_since_last_sale&quot;: 15.6,
+        &quot;item_id&quot;: 2,
+        &quot;one_sells_every_days&quot;: 13.0,
+        &quot;sells_out_in_days&quot;: 26.0,
+        &quot;stock_left&quot;: 2,
+        &quot;title&quot;: &quot;Red-Eyes Black Dragon LOB-070&quot;,
+        &quot;units_per_week&quot;: 0.5,
+        &quot;units_sold&quot;: 7
+      },
+      &quot;… 7 more&quot;
+    ],
+    &quot;listings&quot;: 9,
+    &quot;median_one_sells_every_days&quot;: 22.7,
+    &quot;one_sells_every_days&quot;: 21.0,
+    &quot;units_per_week&quot;: 0.3,
+    &quot;units_sold&quot;: 39
+  },
+  &quot;period&quot;: &quot;90d&quot;,
+  &quot;single_quantity&quot;: {
+    &quot;average_days&quot;: 46.2,
+    &quot;fastest_days&quot;: 4.5,
+    &quot;longest_listed&quot;: [
+      {
+        &quot;days&quot;: 59.4,
+        &quot;item_id&quot;: 17,
+        &quot;title&quot;: &quot;Seiko 5 Automatic 7S26&quot;
+      },
+      {
+        &quot;days&quot;: 41.0,
+        &quot;item_id&quot;: 18,
+        &quot;title&quot;: &quot;Pokemon Base Set Blastoise 2/102&quot;
+      },
+      &quot;… 8 more&quot;
+    ],
+    &quot;median_days&quot;: 23.8,
+    &quot;slowest_days&quot;: 102.2,
+    &quot;sold&quot;: 7,
+    &quot;spread&quot;: [
+      {
+        &quot;count&quot;: 1,
+        &quot;label&quot;: &quot;Within a week&quot;
+      },
+      {
+        &quot;count&quot;: 3,
+        &quot;label&quot;: &quot;1–4 weeks&quot;
+      },
+      &quot;… 2 more&quot;
+    ],
+    &quot;still_listed&quot;: 12,
+    &quot;still_listed_average_days&quot;: 26.0
+  },
+  &quot;start&quot;: &quot;2026-08-25&quot;
+}</code></pre></section><section class="ep" id="GET--tax"><div class="ep-head"><span class="m GET">GET</span><h3>/api/v1/tax</h3></div><p>Self Assessment (SA103S) figures and data checks. ?year=2026&amp;basis=cash|accrual</p><div class="tabs" role="tablist" aria-label="Example request"><button role="tab" aria-selected="true" data-for="GET--tax-curl">curl</button><button role="tab" aria-selected="false" data-for="GET--tax-py">Python</button><button role="tab" aria-selected="false" data-for="GET--tax-js">JavaScript</button></div><pre id="GET--tax-curl"><code>curl -k -X GET &quot;https://localhost:8765/api/v1/tax?year=2026&quot; \
+  -H &quot;Authorization: Bearer $FLIP_KEY&quot;</code></pre><pre id="GET--tax-py" hidden><code>import os, requests
+
+r = requests.get(
+    &quot;https://localhost:8765/api/v1/tax?year=2026&quot;,
+    headers={&quot;Authorization&quot;: &quot;Bearer &quot; + os.environ[&quot;FLIP_KEY&quot;]},
+    verify=False,  # your own copy uses a self-signed certificate
+)
+print(r.json())</code></pre><pre id="GET--tax-js" hidden><code>const r = await fetch(&quot;https://localhost:8765/api/v1/tax?year=2026&quot;, {
+  method: &quot;GET&quot;,
+  headers: { Authorization: `Bearer ${process.env.FLIP_KEY}` },
+});
+console.log(await r.json());</code></pre><p class="status">Response · HTTP 200 (from the demo data)</p><pre><code>{
+  &quot;basis&quot;: &quot;cash&quot;,
+  &quot;box10&quot;: 0.0,
+  &quot;box20&quot;: 3507.45,
+  &quot;box21&quot;: 7639.8,
+  &quot;box22&quot;: 0,
+  &quot;box9&quot;: 11147.25,
+  &quot;box_labels&quot;: {
+    &quot;11&quot;: &quot;Costs of goods bought for resale or goods used&quot;,
+    &quot;12&quot;: &quot;Car, van and travel expenses&quot;,
+    &quot;13&quot;: &quot;Wages, salaries and other staff costs&quot;,
+    &quot;14&quot;: &quot;Rent, rates, power and insurance costs&quot;,
+    &quot;15&quot;: &quot;Repairs and maintenance of property and equipment&quot;,
+    &quot;16&quot;: &quot;Accountancy, legal and other professional fees&quot;,
+    &quot;17&quot;: &quot;Interest and bank and credit card financial charges&quot;,
+    &quot;18&quot;: &quot;Phone, fax, stationery and other office costs&quot;,
+    &quot;19&quot;: &quot;Other allowable business expenses&quot;
+  },
+  &quot;boxes&quot;: {
+    &quot;11&quot;: 1361.84,
+    &quot;12&quot;: 411.18,
+    &quot;13&quot;: 0.0,
+    &quot;14&quot;: 0.0,
+    &quot;15&quot;: 0.0,
+    &quot;16&quot;: 0.0,
+    &quot;17&quot;: 0.0,
+    &quot;18&quot;: 298.36,
+    &quot;19&quot;: 1436.07
+  },
+  &quot;by_channel&quot;: {
+    &quot;Car boot&quot;: 62.92,
+    &quot;Depop&quot;: 117.03,
+    &quot;Facebook Marketplace&quot;: 135.63,
+    &quot;Vinted&quot;: 139.24,
+    &quot;eBay&quot;: 10692.43
+  },
+  &quot;checks&quot;: [
+    {
+      &quot;body&quot;: &quot;Add what you paid so your profit and cost of goods are right.&quot;,
+      &quot;level&quot;: &quot;warn&quot;,
+      &quot;link&quot;: &quot;/sales?filter=missing_cost&amp;period=custom&amp;start=2026-04-06&amp;end=2027-04-05&quot;,
+      &quot;title&quot;: &quot;2 sales have no cost&quot;
+    },
+    {
+      &quot;body&quot;: &quot;Run a sync so the exact fees come in from eBay.&quot;,
+      &quot;level&quot;: &quot;warn&quot;,
+      &quot;link&quot;: &quot;/settings&quot;,
+      &quot;title&quot;: &quot;19 sales use estimated eBay fees&quot;
+    },
+    &quot;… 1 more&quot;
+  ],
+  &quot;end&quot;: &quot;2027-04-06&quot;,
+  &quot;gross&quot;: 11163.6,
+  &quot;label&quot;: &quot;2026/27&quot;,
+  &quot;lines&quot;: {
+    &quot;11&quot;: {
+      &quot;Bulk buys bought&quot;: 407.0,
+      &quot;Cost of items sold (no purchase date)&quot;: 855.73,
+      &quot;Items bought&quot;: 99.11
+    },
+    &quot;12&quot;: {
+      &quot;Business mileage (HMRC simplified rate)&quot;: 411.18
+    },
+    &quot;13&quot;: {},
+    &quot;14&quot;: {},
+    &quot;15&quot;: {},
+    &quot;16&quot;: {},
+    &quot;17&quot;: {},
+    &quot;18&quot;: {
+      &quot;Packaging&quot;: 13.55,
+      &quot;Postage (paid by you)&quot;: 86.4,
+      &quot;Postage, packaging, phone, internet, stationery&quot;: 58.47,
+      &quot;eBay postage labels&quot;: 139.94
+    },
+    &quot;19&quot;: {
+      &quot;Depop fees&quot;: 11.71,
+      &quot;Final value fee&quot;: 1178.37,
+      &quot;Per-order fee&quot;: 40.7,
+      &quot;Promoted listings&quot;: 107.75,
+      &quot;Regulatory operating fee&quot;: 32.19,
+      &quot;Shop subscription (account)&quot;: 57.52,
+      &quot;Software &amp; subscriptions&quot;: 9.98,
+      &quot;eBay credits&quot;: -2.15
+    }
+  },
+  &quot;mileage&quot;: {
+    &quot;by_vehicle&quot;: {
+      &quot;car&quot;: {
+        &quot;amount&quot;: 411.18,
+        &quot;miles&quot;: 747.5999999999999,
+        &quot;rate&quot;: 0.55
+      }
+    },
+    &quot;miles&quot;: 747.5999999999999,
+    &quot;total&quot;: 411.18
+  },
+  &quot;net&quot;: 7639.8,
+  &quot;over_vat&quot;: false,
+  &quot;refunds&quot;: 16.35,
+  &quot;sales_count&quot;: 179,
+  &quot;start&quot;: &quot;2026-04-06&quot;,
+  &quot;trading_allowance&quot;: {
+    &quot;allowance&quot;: 1000.0,
+    &quot;better&quot;: false,
+    &quot;profit_with_allowance&quot;: 10147.25,
+    &quot;under&quot;: false
+  },
+  &quot;year&quot;: 2026
+}</code></pre></section><h2 id="sales">Sales</h2><section class="ep" id="GET--sales"><div class="ep-head"><span class="m GET">GET</span><h3>/api/v1/sales</h3></div><p>Sales with full breakdown. ?period=…&amp;q=search&amp;missing_cost=1&amp;channel=Vinted&amp;limit=200</p><div class="tabs" role="tablist" aria-label="Example request"><button role="tab" aria-selected="true" data-for="GET--sales-curl">curl</button><button role="tab" aria-selected="false" data-for="GET--sales-py">Python</button><button role="tab" aria-selected="false" data-for="GET--sales-js">JavaScript</button></div><pre id="GET--sales-curl"><code>curl -k -X GET &quot;https://localhost:8765/api/v1/sales?period=30d&amp;limit=2&quot; \
+  -H &quot;Authorization: Bearer $FLIP_KEY&quot;</code></pre><pre id="GET--sales-py" hidden><code>import os, requests
+
+r = requests.get(
+    &quot;https://localhost:8765/api/v1/sales?period=30d&amp;limit=2&quot;,
+    headers={&quot;Authorization&quot;: &quot;Bearer &quot; + os.environ[&quot;FLIP_KEY&quot;]},
+    verify=False,  # your own copy uses a self-signed certificate
+)
+print(r.json())</code></pre><pre id="GET--sales-js" hidden><code>const r = await fetch(&quot;https://localhost:8765/api/v1/sales?period=30d&amp;limit=2&quot;, {
+  method: &quot;GET&quot;,
+  headers: { Authorization: `Bearer ${process.env.FLIP_KEY}` },
+});
+console.log(await r.json());</code></pre><p class="status">Response · HTTP 200 (from the demo data)</p><pre><code>{
+  &quot;count&quot;: 23,
+  &quot;sales&quot;: [
+    {
+      &quot;bulk_buy_id&quot;: null,
+      &quot;bulk_name&quot;: null,
+      &quot;channel&quot;: &quot;eBay&quot;,
+      &quot;cost_source&quot;: &quot;sale&quot;,
+      &quot;ebay_deductions&quot;: {},
+      &quot;ebay_deductions_total&quot;: 0.0,
+      &quot;estimated&quot;: true,
+      &quot;gross&quot;: 102.96,
+      &quot;item_cost&quot;: 45.44,
+      &quot;item_id&quot;: null,
+      &quot;item_location&quot;: null,
+      &quot;legacy_item_id&quot;: &quot;396000523645&quot;,
+      &quot;line_item_id&quot;: &quot;S-demo5&quot;,
+      &quot;missing_cost&quot;: false,
+      &quot;money_made&quot;: 99.76,
+      &quot;net_from_ebay&quot;: 102.96,
+      &quot;order_id&quot;: &quot;O-demo5&quot;,
+      &quot;own_costs&quot;: {
+        &quot;Postage (paid by you)&quot;: 3.2
+      },
+      &quot;own_costs_total&quot;: 3.2,
+      &quot;profit&quot;: 54.32,
+      &quot;quantity&quot;: 1,
+      &quot;sold_at&quot;: &quot;2026-11-23T16:10:34.000Z&quot;,
+      &quot;source&quot;: &quot;ebay&quot;,
+      &quot;status&quot;: null,
+      &quot;title&quot;: &quot;Seiko SNK809 #6&quot;
+    },
+    {
+      &quot;bulk_buy_id&quot;: null,
+      &quot;bulk_name&quot;: null,
+      &quot;channel&quot;: &quot;eBay&quot;,
+      &quot;cost_source&quot;: &quot;sale&quot;,
+      &quot;ebay_deductions&quot;: {},
+      &quot;ebay_deductions_total&quot;: 0.0,
+      &quot;estimated&quot;: true,
+      &quot;gross&quot;: 32.23,
+      &quot;item_cost&quot;: 13.43,
+      &quot;item_id&quot;: null,
+      &quot;item_location&quot;: null,
+      &quot;legacy_item_id&quot;: &quot;396000000000&quot;,
+      &quot;line_item_id&quot;: &quot;S-demo0&quot;,
+      &quot;missing_cost&quot;: false,
+      &quot;money_made&quot;: 29.03,
+      &quot;net_from_ebay&quot;: 32.23,
+      &quot;order_id&quot;: &quot;O-demo0&quot;,
+      &quot;own_costs&quot;: {
+        &quot;Postage (paid by you)&quot;: 3.2
+      },
+      &quot;own_costs_total&quot;: 3.2,
+      &quot;profit&quot;: 15.6,
+      &quot;quantity&quot;: 1,
+      &quot;sold_at&quot;: &quot;2026-11-23T16:10:34.000Z&quot;,
+      &quot;source&quot;: &quot;ebay&quot;,
+      &quot;status&quot;: null,
+      &quot;title&quot;: &quot;Pokemon Base Set Charizard 4/102 #1&quot;
+    }
+  ]
+}</code></pre></section><section class="ep" id="GET--sales-line-item-id"><div class="ep-head"><span class="m GET">GET</span><h3>/api/v1/sales/&lt;line_item_id&gt;</h3></div><p>One sale.</p><div class="tabs" role="tablist" aria-label="Example request"><button role="tab" aria-selected="true" data-for="GET--sales-line-item-id-curl">curl</button><button role="tab" aria-selected="false" data-for="GET--sales-line-item-id-py">Python</button><button role="tab" aria-selected="false" data-for="GET--sales-line-item-id-js">JavaScript</button></div><pre id="GET--sales-line-item-id-curl"><code>curl -k -X GET &quot;https://localhost:8765/api/v1/sales/S-demo5&quot; \
+  -H &quot;Authorization: Bearer $FLIP_KEY&quot;</code></pre><pre id="GET--sales-line-item-id-py" hidden><code>import os, requests
+
+r = requests.get(
+    &quot;https://localhost:8765/api/v1/sales/S-demo5&quot;,
+    headers={&quot;Authorization&quot;: &quot;Bearer &quot; + os.environ[&quot;FLIP_KEY&quot;]},
+    verify=False,  # your own copy uses a self-signed certificate
+)
+print(r.json())</code></pre><pre id="GET--sales-line-item-id-js" hidden><code>const r = await fetch(&quot;https://localhost:8765/api/v1/sales/S-demo5&quot;, {
+  method: &quot;GET&quot;,
+  headers: { Authorization: `Bearer ${process.env.FLIP_KEY}` },
+});
+console.log(await r.json());</code></pre><p class="status">Response · HTTP 200 (from the demo data)</p><pre><code>{
+  &quot;bulk_buy_id&quot;: null,
+  &quot;bulk_name&quot;: null,
+  &quot;channel&quot;: &quot;eBay&quot;,
+  &quot;cost_source&quot;: &quot;sale&quot;,
+  &quot;ebay_deductions&quot;: {},
+  &quot;ebay_deductions_total&quot;: 0.0,
+  &quot;estimated&quot;: true,
+  &quot;gross&quot;: 102.96,
+  &quot;item_cost&quot;: 45.44,
+  &quot;item_id&quot;: null,
+  &quot;item_location&quot;: null,
+  &quot;legacy_item_id&quot;: &quot;396000523645&quot;,
+  &quot;line_item_id&quot;: &quot;S-demo5&quot;,
+  &quot;missing_cost&quot;: false,
+  &quot;money_made&quot;: 99.76,
+  &quot;net_from_ebay&quot;: 102.96,
+  &quot;order_id&quot;: &quot;O-demo5&quot;,
+  &quot;own_costs&quot;: {
+    &quot;Postage (paid by you)&quot;: 3.2
+  },
+  &quot;own_costs_total&quot;: 3.2,
+  &quot;profit&quot;: 54.32,
+  &quot;quantity&quot;: 1,
+  &quot;sold_at&quot;: &quot;2026-11-23T16:10:34.000Z&quot;,
+  &quot;source&quot;: &quot;ebay&quot;,
+  &quot;status&quot;: null,
+  &quot;title&quot;: &quot;Seiko SNK809 #6&quot;
+}</code></pre></section><section class="ep" id="PATCH--sales-line-item-id"><div class="ep-head"><span class="m PATCH">PATCH</span><h3>/api/v1/sales/&lt;line_item_id&gt;</h3></div><p>Set your costs on a sale: cost, postage_cost, packaging_cost, handling_cost, other_cost, bulk_buy_id (null to remove), notes.</p><div class="tabs" role="tablist" aria-label="Example request"><button role="tab" aria-selected="true" data-for="PATCH--sales-line-item-id-curl">curl</button><button role="tab" aria-selected="false" data-for="PATCH--sales-line-item-id-py">Python</button><button role="tab" aria-selected="false" data-for="PATCH--sales-line-item-id-js">JavaScript</button></div><pre id="PATCH--sales-line-item-id-curl"><code>curl -k -X PATCH &quot;https://localhost:8765/api/v1/sales/S-demo5&quot; \
+  -H &quot;Authorization: Bearer $FLIP_KEY&quot; \
+  -H &quot;Content-Type: application/json&quot; \
+  -d &#x27;{&quot;cost&quot;: 4.5, &quot;packaging_cost&quot;: 0.3}&#x27;</code></pre><pre id="PATCH--sales-line-item-id-py" hidden><code>import os, requests
+
+r = requests.patch(
+    &quot;https://localhost:8765/api/v1/sales/S-demo5&quot;,
+    headers={&quot;Authorization&quot;: &quot;Bearer &quot; + os.environ[&quot;FLIP_KEY&quot;]},
+    json={&quot;cost&quot;: 4.5, &quot;packaging_cost&quot;: 0.3},
+    verify=False,  # your own copy uses a self-signed certificate
+)
+print(r.json())</code></pre><pre id="PATCH--sales-line-item-id-js" hidden><code>const r = await fetch(&quot;https://localhost:8765/api/v1/sales/S-demo5&quot;, {
+  method: &quot;PATCH&quot;,
+  headers: { Authorization: `Bearer ${process.env.FLIP_KEY}`, &quot;Content-Type&quot;: &quot;application/json&quot; },
+  body: JSON.stringify({&quot;cost&quot;: 4.5, &quot;packaging_cost&quot;: 0.3}),
+});
+console.log(await r.json());</code></pre><p class="status">Response · HTTP 200 (from the demo data)</p><pre><code>{
+  &quot;bulk_buy_id&quot;: null,
+  &quot;bulk_name&quot;: null,
+  &quot;channel&quot;: &quot;eBay&quot;,
+  &quot;cost_source&quot;: &quot;sale&quot;,
+  &quot;ebay_deductions&quot;: {},
+  &quot;ebay_deductions_total&quot;: 0.0,
+  &quot;estimated&quot;: true,
+  &quot;gross&quot;: 102.96,
+  &quot;item_cost&quot;: 4.5,
+  &quot;item_id&quot;: null,
+  &quot;item_location&quot;: null,
+  &quot;legacy_item_id&quot;: &quot;396000523645&quot;,
+  &quot;line_item_id&quot;: &quot;S-demo5&quot;,
+  &quot;missing_cost&quot;: false,
+  &quot;money_made&quot;: 99.46,
+  &quot;net_from_ebay&quot;: 102.96,
+  &quot;order_id&quot;: &quot;O-demo5&quot;,
+  &quot;own_costs&quot;: {
+    &quot;Packaging&quot;: 0.3,
+    &quot;Postage (paid by you)&quot;: 3.2
+  },
+  &quot;own_costs_total&quot;: 3.5,
+  &quot;profit&quot;: 94.96,
+  &quot;quantity&quot;: 1,
+  &quot;sold_at&quot;: &quot;2026-11-23T16:10:34.000Z&quot;,
+  &quot;source&quot;: &quot;ebay&quot;,
+  &quot;status&quot;: null,
+  &quot;title&quot;: &quot;Seiko SNK809 #6&quot;
+}</code></pre></section><section class="ep" id="POST--sales"><div class="ep-head"><span class="m POST">POST</span><h3>/api/v1/sales</h3></div><p>Record a sale from another marketplace: title*, item_price*, sold_at, channel, quantity, delivery_charged, fees, postage_cost, packaging_cost, handling_cost, cost, item_id, notes, update_ebay (true: lower or end the item&#x27;s listings on eBay, CardTrader and Shopify).</p><div class="tabs" role="tablist" aria-label="Example request"><button role="tab" aria-selected="true" data-for="POST--sales-curl">curl</button><button role="tab" aria-selected="false" data-for="POST--sales-py">Python</button><button role="tab" aria-selected="false" data-for="POST--sales-js">JavaScript</button></div><pre id="POST--sales-curl"><code>curl -k -X POST &quot;https://localhost:8765/api/v1/sales&quot; \
+  -H &quot;Authorization: Bearer $FLIP_KEY&quot; \
+  -H &quot;Content-Type: application/json&quot; \
+  -d &#x27;{&quot;title&quot;: &quot;Zara wool coat&quot;, &quot;item_price&quot;: 28, &quot;channel&quot;: &quot;Vinted&quot;, &quot;sold_at&quot;: &quot;2026-11-22&quot;, &quot;postage_cost&quot;: 0, &quot;cost&quot;: 6}&#x27;</code></pre><pre id="POST--sales-py" hidden><code>import os, requests
+
+r = requests.post(
+    &quot;https://localhost:8765/api/v1/sales&quot;,
+    headers={&quot;Authorization&quot;: &quot;Bearer &quot; + os.environ[&quot;FLIP_KEY&quot;]},
+    json={&quot;title&quot;: &quot;Zara wool coat&quot;, &quot;item_price&quot;: 28, &quot;channel&quot;: &quot;Vinted&quot;, &quot;sold_at&quot;: &quot;2026-11-22&quot;, &quot;postage_cost&quot;: 0, &quot;cost&quot;: 6},
+    verify=False,  # your own copy uses a self-signed certificate
+)
+print(r.json())</code></pre><pre id="POST--sales-js" hidden><code>const r = await fetch(&quot;https://localhost:8765/api/v1/sales&quot;, {
+  method: &quot;POST&quot;,
+  headers: { Authorization: `Bearer ${process.env.FLIP_KEY}`, &quot;Content-Type&quot;: &quot;application/json&quot; },
+  body: JSON.stringify({&quot;title&quot;: &quot;Zara wool coat&quot;, &quot;item_price&quot;: 28, &quot;channel&quot;: &quot;Vinted&quot;, &quot;sold_at&quot;: &quot;2026-11-22&quot;, &quot;postage_cost&quot;: 0, &quot;cost&quot;: 6}),
+});
+console.log(await r.json());</code></pre><p class="status">Response · HTTP 201 (from the demo data)</p><pre><code>{
+  &quot;bulk_buy_id&quot;: null,
+  &quot;bulk_name&quot;: null,
+  &quot;channel&quot;: &quot;Vinted&quot;,
+  &quot;cost_source&quot;: &quot;sale&quot;,
+  &quot;ebay_deductions&quot;: {},
+  &quot;ebay_deductions_total&quot;: 0.0,
+  &quot;estimated&quot;: false,
+  &quot;gross&quot;: 28.0,
+  &quot;item_cost&quot;: 6.0,
+  &quot;item_id&quot;: null,
+  &quot;item_location&quot;: null,
+  &quot;legacy_item_id&quot;: null,
+  &quot;line_item_id&quot;: &quot;M-5bc901b1dc5e&quot;,
+  &quot;missing_cost&quot;: false,
+  &quot;money_made&quot;: 28.0,
+  &quot;net_from_ebay&quot;: 28.0,
+  &quot;order_id&quot;: &quot;M-5bc901b1dc5e&quot;,
+  &quot;own_costs&quot;: {},
+  &quot;own_costs_total&quot;: 0.0,
+  &quot;profit&quot;: 22.0,
+  &quot;quantity&quot;: 1,
+  &quot;sold_at&quot;: &quot;2026-11-22T12:00:00Z&quot;,
+  &quot;source&quot;: &quot;manual&quot;,
+  &quot;status&quot;: null,
+  &quot;title&quot;: &quot;Zara wool coat&quot;
+}</code></pre></section><h2 id="items">Inventory</h2><section class="ep" id="GET--items"><div class="ep-head"><span class="m GET">GET</span><h3>/api/v1/items</h3></div><p>Inventory. ?status=instock|listed|unlisted|sold|all&amp;q=&amp;location=&amp;source=&amp;missing_cost=1</p><div class="tabs" role="tablist" aria-label="Example request"><button role="tab" aria-selected="true" data-for="GET--items-curl">curl</button><button role="tab" aria-selected="false" data-for="GET--items-py">Python</button><button role="tab" aria-selected="false" data-for="GET--items-js">JavaScript</button></div><pre id="GET--items-curl"><code>curl -k -X GET &quot;https://localhost:8765/api/v1/items?status=instock&quot; \
+  -H &quot;Authorization: Bearer $FLIP_KEY&quot;</code></pre><pre id="GET--items-py" hidden><code>import os, requests
+
+r = requests.get(
+    &quot;https://localhost:8765/api/v1/items?status=instock&quot;,
+    headers={&quot;Authorization&quot;: &quot;Bearer &quot; + os.environ[&quot;FLIP_KEY&quot;]},
+    verify=False,  # your own copy uses a self-signed certificate
+)
+print(r.json())</code></pre><pre id="GET--items-js" hidden><code>const r = await fetch(&quot;https://localhost:8765/api/v1/items?status=instock&quot;, {
+  method: &quot;GET&quot;,
+  headers: { Authorization: `Bearer ${process.env.FLIP_KEY}` },
+});
+console.log(await r.json());</code></pre><p class="status">Response · HTTP 200 (from the demo data)</p><pre><code>{
+  &quot;count&quot;: 26,
+  &quot;items&quot;: [
+    {
+      &quot;active_id&quot;: null,
+      &quot;bulk_buy_id&quot;: null,
+      &quot;bulk_name&quot;: null,
+      &quot;cost&quot;: 15.0,
+      &quot;cost_locked&quot;: 0,
+      &quot;days_listed&quot;: null,
+      &quot;handling_cost&quot;: null,
+      &quot;id&quot;: 27,
+      &quot;list_price&quot;: null,
+      &quot;location&quot;: &quot;Shelf B1&quot;,
+      &quot;notes&quot;: null,
+      &quot;packaging_cost&quot;: null,
+      &quot;purchased_at&quot;: &quot;2026-11-20&quot;,
+      &quot;quantity&quot;: 1,
+      &quot;remaining&quot;: 1,
+      &quot;restock_url&quot;: null,
+      &quot;sku&quot;: null,
+      &quot;sold_units&quot;: 0,
+      &quot;source&quot;: &quot;Vinted&quot;,
+      &quot;status&quot;: &quot;unlisted&quot;,
+      &quot;title&quot;: &quot;Yu-Gi-Oh Starter Deck Kaiba (sealed)&quot;,
+      &quot;unit_cost&quot;: 15.0,
+      &quot;written_off_at&quot;: null
+    },
+    {
+      &quot;active_id&quot;: null,
+      &quot;bulk_buy_id&quot;: null,
+      &quot;bulk_name&quot;: null,
+      &quot;cost&quot;: 4.0,
+      &quot;cost_locked&quot;: 0,
+      &quot;days_listed&quot;: null,
+      &quot;handling_cost&quot;: null,
+      &quot;id&quot;: 22,
+      &quot;list_price&quot;: null,
+      &quot;location&quot;: &quot;Garage rack&quot;,
+      &quot;notes&quot;: null,
+      &quot;packaging_cost&quot;: null,
+      &quot;purchased_at&quot;: &quot;2026-11-17&quot;,
+      &quot;quantity&quot;: 1,
+      &quot;remaining&quot;: 1,
+      &quot;restock_url&quot;: null,
+      &quot;sku&quot;: null,
+      &quot;sold_units&quot;: 0,
+      &quot;source&quot;: &quot;Charity shop&quot;,
+      &quot;status&quot;: &quot;unlisted&quot;,
+      &quot;title&quot;: &quot;Nintendo Wii Fit Board&quot;,
+      &quot;unit_cost&quot;: 4.0,
+      &quot;written_off_at&quot;: null
+    },
+    &quot;… 24 more&quot;
+  ]
+}</code></pre></section><section class="ep" id="GET--items-id"><div class="ep-head"><span class="m GET">GET</span><h3>/api/v1/items/&lt;id&gt;</h3></div><p>One item, with its listings, sales and timeline.</p><div class="tabs" role="tablist" aria-label="Example request"><button role="tab" aria-selected="true" data-for="GET--items-id-curl">curl</button><button role="tab" aria-selected="false" data-for="GET--items-id-py">Python</button><button role="tab" aria-selected="false" data-for="GET--items-id-js">JavaScript</button></div><pre id="GET--items-id-curl"><code>curl -k -X GET &quot;https://localhost:8765/api/v1/items/1&quot; \
+  -H &quot;Authorization: Bearer $FLIP_KEY&quot;</code></pre><pre id="GET--items-id-py" hidden><code>import os, requests
+
+r = requests.get(
+    &quot;https://localhost:8765/api/v1/items/1&quot;,
+    headers={&quot;Authorization&quot;: &quot;Bearer &quot; + os.environ[&quot;FLIP_KEY&quot;]},
+    verify=False,  # your own copy uses a self-signed certificate
+)
+print(r.json())</code></pre><pre id="GET--items-id-js" hidden><code>const r = await fetch(&quot;https://localhost:8765/api/v1/items/1&quot;, {
+  method: &quot;GET&quot;,
+  headers: { Authorization: `Bearer ${process.env.FLIP_KEY}` },
+});
+console.log(await r.json());</code></pre><p class="status">Response · HTTP 200 (from the demo data)</p><pre><code>{
+  &quot;active_id&quot;: &quot;000760898523&quot;,
+  &quot;bulk_buy_id&quot;: 1,
+  &quot;bulk_name&quot;: &quot;Car boot Yu-Gi-Oh binder&quot;,
+  &quot;cost&quot;: null,
+  &quot;cost_locked&quot;: 0,
+  &quot;days_listed&quot;: 247,
+  &quot;handling_cost&quot;: null,
+  &quot;id&quot;: 1,
+  &quot;list_price&quot;: 122.5,
+  &quot;listings&quot;: [
+    {
+      &quot;legacy_item_id&quot;: &quot;000760898523&quot;,
+      &quot;price&quot;: 122.5,
+      &quot;promoted&quot;: 1,
+      &quot;start_time&quot;: &quot;2026-03-21T22:10:34.000Z&quot;,
+      &quot;status&quot;: &quot;active&quot;,
+      &quot;title&quot;: &quot;Blue-Eyes White Dragon LOB-001 1st Edition&quot;,
+      &quot;watch_count&quot;: 1
+    }
+  ],
+  &quot;location&quot;: &quot;Shelf A2&quot;,
+  &quot;notes&quot;: null,
+  &quot;packaging_cost&quot;: null,
+  &quot;purchased_at&quot;: &quot;2026-06-26&quot;,
+  &quot;quantity&quot;: 12,
+  &quot;remaining&quot;: 1,
+  &quot;restock_url&quot;: null,
+  &quot;sales&quot;: [
+    {
+      &quot;bulk_buy_id&quot;: 1,
+      &quot;bulk_name&quot;: &quot;Car boot Yu-Gi-Oh binder&quot;,
+      &quot;channel&quot;: &quot;eBay&quot;,
+      &quot;cost_source&quot;: &quot;bulk share&quot;,
+      &quot;ebay_deductions&quot;: {
+        &quot;Final value fee&quot;: 17.54,
+        &quot;Per-order fee&quot;: 0.3,
+        &quot;Regulatory operating fee&quot;: 0.48,
+        &quot;eBay postage labels&quot;: 1.4
+      },
+      &quot;ebay_deductions_total&quot;: 19.72,
+      &quot;estimated&quot;: false,
+      &quot;gross&quot;: 137.01,
+      &quot;item_cost&quot;: 4.18,
+      &quot;item_id&quot;: 1,
+      &quot;item_location&quot;: &quot;Shelf A2&quot;,
+      &quot;legacy_item_id&quot;: &quot;000760898523&quot;,
+      &quot;line_item_id&quot;: &quot;13106464319&quot;,
+      &quot;missing_cost&quot;: false,
+      &quot;money_made&quot;: 117.29,
+      &quot;net_from_ebay&quot;: 117.29,
+      &quot;order_id&quot;: &quot;14-77272-64450&quot;,
+      &quot;own_costs&quot;: {},
+      &quot;own_costs_total&quot;: 0.0,
+      &quot;profit&quot;: 113.11,
+      &quot;quantity&quot;: 1,
+      &quot;sold_at&quot;: &quot;2026-11-09T08:10:34.000Z&quot;,
+      &quot;source&quot;: &quot;ebay&quot;,
+      &quot;status&quot;: null,
+      &quot;title&quot;: &quot;Blue-Eyes White Dragon LOB-001 1st Edition&quot;
+    },
+    {
+      &quot;bulk_buy_id&quot;: 1,
+      &quot;bulk_name&quot;: &quot;Car boot Yu-Gi-Oh binder&quot;,
+      &quot;channel&quot;: &quot;eBay&quot;,
+      &quot;cost_source&quot;: &quot;bulk share&quot;,
+      &quot;ebay_deductions&quot;: {
+        &quot;Final value fee&quot;: 17.6,
+        &quot;Per-order fee&quot;: 0.3,
+        &quot;Regulatory operating fee&quot;: 0.48,
+        &quot;eBay postage labels&quot;: 1.17
+      },
+      &quot;ebay_deductions_total&quot;: 19.55,
+      &quot;estimated&quot;: false,
+      &quot;gross&quot;: 137.48,
+      &quot;item_cost&quot;: 4.18,
+      &quot;item_id&quot;: 1,
+      &quot;item_location&quot;: &quot;Shelf A2&quot;,
+      &quot;legacy_item_id&quot;: &quot;000760898523&quot;,
+      &quot;line_item_id&quot;: &quot;71727327452&quot;,
+      &quot;missing_cost&quot;: false,
+      &quot;money_made&quot;: 117.93,
+      &quot;net_from_ebay&quot;: 117.93,
+      &quot;order_id&quot;: &quot;21-57467-60181&quot;,
+      &quot;own_costs&quot;: {},
+      &quot;own_costs_total&quot;: 0.0,
+      &quot;profit&quot;: 113.75,
+      &quot;quantity&quot;: 1,
+      &quot;sold_at&quot;: &quot;2026-09-24T02:10:34.000Z&quot;,
+      &quot;source&quot;: &quot;ebay&quot;,
+      &quot;status&quot;: null,
+      &quot;title&quot;: &quot;Blue-Eyes White Dragon LOB-001 1st Edition&quot;
+    },
+    &quot;… 6 more&quot;
+  ],
+  &quot;sku&quot;: null,
+  &quot;sold_units&quot;: 11,
+  &quot;source&quot;: &quot;Car boot&quot;,
+  &quot;status&quot;: &quot;listed&quot;,
+  &quot;timeline&quot;: [
+    {
+      &quot;at&quot;: &quot;2026-11-23T22:10:34Z&quot;,
+      &quot;detail&quot;: &quot;Added from your eBay listings&quot;,
+      &quot;kind&quot;: &quot;created&quot;
+    },
+    {
+      &quot;at&quot;: &quot;2026-11-23T22:10:34Z&quot;,
+      &quot;detail&quot;: &quot;Promoted at 4.0% after 247 days unsold&quot;,
+      &quot;kind&quot;: &quot;promoted&quot;
+    },
+    &quot;… 9 more&quot;
+  ],
+  &quot;title&quot;: &quot;Blue-Eyes White Dragon LOB-001 1st Edition&quot;,
+  &quot;unit_cost&quot;: 4.18290705753896,
+  &quot;written_off_at&quot;: null
+}</code></pre></section><section class="ep" id="POST--items"><div class="ep-head"><span class="m POST">POST</span><h3>/api/v1/items</h3></div><p>Add stock: title* (or titles: [..] for several), quantity, cost (each), source, purchased_at, location, bulk_buy_id, cost_locked, sku, packaging_cost, handling_cost, restock_url, notes.</p><p class=status>Several items in one call.</p><div class="tabs" role="tablist" aria-label="Example request"><button role="tab" aria-selected="true" data-for="POST--items-curl">curl</button><button role="tab" aria-selected="false" data-for="POST--items-py">Python</button><button role="tab" aria-selected="false" data-for="POST--items-js">JavaScript</button></div><pre id="POST--items-curl"><code>curl -k -X POST &quot;https://localhost:8765/api/v1/items&quot; \
+  -H &quot;Authorization: Bearer $FLIP_KEY&quot; \
+  -H &quot;Content-Type: application/json&quot; \
+  -d &#x27;{&quot;titles&quot;: [&quot;Pot of Greed LOB-119&quot;, &quot;Mirror Force MRD-138&quot;], &quot;cost&quot;: 1.5, &quot;source&quot;: &quot;Car boot&quot;, &quot;location&quot;: &quot;Box 3&quot;}&#x27;</code></pre><pre id="POST--items-py" hidden><code>import os, requests
+
+r = requests.post(
+    &quot;https://localhost:8765/api/v1/items&quot;,
+    headers={&quot;Authorization&quot;: &quot;Bearer &quot; + os.environ[&quot;FLIP_KEY&quot;]},
+    json={&quot;titles&quot;: [&quot;Pot of Greed LOB-119&quot;, &quot;Mirror Force MRD-138&quot;], &quot;cost&quot;: 1.5, &quot;source&quot;: &quot;Car boot&quot;, &quot;location&quot;: &quot;Box 3&quot;},
+    verify=False,  # your own copy uses a self-signed certificate
+)
+print(r.json())</code></pre><pre id="POST--items-js" hidden><code>const r = await fetch(&quot;https://localhost:8765/api/v1/items&quot;, {
+  method: &quot;POST&quot;,
+  headers: { Authorization: `Bearer ${process.env.FLIP_KEY}`, &quot;Content-Type&quot;: &quot;application/json&quot; },
+  body: JSON.stringify({&quot;titles&quot;: [&quot;Pot of Greed LOB-119&quot;, &quot;Mirror Force MRD-138&quot;], &quot;cost&quot;: 1.5, &quot;source&quot;: &quot;Car boot&quot;, &quot;location&quot;: &quot;Box 3&quot;}),
+});
+console.log(await r.json());</code></pre><p class="status">Response · HTTP 201 (from the demo data)</p><pre><code>{
+  &quot;created&quot;: 2,
+  &quot;items&quot;: [
+    {
+      &quot;active_id&quot;: null,
+      &quot;bulk_buy_id&quot;: null,
+      &quot;bulk_name&quot;: null,
+      &quot;cost&quot;: 1.5,
+      &quot;cost_locked&quot;: 0,
+      &quot;days_listed&quot;: null,
+      &quot;handling_cost&quot;: null,
+      &quot;id&quot;: 29,
+      &quot;list_price&quot;: null,
+      &quot;location&quot;: &quot;Box 3&quot;,
+      &quot;notes&quot;: null,
+      &quot;packaging_cost&quot;: null,
+      &quot;purchased_at&quot;: null,
+      &quot;quantity&quot;: 1,
+      &quot;remaining&quot;: 1,
+      &quot;restock_url&quot;: null,
+      &quot;sku&quot;: null,
+      &quot;sold_units&quot;: 0,
+      &quot;source&quot;: &quot;Car boot&quot;,
+      &quot;status&quot;: &quot;unlisted&quot;,
+      &quot;title&quot;: &quot;Mirror Force MRD-138&quot;,
+      &quot;unit_cost&quot;: 1.5,
+      &quot;written_off_at&quot;: null
+    },
+    {
+      &quot;active_id&quot;: null,
+      &quot;bulk_buy_id&quot;: null,
+      &quot;bulk_name&quot;: null,
+      &quot;cost&quot;: 1.5,
+      &quot;cost_locked&quot;: 0,
+      &quot;days_listed&quot;: null,
+      &quot;handling_cost&quot;: null,
+      &quot;id&quot;: 28,
+      &quot;list_price&quot;: null,
+      &quot;location&quot;: &quot;Box 3&quot;,
+      &quot;notes&quot;: null,
+      &quot;packaging_cost&quot;: null,
+      &quot;purchased_at&quot;: null,
+      &quot;quantity&quot;: 1,
+      &quot;remaining&quot;: 1,
+      &quot;restock_url&quot;: null,
+      &quot;sku&quot;: null,
+      &quot;sold_units&quot;: 0,
+      &quot;source&quot;: &quot;Car boot&quot;,
+      &quot;status&quot;: &quot;unlisted&quot;,
+      &quot;title&quot;: &quot;Pot of Greed LOB-119&quot;,
+      &quot;unit_cost&quot;: 1.5,
+      &quot;written_off_at&quot;: null
+    }
+  ]
+}</code></pre></section><section class="ep" id="PATCH--items-id"><div class="ep-head"><span class="m PATCH">PATCH</span><h3>/api/v1/items/&lt;id&gt;</h3></div><p>Change any of the fields above, plus link_listing (eBay item ID).</p><div class="tabs" role="tablist" aria-label="Example request"><button role="tab" aria-selected="true" data-for="PATCH--items-id-curl">curl</button><button role="tab" aria-selected="false" data-for="PATCH--items-id-py">Python</button><button role="tab" aria-selected="false" data-for="PATCH--items-id-js">JavaScript</button></div><pre id="PATCH--items-id-curl"><code>curl -k -X PATCH &quot;https://localhost:8765/api/v1/items/1&quot; \
+  -H &quot;Authorization: Bearer $FLIP_KEY&quot; \
+  -H &quot;Content-Type: application/json&quot; \
+  -d &#x27;{&quot;location&quot;: &quot;Shelf B&quot;, &quot;cost&quot;: 2.0}&#x27;</code></pre><pre id="PATCH--items-id-py" hidden><code>import os, requests
+
+r = requests.patch(
+    &quot;https://localhost:8765/api/v1/items/1&quot;,
+    headers={&quot;Authorization&quot;: &quot;Bearer &quot; + os.environ[&quot;FLIP_KEY&quot;]},
+    json={&quot;location&quot;: &quot;Shelf B&quot;, &quot;cost&quot;: 2.0},
+    verify=False,  # your own copy uses a self-signed certificate
+)
+print(r.json())</code></pre><pre id="PATCH--items-id-js" hidden><code>const r = await fetch(&quot;https://localhost:8765/api/v1/items/1&quot;, {
+  method: &quot;PATCH&quot;,
+  headers: { Authorization: `Bearer ${process.env.FLIP_KEY}`, &quot;Content-Type&quot;: &quot;application/json&quot; },
+  body: JSON.stringify({&quot;location&quot;: &quot;Shelf B&quot;, &quot;cost&quot;: 2.0}),
+});
+console.log(await r.json());</code></pre><p class="status">Response · HTTP 200 (from the demo data)</p><pre><code>{
+  &quot;active_id&quot;: &quot;000760898523&quot;,
+  &quot;bulk_buy_id&quot;: 1,
+  &quot;bulk_name&quot;: &quot;Car boot Yu-Gi-Oh binder&quot;,
+  &quot;cost&quot;: 2.0,
+  &quot;cost_locked&quot;: 0,
+  &quot;days_listed&quot;: 247,
+  &quot;handling_cost&quot;: null,
+  &quot;id&quot;: 1,
+  &quot;list_price&quot;: 122.5,
+  &quot;location&quot;: &quot;Shelf B&quot;,
+  &quot;notes&quot;: null,
+  &quot;packaging_cost&quot;: null,
+  &quot;purchased_at&quot;: &quot;2026-06-26&quot;,
+  &quot;quantity&quot;: 12,
+  &quot;remaining&quot;: 1,
+  &quot;restock_url&quot;: null,
+  &quot;sku&quot;: null,
+  &quot;sold_units&quot;: 11,
+  &quot;source&quot;: &quot;Car boot&quot;,
+  &quot;status&quot;: &quot;listed&quot;,
+  &quot;title&quot;: &quot;Blue-Eyes White Dragon LOB-001 1st Edition&quot;,
+  &quot;unit_cost&quot;: 4.18290705753896,
+  &quot;written_off_at&quot;: null
+}</code></pre></section><section class="ep" id="POST--items-id-write-off"><div class="ep-head"><span class="m POST">POST</span><h3>/api/v1/items/&lt;id&gt;/write-off</h3></div><p>Write an item off: reason, date.</p><div class="tabs" role="tablist" aria-label="Example request"><button role="tab" aria-selected="true" data-for="POST--items-id-write-off-curl">curl</button><button role="tab" aria-selected="false" data-for="POST--items-id-write-off-py">Python</button><button role="tab" aria-selected="false" data-for="POST--items-id-write-off-js">JavaScript</button></div><pre id="POST--items-id-write-off-curl"><code>curl -k -X POST &quot;https://localhost:8765/api/v1/items/1/write-off&quot; \
+  -H &quot;Authorization: Bearer $FLIP_KEY&quot; \
+  -H &quot;Content-Type: application/json&quot; \
+  -d &#x27;{&quot;reason&quot;: &quot;Water damaged&quot;, &quot;date&quot;: &quot;2026-11-23&quot;}&#x27;</code></pre><pre id="POST--items-id-write-off-py" hidden><code>import os, requests
+
+r = requests.post(
+    &quot;https://localhost:8765/api/v1/items/1/write-off&quot;,
+    headers={&quot;Authorization&quot;: &quot;Bearer &quot; + os.environ[&quot;FLIP_KEY&quot;]},
+    json={&quot;reason&quot;: &quot;Water damaged&quot;, &quot;date&quot;: &quot;2026-11-23&quot;},
+    verify=False,  # your own copy uses a self-signed certificate
+)
+print(r.json())</code></pre><pre id="POST--items-id-write-off-js" hidden><code>const r = await fetch(&quot;https://localhost:8765/api/v1/items/1/write-off&quot;, {
+  method: &quot;POST&quot;,
+  headers: { Authorization: `Bearer ${process.env.FLIP_KEY}`, &quot;Content-Type&quot;: &quot;application/json&quot; },
+  body: JSON.stringify({&quot;reason&quot;: &quot;Water damaged&quot;, &quot;date&quot;: &quot;2026-11-23&quot;}),
+});
+console.log(await r.json());</code></pre><p class="status">Response · HTTP 200 (from the demo data)</p><pre><code>{
+  &quot;item_id&quot;: 1,
+  &quot;ok&quot;: true,
+  &quot;written_off_at&quot;: &quot;2026-11-23&quot;
+}</code></pre></section><h2 id="bulk">Bulk buys</h2><section class="ep" id="GET--bulk-buys"><div class="ep-head"><span class="m GET">GET</span><h3>/api/v1/bulk-buys</h3></div><p>Bulk buys with cost, money made back, profit and ROI.</p><div class="tabs" role="tablist" aria-label="Example request"><button role="tab" aria-selected="true" data-for="GET--bulk-buys-curl">curl</button><button role="tab" aria-selected="false" data-for="GET--bulk-buys-py">Python</button><button role="tab" aria-selected="false" data-for="GET--bulk-buys-js">JavaScript</button></div><pre id="GET--bulk-buys-curl"><code>curl -k -X GET &quot;https://localhost:8765/api/v1/bulk-buys&quot; \
+  -H &quot;Authorization: Bearer $FLIP_KEY&quot;</code></pre><pre id="GET--bulk-buys-py" hidden><code>import os, requests
+
+r = requests.get(
+    &quot;https://localhost:8765/api/v1/bulk-buys&quot;,
+    headers={&quot;Authorization&quot;: &quot;Bearer &quot; + os.environ[&quot;FLIP_KEY&quot;]},
+    verify=False,  # your own copy uses a self-signed certificate
+)
+print(r.json())</code></pre><pre id="GET--bulk-buys-js" hidden><code>const r = await fetch(&quot;https://localhost:8765/api/v1/bulk-buys&quot;, {
+  method: &quot;GET&quot;,
+  headers: { Authorization: `Bearer ${process.env.FLIP_KEY}` },
+});
+console.log(await r.json());</code></pre><p class="status">Response · HTTP 200 (from the demo data)</p><pre><code>{
+  &quot;bulk_buys&quot;: [
+    {
+      &quot;cost&quot;: 60.0,
+      &quot;extra_costs&quot;: 0.0,
+      &quot;id&quot;: 3,
+      &quot;item_count&quot;: 25,
+      &quot;items_left&quot;: 10,
+      &quot;location&quot;: &quot;Box 3&quot;,
+      &quot;money_made&quot;: 281.64,
+      &quot;name&quot;: &quot;Job lot - house clearance&quot;,
+      &quot;notes&quot;: &quot;Demo bulk buy&quot;,
+      &quot;paid_back_pct&quot;: 469.4,
+      &quot;profit&quot;: 221.64,
+      &quot;purchased_at&quot;: &quot;2026-10-09&quot;,
+      &quot;roi_pct&quot;: 369.4,
+      &quot;source&quot;: &quot;House clearance&quot;,
+      &quot;split_method&quot;: &quot;even&quot;,
+      &quot;total_cost&quot;: 60.0,
+      &quot;units_sold&quot;: 15
+    },
+    {
+      &quot;cost&quot;: 107.0,
+      &quot;extra_costs&quot;: 12.0,
+      &quot;id&quot;: 2,
+      &quot;item_count&quot;: 30,
+      &quot;items_left&quot;: -26,
+      &quot;location&quot;: &quot;Garage rack&quot;,
+      &quot;money_made&quot;: 1569.28,
+      &quot;name&quot;: &quot;Facebook retro gaming lot&quot;,
+      &quot;notes&quot;: &quot;Demo bulk buy&quot;,
+      &quot;paid_back_pct&quot;: 1466.6168224299065,
+      &quot;profit&quot;: 1462.28,
+      &quot;purchased_at&quot;: &quot;2026-07-26&quot;,
+      &quot;roi_pct&quot;: 1366.6168224299065,
+      &quot;source&quot;: &quot;Facebook Marketplace&quot;,
+      &quot;split_method&quot;: &quot;even&quot;,
+      &quot;total_cost&quot;: 95.0,
+      &quot;units_sold&quot;: 56
+    },
+    &quot;… 1 more&quot;
+  ],
+  &quot;count&quot;: 3
+}</code></pre></section><section class="ep" id="POST--bulk-buys"><div class="ep-head"><span class="m POST">POST</span><h3>/api/v1/bulk-buys</h3></div><p>Create a bulk buy: name*, total_cost*, purchased_at, extra_costs, item_count, source, location, split_method (even|price), notes, items: [&#x27;title&#x27;, …] to log its items.</p><div class="tabs" role="tablist" aria-label="Example request"><button role="tab" aria-selected="true" data-for="POST--bulk-buys-curl">curl</button><button role="tab" aria-selected="false" data-for="POST--bulk-buys-py">Python</button><button role="tab" aria-selected="false" data-for="POST--bulk-buys-js">JavaScript</button></div><pre id="POST--bulk-buys-curl"><code>curl -k -X POST &quot;https://localhost:8765/api/v1/bulk-buys&quot; \
+  -H &quot;Authorization: Bearer $FLIP_KEY&quot; \
+  -H &quot;Content-Type: application/json&quot; \
+  -d &#x27;{&quot;name&quot;: &quot;Binder of 40 Yu-Gi-Oh cards&quot;, &quot;total_cost&quot;: 60, &quot;source&quot;: &quot;Car boot&quot;, &quot;purchased_at&quot;: &quot;2026-11-21&quot;, &quot;items&quot;: [&quot;Dark Magician SDY-006&quot;, &quot;Exodia LOB-124&quot;]}&#x27;</code></pre><pre id="POST--bulk-buys-py" hidden><code>import os, requests
+
+r = requests.post(
+    &quot;https://localhost:8765/api/v1/bulk-buys&quot;,
+    headers={&quot;Authorization&quot;: &quot;Bearer &quot; + os.environ[&quot;FLIP_KEY&quot;]},
+    json={&quot;name&quot;: &quot;Binder of 40 Yu-Gi-Oh cards&quot;, &quot;total_cost&quot;: 60, &quot;source&quot;: &quot;Car boot&quot;, &quot;purchased_at&quot;: &quot;2026-11-21&quot;, &quot;items&quot;: [&quot;Dark Magician SDY-006&quot;, &quot;Exodia LOB-124&quot;]},
+    verify=False,  # your own copy uses a self-signed certificate
+)
+print(r.json())</code></pre><pre id="POST--bulk-buys-js" hidden><code>const r = await fetch(&quot;https://localhost:8765/api/v1/bulk-buys&quot;, {
+  method: &quot;POST&quot;,
+  headers: { Authorization: `Bearer ${process.env.FLIP_KEY}`, &quot;Content-Type&quot;: &quot;application/json&quot; },
+  body: JSON.stringify({&quot;name&quot;: &quot;Binder of 40 Yu-Gi-Oh cards&quot;, &quot;total_cost&quot;: 60, &quot;source&quot;: &quot;Car boot&quot;, &quot;purchased_at&quot;: &quot;2026-11-21&quot;, &quot;items&quot;: [&quot;Dark Magician SDY-006&quot;, &quot;Exodia LOB-124&quot;]}),
+});
+console.log(await r.json());</code></pre><p class="status">Response · HTTP 201 (from the demo data)</p><pre><code>{
+  &quot;id&quot;: 4,
+  &quot;items_logged&quot;: 2,
+  &quot;name&quot;: &quot;Binder of 40 Yu-Gi-Oh cards&quot;,
+  &quot;purchased_at&quot;: &quot;2026-11-21&quot;,
+  &quot;source&quot;: &quot;Car boot&quot;,
+  &quot;total_cost&quot;: 60.0
+}</code></pre></section><section class="ep" id="PATCH--bulk-buys-id"><div class="ep-head"><span class="m PATCH">PATCH</span><h3>/api/v1/bulk-buys/&lt;id&gt;</h3></div><p>Change a bulk buy&#x27;s fields.</p><div class="tabs" role="tablist" aria-label="Example request"><button role="tab" aria-selected="true" data-for="PATCH--bulk-buys-id-curl">curl</button><button role="tab" aria-selected="false" data-for="PATCH--bulk-buys-id-py">Python</button><button role="tab" aria-selected="false" data-for="PATCH--bulk-buys-id-js">JavaScript</button></div><pre id="PATCH--bulk-buys-id-curl"><code>curl -k -X PATCH &quot;https://localhost:8765/api/v1/bulk-buys/1&quot; \
+  -H &quot;Authorization: Bearer $FLIP_KEY&quot; \
+  -H &quot;Content-Type: application/json&quot; \
+  -d &#x27;{&quot;notes&quot;: &quot;Bought at Barras market&quot;}&#x27;</code></pre><pre id="PATCH--bulk-buys-id-py" hidden><code>import os, requests
+
+r = requests.patch(
+    &quot;https://localhost:8765/api/v1/bulk-buys/1&quot;,
+    headers={&quot;Authorization&quot;: &quot;Bearer &quot; + os.environ[&quot;FLIP_KEY&quot;]},
+    json={&quot;notes&quot;: &quot;Bought at Barras market&quot;},
+    verify=False,  # your own copy uses a self-signed certificate
+)
+print(r.json())</code></pre><pre id="PATCH--bulk-buys-id-js" hidden><code>const r = await fetch(&quot;https://localhost:8765/api/v1/bulk-buys/1&quot;, {
+  method: &quot;PATCH&quot;,
+  headers: { Authorization: `Bearer ${process.env.FLIP_KEY}`, &quot;Content-Type&quot;: &quot;application/json&quot; },
+  body: JSON.stringify({&quot;notes&quot;: &quot;Bought at Barras market&quot;}),
+});
+console.log(await r.json());</code></pre><p class="status">Response · HTTP 200 (from the demo data)</p><pre><code>{
+  &quot;id&quot;: 1,
+  &quot;notes&quot;: &quot;Bought at Barras market&quot;,
+  &quot;ok&quot;: true
+}</code></pre></section><section class="ep" id="POST--bulk-buys-id-link-listings"><div class="ep-head"><span class="m POST">POST</span><h3>/api/v1/bulk-buys/&lt;id&gt;/link-listings</h3></div><p>listing_ids: [eBay item IDs] - their past and future sales count towards this bulk buy.</p><div class="tabs" role="tablist" aria-label="Example request"><button role="tab" aria-selected="true" data-for="POST--bulk-buys-id-link-listings-curl">curl</button><button role="tab" aria-selected="false" data-for="POST--bulk-buys-id-link-listings-py">Python</button><button role="tab" aria-selected="false" data-for="POST--bulk-buys-id-link-listings-js">JavaScript</button></div><pre id="POST--bulk-buys-id-link-listings-curl"><code>curl -k -X POST &quot;https://localhost:8765/api/v1/bulk-buys/1/link-listings&quot; \
+  -H &quot;Authorization: Bearer $FLIP_KEY&quot; \
+  -H &quot;Content-Type: application/json&quot; \
+  -d &#x27;{&quot;listing_ids&quot;: [&quot;000760898523&quot;]}&#x27;</code></pre><pre id="POST--bulk-buys-id-link-listings-py" hidden><code>import os, requests
+
+r = requests.post(
+    &quot;https://localhost:8765/api/v1/bulk-buys/1/link-listings&quot;,
+    headers={&quot;Authorization&quot;: &quot;Bearer &quot; + os.environ[&quot;FLIP_KEY&quot;]},
+    json={&quot;listing_ids&quot;: [&quot;000760898523&quot;]},
+    verify=False,  # your own copy uses a self-signed certificate
+)
+print(r.json())</code></pre><pre id="POST--bulk-buys-id-link-listings-js" hidden><code>const r = await fetch(&quot;https://localhost:8765/api/v1/bulk-buys/1/link-listings&quot;, {
+  method: &quot;POST&quot;,
+  headers: { Authorization: `Bearer ${process.env.FLIP_KEY}`, &quot;Content-Type&quot;: &quot;application/json&quot; },
+  body: JSON.stringify({&quot;listing_ids&quot;: [&quot;000760898523&quot;]}),
+});
+console.log(await r.json());</code></pre><p class="status">Response · HTTP 200 (from the demo data)</p><pre><code>{
+  &quot;linked&quot;: [
+    &quot;000760898523&quot;
+  ],
+  &quot;not_found&quot;: []
+}</code></pre></section><h2 id="listings">eBay listings</h2><section class="ep" id="GET--listings"><div class="ep-head"><span class="m GET">GET</span><h3>/api/v1/listings</h3></div><p>Your eBay listings. ?status=active|ended|sold|all&amp;q=</p><div class="tabs" role="tablist" aria-label="Example request"><button role="tab" aria-selected="true" data-for="GET--listings-curl">curl</button><button role="tab" aria-selected="false" data-for="GET--listings-py">Python</button><button role="tab" aria-selected="false" data-for="GET--listings-js">JavaScript</button></div><pre id="GET--listings-curl"><code>curl -k -X GET &quot;https://localhost:8765/api/v1/listings?status=active&quot; \
+  -H &quot;Authorization: Bearer $FLIP_KEY&quot;</code></pre><pre id="GET--listings-py" hidden><code>import os, requests
+
+r = requests.get(
+    &quot;https://localhost:8765/api/v1/listings?status=active&quot;,
+    headers={&quot;Authorization&quot;: &quot;Bearer &quot; + os.environ[&quot;FLIP_KEY&quot;]},
+    verify=False,  # your own copy uses a self-signed certificate
+)
+print(r.json())</code></pre><pre id="GET--listings-js" hidden><code>const r = await fetch(&quot;https://localhost:8765/api/v1/listings?status=active&quot;, {
+  method: &quot;GET&quot;,
+  headers: { Authorization: `Bearer ${process.env.FLIP_KEY}` },
+});
+console.log(await r.json());</code></pre><p class="status">Response · HTTP 200 (from the demo data)</p><pre><code>{
+  &quot;count&quot;: 21,
+  &quot;listings&quot;: [
+    {
+      &quot;item_id&quot;: 11,
+      &quot;legacy_item_id&quot;: &quot;402000007919&quot;,
+      &quot;original_price&quot;: 9.0,
+      &quot;price&quot;: 8.55,
+      &quot;promoted&quot;: 1,
+      &quot;quantity_available&quot;: 1,
+      &quot;quantity_sold&quot;: 0,
+      &quot;relist_count&quot;: 1,
+      &quot;sku&quot;: &quot;DEMO-1&quot;,
+      &quot;start_time&quot;: &quot;2026-11-23T22:10:34Z&quot;,
+      &quot;status&quot;: &quot;active&quot;,
+      &quot;title&quot;: &quot;Pokemon Jungle Booster Pack (empty)&quot;,
+      &quot;url&quot;: &quot;https://www.ebay.co.uk/itm/402000007919&quot;,
+      &quot;watch_count&quot;: 0
+    },
+    {
+      &quot;item_id&quot;: 17,
+      &quot;legacy_item_id&quot;: &quot;402000055433&quot;,
+      &quot;original_price&quot;: 70.0,
+      &quot;price&quot;: 66.5,
+      &quot;promoted&quot;: 1,
+      &quot;quantity_available&quot;: 1,
+      &quot;quantity_sold&quot;: 0,
+      &quot;relist_count&quot;: 1,
+      &quot;sku&quot;: &quot;DEMO-7&quot;,
+      &quot;start_time&quot;: &quot;2026-11-23T22:10:34Z&quot;,
+      &quot;status&quot;: &quot;active&quot;,
+      &quot;title&quot;: &quot;Seiko 5 Automatic 7S26&quot;,
+      &quot;url&quot;: &quot;https://www.ebay.co.uk/itm/402000055433&quot;,
+      &quot;watch_count&quot;: 0
+    },
+    &quot;… 19 more&quot;
+  ]
+}</code></pre></section><h2 id="money">Expenses and mileage</h2><section class="ep" id="GET--expenses"><div class="ep-head"><span class="m GET">GET</span><h3>/api/v1/expenses</h3></div><p>?year=2026 (tax year starting 6 Apr 2026)</p><div class="tabs" role="tablist" aria-label="Example request"><button role="tab" aria-selected="true" data-for="GET--expenses-curl">curl</button><button role="tab" aria-selected="false" data-for="GET--expenses-py">Python</button><button role="tab" aria-selected="false" data-for="GET--expenses-js">JavaScript</button></div><pre id="GET--expenses-curl"><code>curl -k -X GET &quot;https://localhost:8765/api/v1/expenses?year=2026&quot; \
+  -H &quot;Authorization: Bearer $FLIP_KEY&quot;</code></pre><pre id="GET--expenses-py" hidden><code>import os, requests
+
+r = requests.get(
+    &quot;https://localhost:8765/api/v1/expenses?year=2026&quot;,
+    headers={&quot;Authorization&quot;: &quot;Bearer &quot; + os.environ[&quot;FLIP_KEY&quot;]},
+    verify=False,  # your own copy uses a self-signed certificate
+)
+print(r.json())</code></pre><pre id="GET--expenses-js" hidden><code>const r = await fetch(&quot;https://localhost:8765/api/v1/expenses?year=2026&quot;, {
+  method: &quot;GET&quot;,
+  headers: { Authorization: `Bearer ${process.env.FLIP_KEY}` },
+});
+console.log(await r.json());</code></pre><p class="status">Response · HTTP 200 (from the demo data)</p><pre><code>{
+  &quot;count&quot;: 5,
+  &quot;expenses&quot;: [
+    {
+      &quot;amount&quot;: 18.99,
+      &quot;category&quot;: &quot;office&quot;,
+      &quot;date&quot;: &quot;2026-11-12&quot;,
+      &quot;description&quot;: &quot;Bubble mailers x200&quot;,
+      &quot;has_receipt&quot;: 0,
+      &quot;id&quot;: 8,
+      &quot;item_id&quot;: null
+    },
+    {
+      &quot;amount&quot;: 4.99,
+      &quot;category&quot;: &quot;software&quot;,
+      &quot;date&quot;: &quot;2026-11-03&quot;,
+      &quot;description&quot;: &quot;Photo editing app&quot;,
+      &quot;has_receipt&quot;: 0,
+      &quot;id&quot;: 1,
+      &quot;item_id&quot;: null
+    },
+    &quot;… 3 more&quot;
+  ],
+  &quot;tax_year&quot;: &quot;2026/27&quot;,
+  &quot;total&quot;: 60.46
+}</code></pre></section><section class="ep" id="POST--expenses"><div class="ep-head"><span class="m POST">POST</span><h3>/api/v1/expenses</h3></div><p>date, category* (stock, travel, wages, premises, repairs, professional, finance, office, software, advertising, platform, equipment, other), description*, amount*, item_id</p><div class="tabs" role="tablist" aria-label="Example request"><button role="tab" aria-selected="true" data-for="POST--expenses-curl">curl</button><button role="tab" aria-selected="false" data-for="POST--expenses-py">Python</button><button role="tab" aria-selected="false" data-for="POST--expenses-js">JavaScript</button></div><pre id="POST--expenses-curl"><code>curl -k -X POST &quot;https://localhost:8765/api/v1/expenses&quot; \
+  -H &quot;Authorization: Bearer $FLIP_KEY&quot; \
+  -H &quot;Content-Type: application/json&quot; \
+  -d &#x27;{&quot;date&quot;: &quot;2026-11-20&quot;, &quot;category&quot;: &quot;office&quot;, &quot;description&quot;: &quot;Bubble mailers x50&quot;, &quot;amount&quot;: 7.99}&#x27;</code></pre><pre id="POST--expenses-py" hidden><code>import os, requests
+
+r = requests.post(
+    &quot;https://localhost:8765/api/v1/expenses&quot;,
+    headers={&quot;Authorization&quot;: &quot;Bearer &quot; + os.environ[&quot;FLIP_KEY&quot;]},
+    json={&quot;date&quot;: &quot;2026-11-20&quot;, &quot;category&quot;: &quot;office&quot;, &quot;description&quot;: &quot;Bubble mailers x50&quot;, &quot;amount&quot;: 7.99},
+    verify=False,  # your own copy uses a self-signed certificate
+)
+print(r.json())</code></pre><pre id="POST--expenses-js" hidden><code>const r = await fetch(&quot;https://localhost:8765/api/v1/expenses&quot;, {
+  method: &quot;POST&quot;,
+  headers: { Authorization: `Bearer ${process.env.FLIP_KEY}`, &quot;Content-Type&quot;: &quot;application/json&quot; },
+  body: JSON.stringify({&quot;date&quot;: &quot;2026-11-20&quot;, &quot;category&quot;: &quot;office&quot;, &quot;description&quot;: &quot;Bubble mailers x50&quot;, &quot;amount&quot;: 7.99}),
+});
+console.log(await r.json());</code></pre><p class="status">Response · HTTP 201 (from the demo data)</p><pre><code>{
+  &quot;amount&quot;: 7.99,
+  &quot;category&quot;: &quot;office&quot;,
+  &quot;date&quot;: &quot;2026-11-20&quot;,
+  &quot;description&quot;: &quot;Bubble mailers x50&quot;,
+  &quot;id&quot;: 17,
+  &quot;sa103s_box&quot;: 18
+}</code></pre></section><section class="ep" id="POST--mileage"><div class="ep-head"><span class="m POST">POST</span><h3>/api/v1/mileage</h3></div><p>date, miles*, purpose*, vehicle (car|motorcycle|bicycle), route, return_trip (bool)</p><div class="tabs" role="tablist" aria-label="Example request"><button role="tab" aria-selected="true" data-for="POST--mileage-curl">curl</button><button role="tab" aria-selected="false" data-for="POST--mileage-py">Python</button><button role="tab" aria-selected="false" data-for="POST--mileage-js">JavaScript</button></div><pre id="POST--mileage-curl"><code>curl -k -X POST &quot;https://localhost:8765/api/v1/mileage&quot; \
+  -H &quot;Authorization: Bearer $FLIP_KEY&quot; \
+  -H &quot;Content-Type: application/json&quot; \
+  -d &#x27;{&quot;date&quot;: &quot;2026-11-20&quot;, &quot;miles&quot;: 3, &quot;purpose&quot;: &quot;Post office&quot;, &quot;return_trip&quot;: true}&#x27;</code></pre><pre id="POST--mileage-py" hidden><code>import os, requests
+
+r = requests.post(
+    &quot;https://localhost:8765/api/v1/mileage&quot;,
+    headers={&quot;Authorization&quot;: &quot;Bearer &quot; + os.environ[&quot;FLIP_KEY&quot;]},
+    json={&quot;date&quot;: &quot;2026-11-20&quot;, &quot;miles&quot;: 3, &quot;purpose&quot;: &quot;Post office&quot;, &quot;return_trip&quot;: true},
+    verify=False,  # your own copy uses a self-signed certificate
+)
+print(r.json())</code></pre><pre id="POST--mileage-js" hidden><code>const r = await fetch(&quot;https://localhost:8765/api/v1/mileage&quot;, {
+  method: &quot;POST&quot;,
+  headers: { Authorization: `Bearer ${process.env.FLIP_KEY}`, &quot;Content-Type&quot;: &quot;application/json&quot; },
+  body: JSON.stringify({&quot;date&quot;: &quot;2026-11-20&quot;, &quot;miles&quot;: 3, &quot;purpose&quot;: &quot;Post office&quot;, &quot;return_trip&quot;: true}),
+});
+console.log(await r.json());</code></pre><p class="status">Response · HTTP 201 (from the demo data)</p><pre><code>{
+  &quot;claim_at_first_10000_rate&quot;: 3.3,
+  &quot;date&quot;: &quot;2026-11-20&quot;,
+  &quot;id&quot;: 23,
+  &quot;miles&quot;: 6.0,
+  &quot;vehicle&quot;: &quot;car&quot;
+}</code></pre></section><h2 id="alerts">Notifications and sync</h2><section class="ep" id="GET--notifications"><div class="ep-head"><span class="m GET">GET</span><h3>/api/v1/notifications</h3></div><p>?unread=1&amp;kind=sale|issue|automation</p><div class="tabs" role="tablist" aria-label="Example request"><button role="tab" aria-selected="true" data-for="GET--notifications-curl">curl</button><button role="tab" aria-selected="false" data-for="GET--notifications-py">Python</button><button role="tab" aria-selected="false" data-for="GET--notifications-js">JavaScript</button></div><pre id="GET--notifications-curl"><code>curl -k -X GET &quot;https://localhost:8765/api/v1/notifications?unread=1&quot; \
+  -H &quot;Authorization: Bearer $FLIP_KEY&quot;</code></pre><pre id="GET--notifications-py" hidden><code>import os, requests
+
+r = requests.get(
+    &quot;https://localhost:8765/api/v1/notifications?unread=1&quot;,
+    headers={&quot;Authorization&quot;: &quot;Bearer &quot; + os.environ[&quot;FLIP_KEY&quot;]},
+    verify=False,  # your own copy uses a self-signed certificate
+)
+print(r.json())</code></pre><pre id="GET--notifications-js" hidden><code>const r = await fetch(&quot;https://localhost:8765/api/v1/notifications?unread=1&quot;, {
+  method: &quot;GET&quot;,
+  headers: { Authorization: `Bearer ${process.env.FLIP_KEY}` },
+});
+console.log(await r.json());</code></pre><p class="status">Response · HTTP 200 (from the demo data)</p><pre><code>{
+  &quot;count&quot;: 6,
+  &quot;notifications&quot;: [
+    {
+      &quot;at&quot;: &quot;2026-11-23T22:10:34Z&quot;,
+      &quot;body&quot;: &quot;&quot;,
+      &quot;id&quot;: 6,
+      &quot;kind&quot;: &quot;automation&quot;,
+      &quot;link&quot;: &quot;/automations&quot;,
+      &quot;read&quot;: 0,
+      &quot;title&quot;: &quot;Promoted 16 listings&quot;
+    },
+    {
+      &quot;at&quot;: &quot;2026-11-23T22:10:34Z&quot;,
+      &quot;body&quot;: &quot;3 relisted.&quot;,
+      &quot;id&quot;: 5,
+      &quot;kind&quot;: &quot;automation&quot;,
+      &quot;link&quot;: &quot;/automations&quot;,
+      &quot;read&quot;: 0,
+      &quot;title&quot;: &quot;Relist digest for 23 Nov&quot;
+    },
+    &quot;… 4 more&quot;
+  ]
+}</code></pre></section><section class="ep" id="POST--sync"><div class="ep-head"><span class="m POST">POST</span><h3>/api/v1/sync</h3></div><p>Start a sync with eBay now.</p><p class=status>Starts a sync in the background (in demo mode it just says sync is off).</p><div class="tabs" role="tablist" aria-label="Example request"><button role="tab" aria-selected="true" data-for="POST--sync-curl">curl</button><button role="tab" aria-selected="false" data-for="POST--sync-py">Python</button><button role="tab" aria-selected="false" data-for="POST--sync-js">JavaScript</button></div><pre id="POST--sync-curl"><code>curl -k -X POST &quot;https://localhost:8765/api/v1/sync&quot; \
+  -H &quot;Authorization: Bearer $FLIP_KEY&quot;</code></pre><pre id="POST--sync-py" hidden><code>import os, requests
+
+r = requests.post(
+    &quot;https://localhost:8765/api/v1/sync&quot;,
+    headers={&quot;Authorization&quot;: &quot;Bearer &quot; + os.environ[&quot;FLIP_KEY&quot;]},
+    verify=False,  # your own copy uses a self-signed certificate
+)
+print(r.json())</code></pre><pre id="POST--sync-js" hidden><code>const r = await fetch(&quot;https://localhost:8765/api/v1/sync&quot;, {
+  method: &quot;POST&quot;,
+  headers: { Authorization: `Bearer ${process.env.FLIP_KEY}` },
+});
+console.log(await r.json());</code></pre><p class="status">Response · HTTP 200 (from the demo data)</p><pre><code>{
+  &quot;message&quot;: &quot;Sync is disabled in demo mode.&quot;,
+  &quot;started&quot;: false
+}</code></pre></section>
+
+<h2 id="openapi">OpenAPI file</h2>
+<p>The whole API is described in <a href="openapi.json">openapi.json</a> (OpenAPI 3.1, examples included). Load it into
+Postman, Insomnia or Bruno, or generate a client with <code>openapi-generator</code>. Both this page and that file are
+made by <code>tools/gen_api_docs.py</code>, which calls every endpoint on demo data, so the examples are real output.</p>
+</main></div>
+<footer>Flip for Free is free for your own selling. Source on <a href="https://github.com/JosephsStuff/Flip-For-Free">GitHub</a> · FSL-1.1-MIT licence</footer>
+<script>
+document.querySelectorAll('.tabs').forEach(function (t) {
+  t.addEventListener('click', function (ev) {
+    var b = ev.target.closest('button'); if (!b) return;
+    t.querySelectorAll('button').forEach(function (x) {
+      var on = x === b; x.setAttribute('aria-selected', on); document.getElementById(x.dataset.for).hidden = !on;
+    });
+  });
+});
+</script>
+</body>
+</html>

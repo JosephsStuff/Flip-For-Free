@@ -1,0 +1,1497 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Flip for Free API",
+    "version": "1.7.0",
+    "description": "Flip for Free JSON API - lets Claude (or any script) read and update your data.\n\nEvery request needs an API key from Settings -> API keys:\n    Authorization: Bearer flip_xxxxxxxx\n\nAll money is in GBP, dates are YYYY-MM-DD. Errors come back as {\"error\": \"...\"} with an HTTP status.\nA change that would alter a tax year you've marked as filed returns 409 unless you send\n\"confirm_closed\": true. GET /api/v1 describes every endpoint."
+  },
+  "servers": [
+    {
+      "url": "https://localhost:8765",
+      "description": "Your own copy (local)"
+    },
+    {
+      "url": "https://flip.your-tailnet.ts.net",
+      "description": "Your own server"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "bearer": {
+        "type": "http",
+        "scheme": "bearer",
+        "description": "A key from Settings → API keys (flip_…)"
+      }
+    }
+  },
+  "security": [
+    {
+      "bearer": []
+    }
+  ],
+  "paths": {
+    "/api/v1/summary": {
+      "get": {
+        "summary": "Profit summary for a period",
+        "description": "Profit summary for a period. ?period=today|7d|30d|month|last_month|90d|ytd|fy|all|custom&start=&end= (custom), or a saved range 'r:<id>'.",
+        "responses": {
+          "200": {
+            "description": "Example",
+            "content": {
+              "application/json": {
+                "example": {
+                  "account_charges": 7.19,
+                  "active_listings": 21,
+                  "buyers_paid": 2067.28,
+                  "cost_of_goods_sold": 187.72,
+                  "deductions_breakdown": {
+                    "Depop fees": 5.21,
+                    "Final value fee": 221.13,
+                    "Packaging": 1.8,
+                    "Per-order fee": 5.1,
+                    "Postage (paid by you)": 16.0,
+                    "Promoted listings": 5.71,
+                    "Regulatory operating fee": 6.04,
+                    "eBay postage labels": 15.83
+                  },
+                  "ebay_and_platform_deductions": 259.02,
+                  "end": null,
+                  "items_not_listed": 6,
+                  "items_sold": 23,
+                  "money_made": 1790.46,
+                  "period": "30d",
+                  "profit_after_cost_of_goods": 1602.74,
+                  "sales": 23,
+                  "sales_missing_cost": 0,
+                  "sales_with_estimated_fees": 4,
+                  "start": "2026-10-23",
+                  "your_sale_costs": 17.8
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad input: {\"error\": \"…\"}"
+          },
+          "401": {
+            "description": "Missing or wrong API key"
+          },
+          "409": {
+            "description": "Would change a tax year marked as filed (send confirm_closed: true)"
+          }
+        }
+      }
+    },
+    "/api/v1/time-to-sell": {
+      "get": {
+        "summary": "Time to sell",
+        "description": "Time to sell. Single-quantity listings: average/median days from first listed to sold. Multi-quantity listings: how often one sells ('one every N days'), stock left and sell-out estimate. ?period=…&start=&end=",
+        "responses": {
+          "200": {
+            "description": "Example",
+            "content": {
+              "application/json": {
+                "example": {
+                  "end": null,
+                  "multi_quantity": {
+                    "by_listing": [
+                      {
+                        "active": true,
+                        "days_since_last_sale": 12.0,
+                        "item_id": 9,
+                        "one_sells_every_days": 11.4,
+                        "sells_out_in_days": 22.7,
+                        "stock_left": 2,
+                        "title": "PS2 Game Bundle x5",
+                        "units_per_week": 0.6,
+                        "units_sold": 8
+                      },
+                      {
+                        "active": true,
+                        "days_since_last_sale": 15.6,
+                        "item_id": 2,
+                        "one_sells_every_days": 13.0,
+                        "sells_out_in_days": 26.0,
+                        "stock_left": 2,
+                        "title": "Red-Eyes Black Dragon LOB-070",
+                        "units_per_week": 0.5,
+                        "units_sold": 7
+                      },
+                      "… 7 more"
+                    ],
+                    "listings": 9,
+                    "median_one_sells_every_days": 22.7,
+                    "one_sells_every_days": 21.0,
+                    "units_per_week": 0.3,
+                    "units_sold": 39
+                  },
+                  "period": "90d",
+                  "single_quantity": {
+                    "average_days": 46.2,
+                    "fastest_days": 4.5,
+                    "longest_listed": [
+                      {
+                        "days": 59.4,
+                        "item_id": 17,
+                        "title": "Seiko 5 Automatic 7S26"
+                      },
+                      {
+                        "days": 41.0,
+                        "item_id": 18,
+                        "title": "Pokemon Base Set Blastoise 2/102"
+                      },
+                      "… 8 more"
+                    ],
+                    "median_days": 23.8,
+                    "slowest_days": 102.2,
+                    "sold": 7,
+                    "spread": [
+                      {
+                        "count": 1,
+                        "label": "Within a week"
+                      },
+                      {
+                        "count": 3,
+                        "label": "1–4 weeks"
+                      },
+                      "… 2 more"
+                    ],
+                    "still_listed": 12,
+                    "still_listed_average_days": 26.0
+                  },
+                  "start": "2026-08-25"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad input: {\"error\": \"…\"}"
+          },
+          "401": {
+            "description": "Missing or wrong API key"
+          },
+          "409": {
+            "description": "Would change a tax year marked as filed (send confirm_closed: true)"
+          }
+        }
+      }
+    },
+    "/api/v1/sales": {
+      "get": {
+        "summary": "Sales with full breakdown",
+        "description": "Sales with full breakdown. ?period=…&q=search&missing_cost=1&channel=Vinted&limit=200",
+        "responses": {
+          "200": {
+            "description": "Example",
+            "content": {
+              "application/json": {
+                "example": {
+                  "count": 23,
+                  "sales": [
+                    {
+                      "bulk_buy_id": null,
+                      "bulk_name": null,
+                      "channel": "eBay",
+                      "cost_source": "sale",
+                      "ebay_deductions": {},
+                      "ebay_deductions_total": 0.0,
+                      "estimated": true,
+                      "gross": 102.96,
+                      "item_cost": 45.44,
+                      "item_id": null,
+                      "item_location": null,
+                      "legacy_item_id": "396000523645",
+                      "line_item_id": "S-demo5",
+                      "missing_cost": false,
+                      "money_made": 99.76,
+                      "net_from_ebay": 102.96,
+                      "order_id": "O-demo5",
+                      "own_costs": {
+                        "Postage (paid by you)": 3.2
+                      },
+                      "own_costs_total": 3.2,
+                      "profit": 54.32,
+                      "quantity": 1,
+                      "sold_at": "2026-11-23T16:10:34.000Z",
+                      "source": "ebay",
+                      "status": null,
+                      "title": "Seiko SNK809 #6"
+                    },
+                    {
+                      "bulk_buy_id": null,
+                      "bulk_name": null,
+                      "channel": "eBay",
+                      "cost_source": "sale",
+                      "ebay_deductions": {},
+                      "ebay_deductions_total": 0.0,
+                      "estimated": true,
+                      "gross": 32.23,
+                      "item_cost": 13.43,
+                      "item_id": null,
+                      "item_location": null,
+                      "legacy_item_id": "396000000000",
+                      "line_item_id": "S-demo0",
+                      "missing_cost": false,
+                      "money_made": 29.03,
+                      "net_from_ebay": 32.23,
+                      "order_id": "O-demo0",
+                      "own_costs": {
+                        "Postage (paid by you)": 3.2
+                      },
+                      "own_costs_total": 3.2,
+                      "profit": 15.6,
+                      "quantity": 1,
+                      "sold_at": "2026-11-23T16:10:34.000Z",
+                      "source": "ebay",
+                      "status": null,
+                      "title": "Pokemon Base Set Charizard 4/102 #1"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad input: {\"error\": \"…\"}"
+          },
+          "401": {
+            "description": "Missing or wrong API key"
+          },
+          "409": {
+            "description": "Would change a tax year marked as filed (send confirm_closed: true)"
+          }
+        }
+      },
+      "post": {
+        "summary": "Record a sale from another marketplace: title*, item_price*, sold_at, channel, quantity, delivery_charged, fees, postage",
+        "description": "Record a sale from another marketplace: title*, item_price*, sold_at, channel, quantity, delivery_charged, fees, postage_cost, packaging_cost, handling_cost, cost, item_id, notes, update_ebay (true: lower or end the item's listings on eBay, CardTrader and Shopify).",
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad input: {\"error\": \"…\"}"
+          },
+          "401": {
+            "description": "Missing or wrong API key"
+          },
+          "409": {
+            "description": "Would change a tax year marked as filed (send confirm_closed: true)"
+          },
+          "201": {
+            "description": "Example",
+            "content": {
+              "application/json": {
+                "example": {
+                  "bulk_buy_id": null,
+                  "bulk_name": null,
+                  "channel": "Vinted",
+                  "cost_source": "sale",
+                  "ebay_deductions": {},
+                  "ebay_deductions_total": 0.0,
+                  "estimated": false,
+                  "gross": 28.0,
+                  "item_cost": 6.0,
+                  "item_id": null,
+                  "item_location": null,
+                  "legacy_item_id": null,
+                  "line_item_id": "M-5bc901b1dc5e",
+                  "missing_cost": false,
+                  "money_made": 28.0,
+                  "net_from_ebay": 28.0,
+                  "order_id": "M-5bc901b1dc5e",
+                  "own_costs": {},
+                  "own_costs_total": 0.0,
+                  "profit": 22.0,
+                  "quantity": 1,
+                  "sold_at": "2026-11-22T12:00:00Z",
+                  "source": "manual",
+                  "status": null,
+                  "title": "Zara wool coat"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "example": {
+                "title": "Zara wool coat",
+                "item_price": 28,
+                "channel": "Vinted",
+                "sold_at": "2026-11-22",
+                "postage_cost": 0,
+                "cost": 6
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/sales/{line_item_id}": {
+      "get": {
+        "summary": "One sale.",
+        "description": "One sale.",
+        "responses": {
+          "200": {
+            "description": "Example",
+            "content": {
+              "application/json": {
+                "example": {
+                  "bulk_buy_id": null,
+                  "bulk_name": null,
+                  "channel": "eBay",
+                  "cost_source": "sale",
+                  "ebay_deductions": {},
+                  "ebay_deductions_total": 0.0,
+                  "estimated": true,
+                  "gross": 102.96,
+                  "item_cost": 45.44,
+                  "item_id": null,
+                  "item_location": null,
+                  "legacy_item_id": "396000523645",
+                  "line_item_id": "S-demo5",
+                  "missing_cost": false,
+                  "money_made": 99.76,
+                  "net_from_ebay": 102.96,
+                  "order_id": "O-demo5",
+                  "own_costs": {
+                    "Postage (paid by you)": 3.2
+                  },
+                  "own_costs_total": 3.2,
+                  "profit": 54.32,
+                  "quantity": 1,
+                  "sold_at": "2026-11-23T16:10:34.000Z",
+                  "source": "ebay",
+                  "status": null,
+                  "title": "Seiko SNK809 #6"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad input: {\"error\": \"…\"}"
+          },
+          "401": {
+            "description": "Missing or wrong API key"
+          },
+          "409": {
+            "description": "Would change a tax year marked as filed (send confirm_closed: true)"
+          }
+        },
+        "parameters": [
+          {
+            "name": "line_item_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      },
+      "patch": {
+        "summary": "Set your costs on a sale: cost, postage_cost, packaging_cost, handling_cost, other_cost, bulk_buy_id (null to remove), n",
+        "description": "Set your costs on a sale: cost, postage_cost, packaging_cost, handling_cost, other_cost, bulk_buy_id (null to remove), notes.",
+        "responses": {
+          "200": {
+            "description": "Example",
+            "content": {
+              "application/json": {
+                "example": {
+                  "bulk_buy_id": null,
+                  "bulk_name": null,
+                  "channel": "eBay",
+                  "cost_source": "sale",
+                  "ebay_deductions": {},
+                  "ebay_deductions_total": 0.0,
+                  "estimated": true,
+                  "gross": 102.96,
+                  "item_cost": 4.5,
+                  "item_id": null,
+                  "item_location": null,
+                  "legacy_item_id": "396000523645",
+                  "line_item_id": "S-demo5",
+                  "missing_cost": false,
+                  "money_made": 99.46,
+                  "net_from_ebay": 102.96,
+                  "order_id": "O-demo5",
+                  "own_costs": {
+                    "Packaging": 0.3,
+                    "Postage (paid by you)": 3.2
+                  },
+                  "own_costs_total": 3.5,
+                  "profit": 94.96,
+                  "quantity": 1,
+                  "sold_at": "2026-11-23T16:10:34.000Z",
+                  "source": "ebay",
+                  "status": null,
+                  "title": "Seiko SNK809 #6"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad input: {\"error\": \"…\"}"
+          },
+          "401": {
+            "description": "Missing or wrong API key"
+          },
+          "409": {
+            "description": "Would change a tax year marked as filed (send confirm_closed: true)"
+          }
+        },
+        "parameters": [
+          {
+            "name": "line_item_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "example": {
+                "cost": 4.5,
+                "packaging_cost": 0.3
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/items": {
+      "get": {
+        "summary": "Inventory",
+        "description": "Inventory. ?status=instock|listed|unlisted|sold|all&q=&location=&source=&missing_cost=1",
+        "responses": {
+          "200": {
+            "description": "Example",
+            "content": {
+              "application/json": {
+                "example": {
+                  "count": 26,
+                  "items": [
+                    {
+                      "active_id": null,
+                      "bulk_buy_id": null,
+                      "bulk_name": null,
+                      "cost": 15.0,
+                      "cost_locked": 0,
+                      "days_listed": null,
+                      "handling_cost": null,
+                      "id": 27,
+                      "list_price": null,
+                      "location": "Shelf B1",
+                      "notes": null,
+                      "packaging_cost": null,
+                      "purchased_at": "2026-11-20",
+                      "quantity": 1,
+                      "remaining": 1,
+                      "restock_url": null,
+                      "sku": null,
+                      "sold_units": 0,
+                      "source": "Vinted",
+                      "status": "unlisted",
+                      "title": "Yu-Gi-Oh Starter Deck Kaiba (sealed)",
+                      "unit_cost": 15.0,
+                      "written_off_at": null
+                    },
+                    {
+                      "active_id": null,
+                      "bulk_buy_id": null,
+                      "bulk_name": null,
+                      "cost": 4.0,
+                      "cost_locked": 0,
+                      "days_listed": null,
+                      "handling_cost": null,
+                      "id": 22,
+                      "list_price": null,
+                      "location": "Garage rack",
+                      "notes": null,
+                      "packaging_cost": null,
+                      "purchased_at": "2026-11-17",
+                      "quantity": 1,
+                      "remaining": 1,
+                      "restock_url": null,
+                      "sku": null,
+                      "sold_units": 0,
+                      "source": "Charity shop",
+                      "status": "unlisted",
+                      "title": "Nintendo Wii Fit Board",
+                      "unit_cost": 4.0,
+                      "written_off_at": null
+                    },
+                    "… 24 more"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad input: {\"error\": \"…\"}"
+          },
+          "401": {
+            "description": "Missing or wrong API key"
+          },
+          "409": {
+            "description": "Would change a tax year marked as filed (send confirm_closed: true)"
+          }
+        }
+      },
+      "post": {
+        "summary": "Add stock: title* (or titles: [..] for several), quantity, cost (each), source, purchased_at, location, bulk_buy_id, cos",
+        "description": "Add stock: title* (or titles: [..] for several), quantity, cost (each), source, purchased_at, location, bulk_buy_id, cost_locked, sku, packaging_cost, handling_cost, restock_url, notes.",
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad input: {\"error\": \"…\"}"
+          },
+          "401": {
+            "description": "Missing or wrong API key"
+          },
+          "409": {
+            "description": "Would change a tax year marked as filed (send confirm_closed: true)"
+          },
+          "201": {
+            "description": "Example",
+            "content": {
+              "application/json": {
+                "example": {
+                  "created": 2,
+                  "items": [
+                    {
+                      "active_id": null,
+                      "bulk_buy_id": null,
+                      "bulk_name": null,
+                      "cost": 1.5,
+                      "cost_locked": 0,
+                      "days_listed": null,
+                      "handling_cost": null,
+                      "id": 29,
+                      "list_price": null,
+                      "location": "Box 3",
+                      "notes": null,
+                      "packaging_cost": null,
+                      "purchased_at": null,
+                      "quantity": 1,
+                      "remaining": 1,
+                      "restock_url": null,
+                      "sku": null,
+                      "sold_units": 0,
+                      "source": "Car boot",
+                      "status": "unlisted",
+                      "title": "Mirror Force MRD-138",
+                      "unit_cost": 1.5,
+                      "written_off_at": null
+                    },
+                    {
+                      "active_id": null,
+                      "bulk_buy_id": null,
+                      "bulk_name": null,
+                      "cost": 1.5,
+                      "cost_locked": 0,
+                      "days_listed": null,
+                      "handling_cost": null,
+                      "id": 28,
+                      "list_price": null,
+                      "location": "Box 3",
+                      "notes": null,
+                      "packaging_cost": null,
+                      "purchased_at": null,
+                      "quantity": 1,
+                      "remaining": 1,
+                      "restock_url": null,
+                      "sku": null,
+                      "sold_units": 0,
+                      "source": "Car boot",
+                      "status": "unlisted",
+                      "title": "Pot of Greed LOB-119",
+                      "unit_cost": 1.5,
+                      "written_off_at": null
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "example": {
+                "titles": [
+                  "Pot of Greed LOB-119",
+                  "Mirror Force MRD-138"
+                ],
+                "cost": 1.5,
+                "source": "Car boot",
+                "location": "Box 3"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/items/{id}": {
+      "get": {
+        "summary": "One item, with its listings, sales and timeline.",
+        "description": "One item, with its listings, sales and timeline.",
+        "responses": {
+          "200": {
+            "description": "Example",
+            "content": {
+              "application/json": {
+                "example": {
+                  "active_id": "000760898523",
+                  "bulk_buy_id": 1,
+                  "bulk_name": "Car boot Yu-Gi-Oh binder",
+                  "cost": null,
+                  "cost_locked": 0,
+                  "days_listed": 247,
+                  "handling_cost": null,
+                  "id": 1,
+                  "list_price": 122.5,
+                  "listings": [
+                    {
+                      "legacy_item_id": "000760898523",
+                      "price": 122.5,
+                      "promoted": 1,
+                      "start_time": "2026-03-21T22:10:34.000Z",
+                      "status": "active",
+                      "title": "Blue-Eyes White Dragon LOB-001 1st Edition",
+                      "watch_count": 1
+                    }
+                  ],
+                  "location": "Shelf A2",
+                  "notes": null,
+                  "packaging_cost": null,
+                  "purchased_at": "2026-06-26",
+                  "quantity": 12,
+                  "remaining": 1,
+                  "restock_url": null,
+                  "sales": [
+                    {
+                      "bulk_buy_id": 1,
+                      "bulk_name": "Car boot Yu-Gi-Oh binder",
+                      "channel": "eBay",
+                      "cost_source": "bulk share",
+                      "ebay_deductions": {
+                        "Final value fee": 17.54,
+                        "Per-order fee": 0.3,
+                        "Regulatory operating fee": 0.48,
+                        "eBay postage labels": 1.4
+                      },
+                      "ebay_deductions_total": 19.72,
+                      "estimated": false,
+                      "gross": 137.01,
+                      "item_cost": 4.18,
+                      "item_id": 1,
+                      "item_location": "Shelf A2",
+                      "legacy_item_id": "000760898523",
+                      "line_item_id": "13106464319",
+                      "missing_cost": false,
+                      "money_made": 117.29,
+                      "net_from_ebay": 117.29,
+                      "order_id": "14-77272-64450",
+                      "own_costs": {},
+                      "own_costs_total": 0.0,
+                      "profit": 113.11,
+                      "quantity": 1,
+                      "sold_at": "2026-11-09T08:10:34.000Z",
+                      "source": "ebay",
+                      "status": null,
+                      "title": "Blue-Eyes White Dragon LOB-001 1st Edition"
+                    },
+                    {
+                      "bulk_buy_id": 1,
+                      "bulk_name": "Car boot Yu-Gi-Oh binder",
+                      "channel": "eBay",
+                      "cost_source": "bulk share",
+                      "ebay_deductions": {
+                        "Final value fee": 17.6,
+                        "Per-order fee": 0.3,
+                        "Regulatory operating fee": 0.48,
+                        "eBay postage labels": 1.17
+                      },
+                      "ebay_deductions_total": 19.55,
+                      "estimated": false,
+                      "gross": 137.48,
+                      "item_cost": 4.18,
+                      "item_id": 1,
+                      "item_location": "Shelf A2",
+                      "legacy_item_id": "000760898523",
+                      "line_item_id": "71727327452",
+                      "missing_cost": false,
+                      "money_made": 117.93,
+                      "net_from_ebay": 117.93,
+                      "order_id": "21-57467-60181",
+                      "own_costs": {},
+                      "own_costs_total": 0.0,
+                      "profit": 113.75,
+                      "quantity": 1,
+                      "sold_at": "2026-09-24T02:10:34.000Z",
+                      "source": "ebay",
+                      "status": null,
+                      "title": "Blue-Eyes White Dragon LOB-001 1st Edition"
+                    },
+                    "… 6 more"
+                  ],
+                  "sku": null,
+                  "sold_units": 11,
+                  "source": "Car boot",
+                  "status": "listed",
+                  "timeline": [
+                    {
+                      "at": "2026-11-23T22:10:34Z",
+                      "detail": "Added from your eBay listings",
+                      "kind": "created"
+                    },
+                    {
+                      "at": "2026-11-23T22:10:34Z",
+                      "detail": "Promoted at 4.0% after 247 days unsold",
+                      "kind": "promoted"
+                    },
+                    "… 9 more"
+                  ],
+                  "title": "Blue-Eyes White Dragon LOB-001 1st Edition",
+                  "unit_cost": 4.18290705753896,
+                  "written_off_at": null
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad input: {\"error\": \"…\"}"
+          },
+          "401": {
+            "description": "Missing or wrong API key"
+          },
+          "409": {
+            "description": "Would change a tax year marked as filed (send confirm_closed: true)"
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      },
+      "patch": {
+        "summary": "Change any of the fields above, plus link_listing (eBay item ID).",
+        "description": "Change any of the fields above, plus link_listing (eBay item ID).",
+        "responses": {
+          "200": {
+            "description": "Example",
+            "content": {
+              "application/json": {
+                "example": {
+                  "active_id": "000760898523",
+                  "bulk_buy_id": 1,
+                  "bulk_name": "Car boot Yu-Gi-Oh binder",
+                  "cost": 2.0,
+                  "cost_locked": 0,
+                  "days_listed": 247,
+                  "handling_cost": null,
+                  "id": 1,
+                  "list_price": 122.5,
+                  "location": "Shelf B",
+                  "notes": null,
+                  "packaging_cost": null,
+                  "purchased_at": "2026-06-26",
+                  "quantity": 12,
+                  "remaining": 1,
+                  "restock_url": null,
+                  "sku": null,
+                  "sold_units": 11,
+                  "source": "Car boot",
+                  "status": "listed",
+                  "title": "Blue-Eyes White Dragon LOB-001 1st Edition",
+                  "unit_cost": 4.18290705753896,
+                  "written_off_at": null
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad input: {\"error\": \"…\"}"
+          },
+          "401": {
+            "description": "Missing or wrong API key"
+          },
+          "409": {
+            "description": "Would change a tax year marked as filed (send confirm_closed: true)"
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "example": {
+                "location": "Shelf B",
+                "cost": 2.0
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/items/{id}/write-off": {
+      "post": {
+        "summary": "Write an item off: reason, date.",
+        "description": "Write an item off: reason, date.",
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad input: {\"error\": \"…\"}"
+          },
+          "401": {
+            "description": "Missing or wrong API key"
+          },
+          "409": {
+            "description": "Would change a tax year marked as filed (send confirm_closed: true)"
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      }
+    },
+    "/api/v1/bulk-buys": {
+      "get": {
+        "summary": "Bulk buys with cost, money made back, profit and ROI.",
+        "description": "Bulk buys with cost, money made back, profit and ROI.",
+        "responses": {
+          "200": {
+            "description": "Example",
+            "content": {
+              "application/json": {
+                "example": {
+                  "bulk_buys": [
+                    {
+                      "cost": 60.0,
+                      "extra_costs": 0.0,
+                      "id": 3,
+                      "item_count": 25,
+                      "items_left": 10,
+                      "location": "Box 3",
+                      "money_made": 281.64,
+                      "name": "Job lot - house clearance",
+                      "notes": "Demo bulk buy",
+                      "paid_back_pct": 469.4,
+                      "profit": 221.64,
+                      "purchased_at": "2026-10-09",
+                      "roi_pct": 369.4,
+                      "source": "House clearance",
+                      "split_method": "even",
+                      "total_cost": 60.0,
+                      "units_sold": 15
+                    },
+                    {
+                      "cost": 107.0,
+                      "extra_costs": 12.0,
+                      "id": 2,
+                      "item_count": 30,
+                      "items_left": -26,
+                      "location": "Garage rack",
+                      "money_made": 1569.28,
+                      "name": "Facebook retro gaming lot",
+                      "notes": "Demo bulk buy",
+                      "paid_back_pct": 1466.6168224299065,
+                      "profit": 1462.28,
+                      "purchased_at": "2026-07-26",
+                      "roi_pct": 1366.6168224299065,
+                      "source": "Facebook Marketplace",
+                      "split_method": "even",
+                      "total_cost": 95.0,
+                      "units_sold": 56
+                    },
+                    "… 1 more"
+                  ],
+                  "count": 3
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad input: {\"error\": \"…\"}"
+          },
+          "401": {
+            "description": "Missing or wrong API key"
+          },
+          "409": {
+            "description": "Would change a tax year marked as filed (send confirm_closed: true)"
+          }
+        }
+      },
+      "post": {
+        "summary": "Create a bulk buy: name*, total_cost*, purchased_at, extra_costs, item_count, source, location, split_method (even|price",
+        "description": "Create a bulk buy: name*, total_cost*, purchased_at, extra_costs, item_count, source, location, split_method (even|price), notes, items: ['title', …] to log its items.",
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad input: {\"error\": \"…\"}"
+          },
+          "401": {
+            "description": "Missing or wrong API key"
+          },
+          "409": {
+            "description": "Would change a tax year marked as filed (send confirm_closed: true)"
+          },
+          "201": {
+            "description": "Example",
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": 4,
+                  "items_logged": 2,
+                  "name": "Binder of 40 Yu-Gi-Oh cards",
+                  "purchased_at": "2026-11-21",
+                  "source": "Car boot",
+                  "total_cost": 60.0
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "example": {
+                "name": "Binder of 40 Yu-Gi-Oh cards",
+                "total_cost": 60,
+                "source": "Car boot",
+                "purchased_at": "2026-11-21",
+                "items": [
+                  "Dark Magician SDY-006",
+                  "Exodia LOB-124"
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/bulk-buys/{id}": {
+      "patch": {
+        "summary": "Change a bulk buy's fields.",
+        "description": "Change a bulk buy's fields.",
+        "responses": {
+          "200": {
+            "description": "Example",
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": 1,
+                  "notes": "Bought at Barras market",
+                  "ok": true
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad input: {\"error\": \"…\"}"
+          },
+          "401": {
+            "description": "Missing or wrong API key"
+          },
+          "409": {
+            "description": "Would change a tax year marked as filed (send confirm_closed: true)"
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "example": {
+                "notes": "Bought at Barras market"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/bulk-buys/{id}/link-listings": {
+      "post": {
+        "summary": "listing_ids: [eBay item IDs] - their past and future sales count towards this bulk buy.",
+        "description": "listing_ids: [eBay item IDs] - their past and future sales count towards this bulk buy.",
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad input: {\"error\": \"…\"}"
+          },
+          "401": {
+            "description": "Missing or wrong API key"
+          },
+          "409": {
+            "description": "Would change a tax year marked as filed (send confirm_closed: true)"
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      }
+    },
+    "/api/v1/listings": {
+      "get": {
+        "summary": "Your eBay listings",
+        "description": "Your eBay listings. ?status=active|ended|sold|all&q=",
+        "responses": {
+          "200": {
+            "description": "Example",
+            "content": {
+              "application/json": {
+                "example": {
+                  "count": 21,
+                  "listings": [
+                    {
+                      "item_id": 11,
+                      "legacy_item_id": "402000007919",
+                      "original_price": 9.0,
+                      "price": 8.55,
+                      "promoted": 1,
+                      "quantity_available": 1,
+                      "quantity_sold": 0,
+                      "relist_count": 1,
+                      "sku": "DEMO-1",
+                      "start_time": "2026-11-23T22:10:34Z",
+                      "status": "active",
+                      "title": "Pokemon Jungle Booster Pack (empty)",
+                      "url": "https://www.ebay.co.uk/itm/402000007919",
+                      "watch_count": 0
+                    },
+                    {
+                      "item_id": 17,
+                      "legacy_item_id": "402000055433",
+                      "original_price": 70.0,
+                      "price": 66.5,
+                      "promoted": 1,
+                      "quantity_available": 1,
+                      "quantity_sold": 0,
+                      "relist_count": 1,
+                      "sku": "DEMO-7",
+                      "start_time": "2026-11-23T22:10:34Z",
+                      "status": "active",
+                      "title": "Seiko 5 Automatic 7S26",
+                      "url": "https://www.ebay.co.uk/itm/402000055433",
+                      "watch_count": 0
+                    },
+                    "… 19 more"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad input: {\"error\": \"…\"}"
+          },
+          "401": {
+            "description": "Missing or wrong API key"
+          },
+          "409": {
+            "description": "Would change a tax year marked as filed (send confirm_closed: true)"
+          }
+        }
+      }
+    },
+    "/api/v1/expenses": {
+      "get": {
+        "summary": "?year=2026 (tax year starting 6 Apr 2026)",
+        "description": "?year=2026 (tax year starting 6 Apr 2026)",
+        "responses": {
+          "200": {
+            "description": "Example",
+            "content": {
+              "application/json": {
+                "example": {
+                  "count": 5,
+                  "expenses": [
+                    {
+                      "amount": 18.99,
+                      "category": "office",
+                      "date": "2026-11-12",
+                      "description": "Bubble mailers x200",
+                      "has_receipt": 0,
+                      "id": 8,
+                      "item_id": null
+                    },
+                    {
+                      "amount": 4.99,
+                      "category": "software",
+                      "date": "2026-11-03",
+                      "description": "Photo editing app",
+                      "has_receipt": 0,
+                      "id": 1,
+                      "item_id": null
+                    },
+                    "… 3 more"
+                  ],
+                  "tax_year": "2026/27",
+                  "total": 60.46
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad input: {\"error\": \"…\"}"
+          },
+          "401": {
+            "description": "Missing or wrong API key"
+          },
+          "409": {
+            "description": "Would change a tax year marked as filed (send confirm_closed: true)"
+          }
+        }
+      },
+      "post": {
+        "summary": "date, category* (stock, travel, wages, premises, repairs, professional, finance, office, software, advertising, platform",
+        "description": "date, category* (stock, travel, wages, premises, repairs, professional, finance, office, software, advertising, platform, equipment, other), description*, amount*, item_id",
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad input: {\"error\": \"…\"}"
+          },
+          "401": {
+            "description": "Missing or wrong API key"
+          },
+          "409": {
+            "description": "Would change a tax year marked as filed (send confirm_closed: true)"
+          },
+          "201": {
+            "description": "Example",
+            "content": {
+              "application/json": {
+                "example": {
+                  "amount": 7.99,
+                  "category": "office",
+                  "date": "2026-11-20",
+                  "description": "Bubble mailers x50",
+                  "id": 17,
+                  "sa103s_box": 18
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "example": {
+                "date": "2026-11-20",
+                "category": "office",
+                "description": "Bubble mailers x50",
+                "amount": 7.99
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/mileage": {
+      "post": {
+        "summary": "date, miles*, purpose*, vehicle (car|motorcycle|bicycle), route, return_trip (bool)",
+        "description": "date, miles*, purpose*, vehicle (car|motorcycle|bicycle), route, return_trip (bool)",
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad input: {\"error\": \"…\"}"
+          },
+          "401": {
+            "description": "Missing or wrong API key"
+          },
+          "409": {
+            "description": "Would change a tax year marked as filed (send confirm_closed: true)"
+          },
+          "201": {
+            "description": "Example",
+            "content": {
+              "application/json": {
+                "example": {
+                  "claim_at_first_10000_rate": 3.3,
+                  "date": "2026-11-20",
+                  "id": 23,
+                  "miles": 6.0,
+                  "vehicle": "car"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "example": {
+                "date": "2026-11-20",
+                "miles": 3,
+                "purpose": "Post office",
+                "return_trip": true
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/tax": {
+      "get": {
+        "summary": "Self Assessment (SA103S) figures and data checks",
+        "description": "Self Assessment (SA103S) figures and data checks. ?year=2026&basis=cash|accrual",
+        "responses": {
+          "200": {
+            "description": "Example",
+            "content": {
+              "application/json": {
+                "example": {
+                  "basis": "cash",
+                  "box10": 0.0,
+                  "box20": 3507.45,
+                  "box21": 7639.8,
+                  "box22": 0,
+                  "box9": 11147.25,
+                  "box_labels": {
+                    "11": "Costs of goods bought for resale or goods used",
+                    "12": "Car, van and travel expenses",
+                    "13": "Wages, salaries and other staff costs",
+                    "14": "Rent, rates, power and insurance costs",
+                    "15": "Repairs and maintenance of property and equipment",
+                    "16": "Accountancy, legal and other professional fees",
+                    "17": "Interest and bank and credit card financial charges",
+                    "18": "Phone, fax, stationery and other office costs",
+                    "19": "Other allowable business expenses"
+                  },
+                  "boxes": {
+                    "11": 1361.84,
+                    "12": 411.18,
+                    "13": 0.0,
+                    "14": 0.0,
+                    "15": 0.0,
+                    "16": 0.0,
+                    "17": 0.0,
+                    "18": 298.36,
+                    "19": 1436.07
+                  },
+                  "by_channel": {
+                    "Car boot": 62.92,
+                    "Depop": 117.03,
+                    "Facebook Marketplace": 135.63,
+                    "Vinted": 139.24,
+                    "eBay": 10692.43
+                  },
+                  "checks": [
+                    {
+                      "body": "Add what you paid so your profit and cost of goods are right.",
+                      "level": "warn",
+                      "link": "/sales?filter=missing_cost&period=custom&start=2026-04-06&end=2027-04-05",
+                      "title": "2 sales have no cost"
+                    },
+                    {
+                      "body": "Run a sync so the exact fees come in from eBay.",
+                      "level": "warn",
+                      "link": "/settings",
+                      "title": "19 sales use estimated eBay fees"
+                    },
+                    "… 1 more"
+                  ],
+                  "end": "2027-04-06",
+                  "gross": 11163.6,
+                  "label": "2026/27",
+                  "lines": {
+                    "11": {
+                      "Bulk buys bought": 407.0,
+                      "Cost of items sold (no purchase date)": 855.73,
+                      "Items bought": 99.11
+                    },
+                    "12": {
+                      "Business mileage (HMRC simplified rate)": 411.18
+                    },
+                    "13": {},
+                    "14": {},
+                    "15": {},
+                    "16": {},
+                    "17": {},
+                    "18": {
+                      "Packaging": 13.55,
+                      "Postage (paid by you)": 86.4,
+                      "Postage, packaging, phone, internet, stationery": 58.47,
+                      "eBay postage labels": 139.94
+                    },
+                    "19": {
+                      "Depop fees": 11.71,
+                      "Final value fee": 1178.37,
+                      "Per-order fee": 40.7,
+                      "Promoted listings": 107.75,
+                      "Regulatory operating fee": 32.19,
+                      "Shop subscription (account)": 57.52,
+                      "Software & subscriptions": 9.98,
+                      "eBay credits": -2.15
+                    }
+                  },
+                  "mileage": {
+                    "by_vehicle": {
+                      "car": {
+                        "amount": 411.18,
+                        "miles": 747.5999999999999,
+                        "rate": 0.55
+                      }
+                    },
+                    "miles": 747.5999999999999,
+                    "total": 411.18
+                  },
+                  "net": 7639.8,
+                  "over_vat": false,
+                  "refunds": 16.35,
+                  "sales_count": 179,
+                  "start": "2026-04-06",
+                  "trading_allowance": {
+                    "allowance": 1000.0,
+                    "better": false,
+                    "profit_with_allowance": 10147.25,
+                    "under": false
+                  },
+                  "year": 2026
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad input: {\"error\": \"…\"}"
+          },
+          "401": {
+            "description": "Missing or wrong API key"
+          },
+          "409": {
+            "description": "Would change a tax year marked as filed (send confirm_closed: true)"
+          }
+        }
+      }
+    },
+    "/api/v1/notifications": {
+      "get": {
+        "summary": "?unread=1&kind=sale|issue|automation",
+        "description": "?unread=1&kind=sale|issue|automation",
+        "responses": {
+          "200": {
+            "description": "Example",
+            "content": {
+              "application/json": {
+                "example": {
+                  "count": 6,
+                  "notifications": [
+                    {
+                      "at": "2026-11-23T22:10:34Z",
+                      "body": "",
+                      "id": 6,
+                      "kind": "automation",
+                      "link": "/automations",
+                      "read": 0,
+                      "title": "Promoted 16 listings"
+                    },
+                    {
+                      "at": "2026-11-23T22:10:34Z",
+                      "body": "3 relisted.",
+                      "id": 5,
+                      "kind": "automation",
+                      "link": "/automations",
+                      "read": 0,
+                      "title": "Relist digest for 23 Nov"
+                    },
+                    "… 4 more"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad input: {\"error\": \"…\"}"
+          },
+          "401": {
+            "description": "Missing or wrong API key"
+          },
+          "409": {
+            "description": "Would change a tax year marked as filed (send confirm_closed: true)"
+          }
+        }
+      }
+    },
+    "/api/v1/sync": {
+      "post": {
+        "summary": "Start a sync with eBay now.",
+        "description": "Start a sync with eBay now.",
+        "responses": {
+          "200": {
+            "description": "Example",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "Sync is disabled in demo mode.",
+                  "started": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad input: {\"error\": \"…\"}"
+          },
+          "401": {
+            "description": "Missing or wrong API key"
+          },
+          "409": {
+            "description": "Would change a tax year marked as filed (send confirm_closed: true)"
+          }
+        }
+      }
+    }
+  }
+}
