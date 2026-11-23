@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.7.1
+- Fix: a sale on CardTrader or Shopify from before an item was listed on another shop could still take stock off that
+  shop when the item was also live on eBay. Each listing is now only adjusted for sales made after it existed.
+- Error reports now also remove the exact values of every stored secret (eBay, CardTrader and Shopify keys and tokens),
+  plus JWT, Shopify and Tailscale token formats, before you see or send them.
+- A proper test suite (56 tests on demo data: profit reconciles to the penny, every page and API endpoint, access
+  rules, the other-shops flows, error scrubbing, and the sync not locking the database), run on GitHub for Python
+  3.10 and 3.12 on every push.
+- Removed unused imports.
+
 ## 1.7.0
 - **CardTrader**: connect with your API token (Settings → Other shops). On an item, Flip guesses the set from the
   card code in the title, ranks the matching cards in CardTrader's catalogue, shows CardTrader's cheapest listings for

@@ -178,7 +178,7 @@ def _take_from_channel_listing(conn, L, take, sold_on):
     return f"{L['channel']} now has {left} left"
 
 
-def propagate_sale(conn, line_item_id, item_id, quantity, sold_on, include_ebay=True) -> str:
+def propagate_sale(conn, line_item_id, item_id, quantity, sold_on, include_ebay=True, sold_at=None) -> str:
     """Take a sale's quantity off the item's listings on every other shop. Runs once per sale."""
     if not item_id:
         return ""
@@ -194,6 +194,8 @@ def propagate_sale(conn, line_item_id, item_id, quantity, sold_on, include_ebay=
     for L in item_channel_listings(conn, item_id):
         if L["channel"] == sold_on or remaining <= 0:
             continue
+        if sold_at and (L.get("created_at") or "") > sold_at:
+            continue                     # listed there after this sale happened: its stock is already right
         take = min(remaining, L["quantity"] or 0) or remaining
         if _demo():
             notes.append(f"demo: {L['channel']} would drop by {take}")
@@ -220,7 +222,7 @@ def propagate_recent_sales(conn, days=3) -> int:
         return 0
     since = (datetime.now(timezone.utc) - timedelta(days=days)).isoformat()
     rows = conn.execute(
-        """SELECT s.line_item_id, s.item_id, s.quantity, COALESCE(s.channel, 'eBay') AS channel FROM sales s
+        """SELECT s.line_item_id, s.item_id, s.quantity, s.sold_at, COALESCE(s.channel, 'eBay') AS channel FROM sales s
            WHERE s.item_id IS NOT NULL AND s.source IN ('ebay', 'cardtrader', 'shopify') AND s.sold_at >= ?
              AND COALESCE(s.status, '') NOT IN ('cancelled', 'refunded')
              AND NOT EXISTS (SELECT 1 FROM stock_sync_done d WHERE d.line_item_id = s.line_item_id)
@@ -229,7 +231,7 @@ def propagate_recent_sales(conn, days=3) -> int:
                   OR (s.source <> 'ebay' AND EXISTS (SELECT 1 FROM listings l WHERE l.item_id = s.item_id
                                                      AND l.status = 'active')))""", (since,)).fetchall()
     for r in rows:
-        propagate_sale(conn, r["line_item_id"], r["item_id"], r["quantity"] or 1, r["channel"])
+        propagate_sale(conn, r["line_item_id"], r["item_id"], r["quantity"] or 1, r["channel"], sold_at=r["sold_at"])
     return len(rows)
 
 

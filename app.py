@@ -27,7 +27,7 @@ import updater
 import profit
 import sync
 from common import (PERIODS, closed_guard, db_ready, login_required, parse_int, parse_money, period_range,
-                    sales_where, tax_year_label)
+                    sales_where)
 from db import Settings, connect, write_lock
 from ebay_api import EbayClient, EbayError, new_state
 

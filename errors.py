@@ -53,6 +53,8 @@ _PATTERNS = [
     (re.compile(r"[\w.+-]+@[\w-]+\.[\w.-]+"), "<email>"),
     (re.compile(r"\b(v\^1\.1#|Bearer\s+)[^\s'\"]+"), r"\1<token>"),
     (re.compile(r"\bflip_[A-Za-z0-9_-]{10,}"), "flip_<key>"),
+    (re.compile(r"\beyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+"), "<jwt>"),          # e.g. CardTrader tokens
+    (re.compile(r"\b(shp(?:at|ss|ca|pa)_|tskey-[a-z]+-)[A-Za-z0-9_-]+"), r"\1<secret>"),     # Shopify, Tailscale
     (re.compile(r"\b[A-Za-z0-9_\-]{32,}\b"), "<long-id>"),
     (re.compile(r"\b[A-Z]{1,2}\d[A-Z\d]?\s*\d[A-Z]{2}\b"), "<postcode>"),
     (re.compile(r"(?i)\b(user(?:name)?|seller|buyer)(['\"]?\s*[:=]\s*['\"]?)[^\s'\",}]+"), r"\1\2<name>"),
@@ -67,9 +69,25 @@ def scrub(text: str) -> str:
         text = text.replace(home, "~")
     text = re.sub(r"(?i)([A-Z]:\\Users\\)[^\\\s]+", r"\1<you>", text)
     text = re.sub(r"(/(?:home|Users)/)[^/\s]+", r"\1<you>", text)
+    for secret in _stored_secrets():
+        text = text.replace(secret, "<secret>")
     for pat, rep in _PATTERNS:
         text = pat.sub(rep, text)
     return text
+
+
+SECRET_SETTINGS = ("client_secret", "refresh_token", "access_token", "signing_jwe", "signing_private_key",
+                   "ct_token", "shopify_client_secret", "shopify_client_id", "dev_id")
+
+
+def _stored_secrets() -> list[str]:
+    """Exact values of the secrets Flip stores, so they're removed even if no pattern would spot them."""
+    try:
+        from db import Settings
+        vals = Settings().get_many(list(SECRET_SETTINGS))
+    except Exception:  # noqa: BLE001 - no database yet (e.g. during setup)
+        return []
+    return sorted({v for v in vals.values() if v and len(v) >= 8}, key=len, reverse=True)
 
 
 # --------------------------------------------------------------------------- #

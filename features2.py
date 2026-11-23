@@ -3,7 +3,6 @@ import csv
 import io
 import json
 import mimetypes
-import os
 import re
 import secrets
 import socket
@@ -19,7 +18,7 @@ from flask import Response, abort, flash, jsonify, redirect, render_template, re
 import db
 import profit
 import taxcalc
-from common import (closed_guard, fy_label, fy_of, fy_range, fy_start_md, login_required, parse_float, parse_int,
+from common import (fy_label, fy_of, fy_range, fy_start_md, login_required, parse_float, parse_int,
                     parse_money, tax_year_of)
 from db import Settings, add_event, connect, now_iso, write_lock
 

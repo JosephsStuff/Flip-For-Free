@@ -2,7 +2,6 @@
 import json
 import re
 import threading
-import traceback
 from datetime import datetime, timedelta, timezone
 
 from db import Settings, add_event, connect, device_name, notify, now_iso, write_lock

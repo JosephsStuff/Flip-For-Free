@@ -10,7 +10,6 @@ from datetime import date, datetime, timedelta, timezone
 from flask import Response, abort, flash, jsonify, redirect, render_template, request, url_for
 
 import automation
-import db
 import profit
 import taxcalc
 from common import (PERIODS, closed_guard, closed_years, login_required, parse_float, parse_int, parse_money,
