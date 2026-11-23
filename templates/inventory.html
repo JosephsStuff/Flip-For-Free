@@ -87,7 +87,7 @@
         <td class="cb"><input type="checkbox" name="ids" value="{{ it.id }}"></td>
         <td style="width:46px">{% if it.image_url %}<img class="thumb" src="{{ it.image_url }}" alt="" loading="lazy" referrerpolicy="no-referrer">{% else %}<span class="thumb"></span>{% endif %}</td>
         <td class="title"><a href="{{ url_for('item_detail', item_id=it.id) }}">{{ it.title }}</a>
-          {% if it.restock_url %}<a class="tag green" href="{{ it.restock_url }}" target="_blank" rel="noopener noreferrer" title="Restock: {{ it.restock_url }}">{{ icon('repeat', 'sm') }} restock</a>{% endif %}
+          {% if it.restock_url %}<a class="tag green" href="{{ it.restock_url }}" target="_blank" rel="noopener noreferrer" title="Restock: {{ it.restock_url }}">{{ icon('repeat', 'sm') }} restock</a>{% endif %}{% if it.vinted_listed_at %}<a class="tag" href="{{ url_for('vinted_copy', item_id=it.id) }}" title="Also listed on Vinted">Vinted</a>{% endif %}
           {% if (it.quantity or 1) > 1 %}<span class="tag">{{ it.remaining }}/{{ it.quantity }} left</span>{% endif %}
           {% if it.promoted %}<span class="tag green">promoted</span>{% endif %}</td>
         <td><span class="status {{ it.status|replace(' ', '-') }}">{{ 'not listed' if it.status == 'unlisted' else it.status }}</span></td>

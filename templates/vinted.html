@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+{% block title %}Copy to Vinted · {{ item.title }}{% endblock %}
+{% block content %}
+<p class="crumbs"><a href="{{ url_for('item_detail', item_id=item.id) }}">← {{ item.title }}</a></p>
+<div class="pagehead">
+  <div>
+    <h1>Copy to Vinted</h1>
+    <p class="muted">Copy each part, then paste it into a new listing in the Vinted app. Flip for Free never signs in
+      to Vinted or posts for you: Vinted's rules only allow its own Pro API for that.</p>
+  </div>
+  {% if item.vinted_listed_at %}<span class="pill">On Vinted since {{ item.vinted_listed_at|d }}</span>{% endif %}
+</div>
+
+{% if error %}<div class="flash warn">{{ icon('alert') }} Couldn't load the full listing from eBay ({{ error }}). The title
+  and price below come from your last sync. <a href="?refresh=1">Try again</a></div>{% endif %}
+{% if not listing %}<div class="flash">{{ icon('info') }} This item isn't linked to an eBay listing, so there's no
+  description or photos to copy. You can still use the title and mark it as listed on Vinted below.</div>{% endif %}
+
+<div class="cols">
+  <section class="card">
+    <h2>Listing text</h2>
+    <div class="stack">
+      <div class="copyfield">
+        <div class="row between"><b>Title</b><span class="muted small"><span data-count="v-title"></span> characters</span></div>
+        <textarea id="v-title" rows="2">{{ title }}</textarea>
+        <button class="btn small ghost" type="button" data-copy="v-title">Copy title</button>
+      </div>
+      <div class="copyfield">
+        <div class="row between"><b>Description</b><span class="muted small"><span data-count="v-desc"></span> characters</span></div>
+        <textarea id="v-desc" rows="12">{{ description }}</textarea>
+        <p class="hint">Taken from your eBay description and item specifics, with the formatting removed. Edit it here
+          before copying if you like; changes aren't saved.</p>
+        <button class="btn small ghost" type="button" data-copy="v-desc">Copy description</button>
+      </div>
+      {% if specifics %}<details><summary>Item specifics from eBay (handy for Vinted's brand, size and colour fields)</summary>
+        <table class="kv">{% for k, v in specifics %}<tr><td class="muted">{{ k }}</td><td>{{ v }}</td></tr>{% endfor %}</table>
+      </details>{% endif %}
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>Condition and price</h2>
+    <table class="kv">
+      <tr><td class="muted">eBay condition</td><td>{{ (details or {}).get('condition') or '—' }}</td></tr>
+      <tr><td class="muted">Closest on Vinted</td><td><b>{{ condition or 'Choose in the app' }}</b></td></tr>
+      {% if details and details.category %}<tr><td class="muted">eBay category</td><td>{{ details.category }}</td></tr>{% endif %}
+    </table>
+    {% if price %}
+    <h3>Price</h3>
+    <table class="kv">
+      <tr><td class="muted">On eBay</td><td>{{ price.ebay_price|gbp }}</td></tr>
+      <tr><td class="muted">You keep on eBay, about</td><td>{{ price.ebay_take_home|gbp }} <span class="muted small">({{ '%.1f'|format(price.ebay_rate * 100) }}% fees, from {{ price.basis }})</span></td></tr>
+      <tr><td class="muted">Same take-home on Vinted</td><td><b>{{ price.same_take_home|gbp }}</b></td></tr>
+    </table>
+    <p class="hint">Vinted buyers pay Vinted's buyer protection fee and postage on top of your price, so pricing at
+      or a little under your eBay take-home can still earn the same. Vinted seller fee used: {{ '%.1f'|format(price.vinted_fee_pct) }}%.</p>
+    <form method="post" class="row" style="align-items:flex-end">
+      <input type="hidden" name="action" value="fee">
+      <label>Vinted seller fee (%)<input name="vinted_fee_pct" inputmode="decimal" value="{{ '%g'|format(price.vinted_fee_pct) }}" style="max-width:120px"></label>
+      <button class="btn ghost">Update</button>
+    </form>
+    {% endif %}
+
+    <h3>Photos</h3>
+    {% if pictures %}
+      <div class="photostrip">{% for p in pictures[:8] %}<img src="{{ p }}" alt="" referrerpolicy="no-referrer" loading="lazy">{% endfor %}</div>
+      <a class="btn ghost" href="{{ url_for('item_photos_zip', item_id=item.id) }}">Download {{ pictures|length }} photo{{ 's' if pictures|length != 1 }} (.zip)</a>
+      <p class="hint">Full size, straight from eBay. On a phone, open the zip and save them to your photos, then pick
+        them in Vinted.</p>
+    {% else %}<p class="muted">No photos to copy.</p>{% endif %}
+  </section>
+</div>
+
+<section class="card">
+  <h2>After you've listed it</h2>
+  {% if item.vinted_listed_at %}
+    <p>Marked as on Vinted{% if item.vinted_url %}: <a href="{{ item.vinted_url }}" target="_blank" rel="noopener noreferrer">open the Vinted listing ↗</a>{% endif %}.
+      If it sells on eBay, you'll get a notification to take it down on Vinted. If it sells on Vinted,
+      <a href="{{ url_for('manual_sale', item=item.id, channel='Vinted') }}">record the Vinted sale</a> and Flip will
+      update eBay for you.</p>
+    <form method="post"><input type="hidden" name="action" value="unlisted"><button class="btn ghost">It's no longer on Vinted</button></form>
+  {% else %}
+    <form method="post" class="row" style="align-items:flex-end">
+      <input type="hidden" name="action" value="listed">
+      <label style="flex:1">Vinted listing link <small class="muted">(optional)</small><input name="vinted_url" type="url" placeholder="https://www.vinted.co.uk/items/…"></label>
+      <button class="btn">Mark as listed on Vinted</button>
+    </form>
+    <p class="hint">Then if it sells on eBay you'll get a reminder to take it down on Vinted, and if it sells on
+      Vinted you record the sale here and Flip updates eBay.</p>
+  {% endif %}
+</section>
+{% endblock %}
+{% block scripts %}<script>
+document.querySelectorAll('[data-count]').forEach(function (c) {
+  var t = document.getElementById(c.dataset.count), f = function () { c.textContent = t.value.length; };
+  t.addEventListener('input', f); f();
+});
+document.querySelectorAll('[data-copy]').forEach(function (b) {
+  b.addEventListener('click', function () {
+    var t = document.getElementById(b.dataset.copy), label = b.textContent;
+    var done = function () { b.textContent = 'Copied'; setTimeout(function () { b.textContent = label; }, 1500); };
+    if (navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(t.value).then(done, function () { t.select(); document.execCommand('copy'); done(); });
+    else { t.select(); document.execCommand('copy'); done(); }
+  });
+});
+</script>{% endblock %}

@@ -1258,6 +1258,8 @@ import errors  # noqa: E402  log file, error page, GitHub issue reports
 errors.register(app)
 import icons  # noqa: E402  one SVG icon set for the templates
 icons.register(app)
+import crosslist  # noqa: E402  copy listings to Vinted by hand; keep eBay in step with sales elsewhere
+crosslist.register(app)
 
 LOCAL_ADDRS = {"127.0.0.1", "::1", "::ffff:127.0.0.1"}
 # In Docker, requests from your own computer arrive from Docker's own network, not 127.0.0.1.

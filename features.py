@@ -439,13 +439,26 @@ def register(app):  # noqa: C901  (one place to see every route)
                                       f"Sold {vals['quantity']} on {vals['channel']} for £{vals['item_price']:,.2f}",
                                       at=vals["sold_at"])
                     conn.commit()
-                flash("Sale saved.", "ok")
+                note = ""
+                if not row and item_id and f.get("update_ebay"):
+                    import crosslist
+                    note = crosslist.take_off_ebay(conn, item_id, vals["quantity"], vals["channel"])
+                    if vals["channel"] == "Vinted":
+                        with write_lock():
+                            conn.execute("UPDATE items SET vinted_listed_at=NULL, vinted_url=NULL WHERE id=? AND "
+                                         "quantity <= (SELECT COALESCE(SUM(quantity), 0) FROM sales WHERE item_id=?)",
+                                         (item_id, item_id))
+                            conn.commit()
+                flash(("Sale saved. " + note).strip(), "warn" if "couldn't" in note else "ok")
                 return redirect(url_for("sales_list"))
             items = load_items(conn, "i.archived = 0")
             items = [i for i in items if i["status"] != "sold" or (row and i["id"] == row["item_id"])]
+            ebay_stock = {str(r[0]): r[1] for r in conn.execute(
+                """SELECT item_id, SUM(COALESCE(quantity_available, 0)) FROM listings
+                   WHERE status='active' AND item_id IS NOT NULL GROUP BY item_id HAVING SUM(quantity_available) > 0""")}
         finally:
             conn.close()
-        return render_template("manual_sale.html", row=dict(row) if row else None, items=items,
+        return render_template("manual_sale.html", row=dict(row) if row else None, items=items, ebay_stock=ebay_stock,
                                channels=[c for c in CHANNELS if c != "eBay"], today=date.today().isoformat(),
                                preselect=parse_int(request.args.get("item")),
                                channel=request.args.get("channel"))

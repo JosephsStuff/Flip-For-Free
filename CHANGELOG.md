@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.6.0
+- **Copy to Vinted** (on each item): the eBay title, the description with the formatting removed plus item specifics,
+  the closest Vinted condition, a suggested price that keeps your eBay take-home, and the listing's photos as a zip,
+  each with a copy button. You paste them into Vinted yourself: Vinted's terms don't allow other tools to post for you.
+- Mark an item as listed on Vinted (with its link). It's tagged in Inventory, and if it sells on eBay you get a
+  notification to take it down on Vinted.
+- Recording a sale from another marketplace can now update eBay: it lowers the item's eBay listing quantity, or ends it
+  if none are left, then reads the listing back to check. Also available in the API and the Claude connector
+  (`update_ebay`).
+- "Sold on Vinted" shortcut on items that are on Vinted.
+
 ## 1.5.0
 - A design pass across the whole app, following the tasteskill design rules:
   - one type scale (13px labels, 14px secondary text, 16px reading text) instead of about 20 sizes; no small text

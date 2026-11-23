@@ -163,7 +163,8 @@ ENDPOINTS = [
     ("PATCH", "/sales/<line_item_id>", "Set your costs on a sale: cost, postage_cost, packaging_cost, "
                                        "handling_cost, other_cost, bulk_buy_id (null to remove), notes."),
     ("POST", "/sales", "Record a sale from another marketplace: title*, item_price*, sold_at, channel, quantity, "
-                       "delivery_charged, fees, postage_cost, packaging_cost, handling_cost, cost, item_id, notes."),
+                       "delivery_charged, fees, postage_cost, packaging_cost, handling_cost, cost, item_id, notes, update_ebay "
+                       "(true: lower or end the item's eBay listing)."),
     ("GET", "/items", "Inventory. ?status=instock|listed|unlisted|sold|all&q=&location=&source=&missing_cost=1"),
     ("GET", "/items/<id>", "One item, with its listings, sales and timeline."),
     ("POST", "/items", "Add stock: title* (or titles: [..] for several), quantity, cost (each), source, "
@@ -366,9 +367,17 @@ def register(app):
                               f"£{_money(b['item_price'], 'item_price'):,.2f}", at=sold)
                 conn.commit()
             s = profit.compute_sales(conn, "s.line_item_id = ?", (lid,))[0]
+            ebay_note = None
+            if item_id and str(b.get("update_ebay", "")).lower() in ("1", "true", "yes"):
+                import crosslist
+                ebay_note = crosslist.take_off_ebay(conn, item_id, max(parse_int(b.get("quantity")) or 1, 1),
+                                                    b.get("channel") or "Other") or "No live eBay listing for this item."
         finally:
             conn.close()
-        return jsonify(_sale_json(s)), 201
+        out = _sale_json(s)
+        if ebay_note:
+            out["ebay_update"] = ebay_note
+        return jsonify(out), 201
 
     # ---------------- items ----------------
     def _load(conn, where="i.archived = 0", params=()):

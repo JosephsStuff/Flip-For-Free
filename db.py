@@ -265,6 +265,13 @@ CREATE INDEX IF NOT EXISTS idx_listings_item ON listings(item_id);
 CREATE INDEX IF NOT EXISTS idx_listings_status ON listings(status);
 
 -- Product timeline
+-- eBay listing details fetched on demand for copying a listing to another marketplace
+CREATE TABLE IF NOT EXISTS listing_details (
+    legacy_item_id TEXT PRIMARY KEY,
+    data           TEXT NOT NULL,       -- JSON from EbayClient.get_item_details
+    fetched_at     TEXT NOT NULL
+);
+
 CREATE TABLE IF NOT EXISTS item_events (
     id             INTEGER PRIMARY KEY AUTOINCREMENT,
     item_id        INTEGER,
@@ -383,7 +390,7 @@ MIGRATIONS = {
     "mileage": [("dispatch_date", "TEXT"), ("drop_off_id", "INTEGER")],
     "bulk_buys": [("source", "TEXT"), ("location", "TEXT"), ("split_method", "TEXT DEFAULT 'even'")],
     "items": [("restock_url", "TEXT"), ("packaging_cost", "REAL"), ("handling_cost", "REAL"), ("written_off_at", "TEXT"), ("write_off_reason", "TEXT"), ("relist_exclude", "INTEGER DEFAULT 0"),
-              ("relist_floor", "REAL")],
+              ("relist_floor", "REAL"), ("vinted_listed_at", "TEXT"), ("vinted_url", "TEXT")],
     "expenses": [("receipt_path", "TEXT")],
 }
 

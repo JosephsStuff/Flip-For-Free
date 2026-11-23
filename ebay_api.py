@@ -437,6 +437,55 @@ class EbayClient:
         self.trading("EndFixedPriceItem",
                      f"<ItemID>{escape(legacy_id)}</ItemID><EndingReason>NotAvailable</EndingReason>")
 
+    def get_item_details(self, legacy_id: str) -> dict:
+        """Description, condition, photos and item specifics of one of your listings (for copying it elsewhere)."""
+        root = self.trading("GetItem", f"<ItemID>{escape(legacy_id)}</ItemID><DetailLevel>ReturnAll</DetailLevel>"
+                                       "<IncludeItemSpecifics>true</IncludeItemSpecifics>")
+        it = root.find(f"{{{TRADING_NS}}}Item")
+        if it is None:
+            raise EbayError("eBay returned no item.")
+        ns = f"{{{TRADING_NS}}}"
+        specifics = []
+        for nv in it.findall(f"{ns}ItemSpecifics/{ns}NameValueList"):
+            vals = [v.text for v in nv.findall(f"{ns}Value") if v.text]
+            if _tx(nv, "Name") and vals:
+                specifics.append((_tx(nv, "Name"), ", ".join(vals)))
+        qty, sold = int(_tx(it, "Quantity") or 1), int(_tx(it, "SellingStatus/QuantitySold") or 0)
+        return {
+            "title": _tx(it, "Title"), "description_html": _tx(it, "Description") or "",
+            "condition_id": _tx(it, "ConditionID"), "condition": _tx(it, "ConditionDisplayName"),
+            "condition_note": _tx(it, "ConditionDescription"),
+            "category": _tx(it, "PrimaryCategory/CategoryName"),
+            "pictures": [p.text for p in it.findall(f"{ns}PictureDetails/{ns}PictureURL") if p.text],
+            "specifics": specifics, "price": float(_tx(it, "SellingStatus/CurrentPrice") or 0),
+            "quantity_available": max(qty - sold, 0), "quantity_sold": sold,
+        }
+
+    def listing_quantity(self, legacy_id: str) -> tuple[int, int]:
+        """(available, sold) for a fixed-price listing."""
+        root = self.trading("GetItem", f"<ItemID>{escape(legacy_id)}</ItemID><DetailLevel>ItemReturnAttributes"
+                                       "</DetailLevel>")
+        it = root.find(f"{{{TRADING_NS}}}Item")
+        qty, sold = int(_tx(it, "Quantity") or 1), int(_tx(it, "SellingStatus/QuantitySold") or 0)
+        return max(qty - sold, 0), sold
+
+    def set_available(self, legacy_id: str, available: int) -> int:
+        """Set how many are left for sale on a fixed-price listing, then read it back to check.
+
+        eBay's guidance is that the revised Quantity is the number available. In case a listing behaves the other
+        way (available + sold), the result is checked and corrected once. Returns the available count eBay reports.
+        """
+        def revise(q):
+            self.trading("ReviseInventoryStatus",
+                         f"<InventoryStatus><ItemID>{escape(legacy_id)}</ItemID><Quantity>{int(q)}</Quantity>"
+                         "</InventoryStatus>")
+        revise(available)
+        now, sold = self.listing_quantity(legacy_id)
+        if now != available:
+            revise(available + sold)
+            now, _ = self.listing_quantity(legacy_id)
+        return now
+
     def relist(self, legacy_id: str, new_price: float | None) -> str:
         price = f"<StartPrice>{new_price:.2f}</StartPrice>" if new_price else ""
         root = self.trading("RelistFixedPriceItem",

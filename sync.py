@@ -263,6 +263,9 @@ def _new_sale_notification(conn, line_id, legacy, title, price, sold_at, where):
     body = f"£{price:,.2f}" + (f" · to {where}" if where else "")
     body += f" · Stored at: {loc}" if loc else " · No storage location logged"
     notify(conn, "sale", f"Sold: {title}", body, f"/sales/{line_id}", key=f"sale-{line_id}", at=sold_at)
+    if legacy:
+        import crosslist
+        crosslist.vinted_reminder_for_ebay_sale(conn, legacy, title, line_id, sold_at)
 
 
 # --------------------------------------------------------------------------- #

@@ -44,6 +44,12 @@
 - **Sources**: which places you buy from actually make money (spend, sell-through, profit, ROI, days to sell).
 - **Buyer map**: where your buyers are. Only the postcode district is stored (e.g. "SW1A"), never the full address.
 - **Other marketplaces**: record Vinted, Facebook, Depop, car boot or cash sales alongside eBay.
+- **Copy to Vinted**: on any item, get its eBay title, a cleaned-up description, the closest Vinted condition, a
+  price that keeps the same take-home and its photos (as a zip), ready to paste into the Vinted app. Mark it as listed
+  on Vinted and you're reminded to take it down there if it sells on eBay. Flip never signs in to or posts on Vinted:
+  Vinted's terms only allow its own Pro API (for invited sellers) to do that.
+- **Sales elsewhere update eBay**: when you record a sale from Vinted or anywhere else, Flip can lower the item's eBay
+  listing quantity, or end it if none are left, so it can't sell twice.
 - Sold price history for everything you've sold.
 
 **Performance**
