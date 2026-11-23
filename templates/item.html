@@ -81,6 +81,8 @@
 {% if listings %}
 <section class="card">
   <h2>eBay listings <small class="muted">({{ listings|length }} across relists)</small></h2>
+  {% if tts %}<p class="small">⏱ {% if tts.kind == 'multi' %}{% if tts.every_days %}One sells every <b>{{ '%.1f'|format(tts.every_days) }} days</b> ({{ tts.units }} sold over {{ '%.0f'|format(tts.listed_days) }} days listed){% if tts.sell_out_days %}; the {{ tts.stock_left }} left should sell in about {{ '%.0f'|format(tts.sell_out_days) }} days{% endif %}.{% else %}No sales yet after {{ '%.0f'|format(tts.listed_days) }} days listed.{% endif %}
+    {% elif tts.sold %}Sold <b>{{ '%.0f'|format(tts.days) }} days</b> after it was first listed.{% else %}Listed for <b>{{ '%.0f'|format(tts.days) }} days</b> so far.{% endif %}</p>{% endif %}
   <table class="data compact">
     <thead><tr><th>Listing</th><th>Status</th><th>Started</th><th class="num">Price</th><th class="num">Watchers</th><th>Promoted</th></tr></thead>
     <tbody>{% for l in listings %}

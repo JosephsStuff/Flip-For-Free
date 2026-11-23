@@ -88,6 +88,14 @@ def get_summary(period: str = "30d", start: str | None = None, end: str | None =
 
 
 @mcp.tool()
+def get_time_to_sell(period: str = "90d", start: str | None = None, end: str | None = None) -> dict:
+    """How long things take to sell. Single-quantity listings: average and median days from first listed (across
+    relists) to sold, a spread, and what's been listed longest. Multi-quantity listings: how often one sells
+    ("one every N days"), units per week, stock left and roughly when each will sell out."""
+    return _call("GET", "/time-to-sell", {"period": period, "start": start, "end": end})
+
+
+@mcp.tool()
 def get_tax_summary(year: int | None = None, basis: str | None = None) -> dict:
     """UK Self Assessment (SA103S) figures for a tax year (year = the year it starts, e.g. 2026 for 2026/27),
     plus data checks to fix before filing. basis: cash or accrual."""

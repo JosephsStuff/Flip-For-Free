@@ -261,7 +261,13 @@ def register(app):  # noqa: C901  (one place to see every route)
             defaults = profit.packing_defaults(c2)
         finally:
             c2.close()
-        return render_template("item.html", it=it, listings=listings, sales=sales, events=events, bulks=bulks,
+        import timetosell
+        conn = connect()
+        try:
+            tts = timetosell.for_item(conn, item_id)
+        finally:
+            conn.close()
+        return render_template("item.html", tts=tts, it=it, listings=listings, sales=sales, events=events, bulks=bulks,
                                defaults=defaults,
                                unlinked=unlinked, alloc=alloc, locations=locations, sources=sources,
                                today=date.today().isoformat())
@@ -620,7 +626,15 @@ def register(app):  # noqa: C901  (one place to see every route)
             "new_listings": len(new_listings), "units": tot["units"], "missing_cost": tot["missing_cost"],
             "active_listings": active_listings, "list_value": list_value,
         }
-        return render_template("insights.html", kpi=kpi, weeks=weeks, breakdown=breakdown, channels=dict(channels),
+        import timetosell
+        conn = connect()
+        try:
+            tts = timetosell.compute(conn, start=start[:10] if start else None, end=end[:10] if end else None)
+        finally:
+            conn.close()
+        kpi["days_to_sell"] = tts["single"]["avg"]
+        kpi["sell_every"] = tts["multi"]["every_days"]
+        return render_template("insights.html", tts=tts, kpi=kpi, weeks=weeks, breakdown=breakdown, channels=dict(channels),
                                sources=source_rows, geo=dict(geo), countries=dict(countries), period=key,
                                periods=PERIODS, start=request.args.get("start", ""), end=request.args.get("end", ""))
 

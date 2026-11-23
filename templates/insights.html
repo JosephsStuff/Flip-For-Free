@@ -12,7 +12,7 @@
   <div class="kpi"><span class="label">Net profit</span><span class="value {{ cls(kpi.net_profit) }}">{{ kpi.net_profit|gbp }}</span><span class="sub">after cost of goods sold</span></div>
   <div class="kpi"><span class="label">Margin</span><span class="value">{{ kpi.margin|pct }}</span><span class="sub">of {{ kpi.gross|gbp }} sales</span></div>
   <div class="kpi"><span class="label">ROI</span><span class="value {{ cls(kpi.roi) }}">{{ kpi.roi|pct }}</span><span class="sub">on {{ kpi.cogs|gbp }} cost of goods</span></div>
-  <div class="kpi"><span class="label">Avg time to sell</span><span class="value">{{ '%.0f'|format(kpi.days_to_sell) ~ ' d' if kpi.days_to_sell is not none else '—' }}</span><span class="sub">listed → sold</span></div>
+  <div class="kpi"><span class="label">Avg time to sell</span><span class="value">{{ '%.0f'|format(kpi.days_to_sell) ~ ' d' if kpi.days_to_sell is not none else '—' }}</span><span class="sub">single items, listed → sold</span></div>
   <div class="kpi"><span class="label">Avg time to list</span><span class="value">{{ '%.0f'|format(kpi.days_to_list) ~ ' d' if kpi.days_to_list is not none else '—' }}</span><span class="sub">bought → listed</span></div>
 </div>
 {% if kpi.missing_cost %}<div class="notes"><a class="note warn" href="{{ url_for('sales_list', filter='missing_cost', period=period, start=start, end=end) }}">⚠ {{ kpi.missing_cost }} sales have no cost, so profit, margin and ROI are overstated →</a></div>{% endif %}
@@ -49,6 +49,70 @@
     <p class="hint"><a href="{{ url_for('manual_sale') }}">Record a sale from another marketplace →</a></p>
   </section>
 </div>
+
+<section class="card" id="time-to-sell">
+  <h2>Time to sell</h2>
+  <p class="hint">Counted from the first time a listing went up, through every relist, to the sale.</p>
+  <div class="tts">
+    <div>
+      <h3>Single items</h3>
+      {% set s1 = tts.single %}
+      {% if s1.count %}
+      <div class="kpis three">
+        <div class="kpi"><span class="label">Average</span><span class="value">{{ '%.0f'|format(s1.avg) }} days</span><span class="sub">{{ s1.count }} sold</span></div>
+        <div class="kpi"><span class="label">Median</span><span class="value">{{ '%.0f'|format(s1.median) }} days</span><span class="sub">half sell faster</span></div>
+        <div class="kpi"><span class="label">Range</span><span class="value">{{ '%.0f'|format(s1.fastest) }}–{{ '%.0f'|format(s1.slowest) }} d</span><span class="sub">fastest–slowest</span></div>
+      </div>
+      <table class="data">
+        <tbody>{% for b in s1.spread %}
+          <tr><td>{{ b.label }}</td><td class="num">{{ b.count }}</td>
+            <td style="width:45%"><div style="height:10px; border-radius:5px; background:var(--accent-soft)"><div style="height:10px; border-radius:5px; background:var(--accent); width:{{ '%.0f'|format(b.pct) }}%"></div></div></td>
+            <td class="num">{{ b.pct|pct }}</td></tr>
+        {% endfor %}</tbody>
+      </table>
+      {% else %}
+      <p class="muted">No single-quantity listings sold in this period.</p>
+      {% endif %}
+      {% if s1.still_listed_count %}
+      <h3>Still listed</h3>
+      <p class="small muted">{{ s1.still_listed_count }} single items listed, on average for {{ '%.0f'|format(s1.still_listed_avg) }} days.</p>
+      <table class="data">
+        <tbody>{% for r in s1.still_listed[:5] %}
+          <tr><td class="title">{% if r.item_id %}<a href="{{ url_for('item_detail', item_id=r.item_id) }}">{{ r.title }}</a>{% else %}{{ r.title }}{% endif %}</td>
+            <td class="num">{{ '%.0f'|format(r.days) }} days</td></tr>
+        {% endfor %}</tbody>
+      </table>
+      {% endif %}
+    </div>
+    <div class="tts__multi">
+      <h3>Multi-quantity listings</h3>
+      {% set m = tts.multi %}
+      {% if m.count %}
+      <div class="kpis three">
+        <div class="kpi"><span class="label">One sells every</span><span class="value">{{ '%.1f'|format(m.every_days) ~ ' days' if m.every_days else '—' }}</span><span class="sub">per listing, on average</span></div>
+        <div class="kpi"><span class="label">Median</span><span class="value">{{ '%.1f'|format(m.median_every) ~ ' days' if m.median_every else '—' }}</span><span class="sub">half sell more often</span></div>
+        <div class="kpi"><span class="label">Units sold</span><span class="value">{{ m.units }}</span><span class="sub">from {{ m.count }} listings</span></div>
+      </div>
+      <div class="tablewrap">
+      <table class="data">
+        <thead><tr><th>Listing</th><th class="num">Sold</th><th class="num">One sells every</th><th class="num">Last sale</th><th class="num">Left</th><th class="num">Sells out in</th></tr></thead>
+        <tbody>{% for r in m.listings[:15] %}
+          <tr><td class="title">{% if r.item_id %}<a href="{{ url_for('item_detail', item_id=r.item_id) }}">{{ r.title }}</a>{% else %}{{ r.title }}{% endif %}</td>
+            <td class="num">{{ r.units }}</td>
+            <td class="num">{{ '%.1f'|format(r.every_days) ~ ' d' if r.every_days else 'none yet' }}</td>
+            <td class="num">{{ '%.0f'|format(r.days_since_sale) ~ ' d ago' if r.days_since_sale is not none else '—' }}</td>
+            <td class="num">{{ r.stock_left if r.active else 'ended' }}</td>
+            <td class="num">{{ '~%.0f d'|format(r.sell_out_days) if r.sell_out_days else '—' }}</td></tr>
+        {% endfor %}</tbody>
+      </table>
+      </div>
+      <p class="hint">"One sells every" is the days the listing was up in this period divided by the units sold. "Sells out in" is the stock left at that rate.</p>
+      {% else %}
+      <p class="muted">No multi-quantity listings in this period.</p>
+      {% endif %}
+    </div>
+  </div>
+</section>
 
 <section class="card">
   <h2>Sources: where is it worth buying?</h2>

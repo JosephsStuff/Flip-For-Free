@@ -38,6 +38,7 @@ A local web app that signs in with your eBay account, pulls in everything you've
 
 **Insights**
 - Net profit, margin, ROI, average days from buying to listing and from listing to selling.
+- **Time to sell**: single items show the average and median days from first listed (through every relist) to sold, and how that spreads out; multi-quantity listings show how often one sells ("one every 5 days"), the last sale, stock left and when it should sell out. Each item's page shows its own.
 - Weekly charts of new listings vs items sold, and of sales, profit and margin.
 - Cost breakdown: inventory bought, cost of goods sold, fees, ads, postage, packaging and refunds.
 - **Sources**: which places you buy from actually make money (spend, sell-through, profit, ROI, days to sell).

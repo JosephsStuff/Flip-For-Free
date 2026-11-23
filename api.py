@@ -155,6 +155,9 @@ def _item_json(it):
 ENDPOINTS = [
     ("GET", "/summary", "Profit summary for a period. ?period=today|7d|30d|month|last_month|90d|ytd|fy|all|custom"
                         "&start=&end= (custom), or a saved range 'r:<id>'."),
+    ("GET", "/time-to-sell", "Time to sell. Single-quantity listings: average/median days from first listed to sold. "
+                             "Multi-quantity listings: how often one sells ('one every N days'), stock left and "
+                             "sell-out estimate. ?period=…&start=&end="),
     ("GET", "/sales", "Sales with full breakdown. ?period=…&q=search&missing_cost=1&channel=Vinted&limit=200"),
     ("GET", "/sales/<line_item_id>", "One sale."),
     ("PATCH", "/sales/<line_item_id>", "Set your costs on a sale: cost, postage_cost, packaging_cost, "
@@ -223,6 +226,38 @@ def register(app):
             "account_charges": acct["total"], "deductions_breakdown": tot["deductions"],
             "sales_missing_cost": tot["missing_cost"], "sales_with_estimated_fees": tot["estimated"],
             "active_listings": active, "items_not_listed": unlisted,
+        })
+
+    @app.route(PREFIX + "/time-to-sell")
+    @api_auth
+    def api_v1_time_to_sell():
+        import timetosell
+        key = request.args.get("period", "90d")
+        start, end = period_range(key, request.args.get("start"), request.args.get("end"))
+        conn = connect()
+        try:
+            t = timetosell.compute(conn, start=start, end=end)
+        finally:
+            conn.close()
+        r2 = lambda v: round(v, 1) if isinstance(v, float) else v  # noqa: E731
+        s1, m = t["single"], t["multi"]
+        return jsonify({
+            "period": key, "start": start, "end": end,
+            "single_quantity": {
+                "sold": s1["count"], "average_days": r2(s1["avg"]), "median_days": r2(s1["median"]),
+                "fastest_days": r2(s1["fastest"]), "slowest_days": r2(s1["slowest"]),
+                "spread": [{"label": b["label"], "count": b["count"]} for b in s1["spread"]],
+                "still_listed": s1["still_listed_count"], "still_listed_average_days": r2(s1["still_listed_avg"]),
+                "longest_listed": [{"title": r["title"], "days": r2(r["days"]), "item_id": r["item_id"]}
+                                   for r in s1["still_listed"][:10]]},
+            "multi_quantity": {
+                "listings": m["count"], "units_sold": m["units"], "one_sells_every_days": r2(m["every_days"]),
+                "median_one_sells_every_days": r2(m["median_every"]), "units_per_week": r2(m["per_week"]),
+                "by_listing": [{"title": r["title"], "item_id": r["item_id"], "units_sold": r["units"],
+                                "one_sells_every_days": r2(r["every_days"]), "units_per_week": r2(r["per_week"]),
+                                "stock_left": r["stock_left"], "active": r["active"],
+                                "days_since_last_sale": r2(r["days_since_sale"]),
+                                "sells_out_in_days": r2(r["sell_out_days"])} for r in m["listings"]]},
         })
 
     # ---------------- sales ----------------

@@ -272,6 +272,27 @@ def _seed_v2(conn, rnd, now, bulk):
                             VALUES (?,?,?,1,?,0,?,?,?,?,?, 'manual', 'GBP', ?)""",
                          (lid, lid, title, price, fees, 3.2 if ch != "Car boot" else None, round(price * rnd.uniform(.2, .5), 2),
                           ch, _iso(d), now_iso()))
+        # single-quantity eBay listings that sold, for time to sell
+        for k in range(22):
+            listed = now - timedelta(days=rnd.randint(20, 320))
+            days = rnd.choice([rnd.uniform(0.5, 7), rnd.uniform(7, 28), rnd.uniform(7, 28), rnd.uniform(28, 91),
+                               rnd.uniform(91, 160)])
+            sold_at = min(listed + timedelta(days=days), now - timedelta(hours=6))
+            title = rnd.choice(["Pokemon Base Set Charizard 4/102", "Sony Walkman WM-EX10", "Casio F-91W boxed",
+                                "Nintendo Game Boy Advance SP", "Vintage Levi's 505 W34", "Lego 75192 manual set",
+                                "Seiko SNK809", "Yu-Gi-Oh Dark Magician SDY-006", "Kodak Brownie camera",
+                                "Pokemon Neo Genesis Lugia", "Zelda Ocarina of Time N64"]) + f" #{k + 1}"
+            price = round(rnd.uniform(12, 110), 2)
+            lid = str(396000000000 + k * 104729)
+            conn.execute("""INSERT OR IGNORE INTO listings(legacy_item_id, title, price, currency, quantity, quantity_available,
+                            quantity_sold, listing_type, start_time, end_time, status, updated_at)
+                            VALUES (?,?,?, 'GBP', 1, 0, 1, 'FixedPriceItem', ?, ?, 'sold', ?)""",
+                         (lid, title, price, _iso(listed), _iso(sold_at), now_iso()))
+            conn.execute("""INSERT OR IGNORE INTO sales(line_item_id, order_id, legacy_item_id, title, quantity, item_price,
+                            delivery_charged, manual_fees, postage_cost, cost, sold_at, source, currency, updated_at)
+                            VALUES (?,?,?,?,1,?,3.2,?,3.2,?,?, 'ebay', 'GBP', ?)""",
+                         (f"S-demo{k}", f"O-demo{k}", lid, title, price, round(price * 0.128 + 0.3, 2),
+                          round(price * rnd.uniform(.2, .5), 2), _iso(sold_at), now_iso()))
         # expenses & mileage
         for k in range(16):
             d = (now - timedelta(days=rnd.randint(1, 400))).date().isoformat()

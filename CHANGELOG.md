@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.3.0
+- Time to sell (Insights): for single-quantity listings, the average, median and spread of days from first
+  listed (across relists) to sold, plus what's been listed longest. For multi-quantity listings, how often one
+  sells ("one every N days"), last sale, stock left and roughly when each will sell out.
+- Each item's page shows its own time to sell; also in the API (`/api/v1/time-to-sell`) and for Claude.
+
 ## 1.2.0
 - Error reporting: a friendly error page with a "Report this on GitHub" button, notifications when a sync or
   automation fails, Settings → Report a problem (bug report, feature idea, recent errors, error log). Reports
