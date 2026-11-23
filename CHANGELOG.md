@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.3.1
+- Docker: `docker compose exec flip flip-address` prints the address to open in your browser (the same command
+  on Windows, Mac and Linux). The address is also shown at the top of the container's log.
+
 ## 1.3.0
 - Time to sell (Insights): for single-quantity listings, the average, median and spread of days from first
   listed (across relists) to sold, plus what's been listed longest. For multi-quantity listings, how often one

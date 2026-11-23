@@ -149,6 +149,11 @@ cd Flip-For-Free
 docker compose up -d --build
 ```
 Then open **https://localhost:8765** (accept the certificate warning once, as with the normal install).
+Forgotten the address? This works the same in PowerShell, Command Prompt, Mac Terminal and Linux:
+```bash
+docker compose exec flip flip-address
+```
+It's also printed at the top of the container's log (`docker compose logs flip`, or the **Logs** tab in Docker Desktop).
 
 - **Your data** lives in the `flip-data` folder next to `docker-compose.yml`: the database, receipts, backups and
   settings. Rebuilding or updating the container never touches it. Back that folder up.

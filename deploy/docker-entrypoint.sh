@@ -43,6 +43,8 @@ if not db.get_db_path():
     print("Flip for Free: database at", p)
 PY
 
+flip-address   # shows in `docker compose logs flip` and in Docker Desktop's Logs tab
+
 child=0
 trap 'kill -TERM "$child" 2>/dev/null; wait "$child"; exit 0' TERM INT
 while true; do

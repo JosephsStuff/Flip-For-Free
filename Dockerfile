@@ -17,7 +17,8 @@ RUN python3 -m venv /opt/venv && pip install --no-cache-dir -r requirements.txt
 # The image's copy of the app. On first start it is copied to /data/app, which is what runs:
 # that way Settings → Updates works inside the container and survives restarts.
 COPY . /opt/flip
-RUN chmod +x /opt/flip/deploy/docker-entrypoint.sh
+RUN chmod +x /opt/flip/deploy/docker-entrypoint.sh /opt/flip/deploy/flip-address \
+ && ln -s /opt/flip/deploy/flip-address /usr/local/bin/flip-address
 
 VOLUME /data
 EXPOSE 8765

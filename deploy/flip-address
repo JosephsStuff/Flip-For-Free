@@ -1,0 +1,15 @@
+#!/bin/sh
+# Prints the address to open Flip for Free in your browser.
+#   docker compose exec flip flip-address        (the same command on Windows, Mac and Linux)
+PORT="${FLIP_HOST_PORT:-8765}"
+echo ""
+echo "  Flip for Free is running."
+if [ -n "${FLIP_PUBLIC_URL:-}" ]; then
+  echo "  Open:  ${FLIP_PUBLIC_URL}"
+  echo "  (on this computer you can also use https://localhost:${PORT})"
+else
+  echo "  Open:  https://localhost:${PORT}"
+  echo "  in any browser on this computer. Accept the certificate warning the first time."
+  echo "  Other devices: see 'Run it in Docker' in the README (Tailscale)."
+fi
+echo ""
