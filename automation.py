@@ -60,6 +60,8 @@ def _parse(ts):
 
 
 def ensure_rules(conn):
+    if conn.execute("SELECT COUNT(DISTINCT kind) FROM automation_rules WHERE kind IN ('relist','promote')").fetchone()[0] == 2:
+        return                         # already there: viewing the page never needs to write
     with write_lock():
         for kind in ("relist", "promote"):
             if not conn.execute("SELECT 1 FROM automation_rules WHERE kind=?", (kind,)).fetchone():

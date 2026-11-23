@@ -80,11 +80,12 @@ def run_sync(full: bool = False) -> dict:
         n = 0
         for order in client.iter_orders(since, by_modified):
             result["sales"] += _save_order(conn, order)
+            # Save each one straight away: the next item may mean waiting on eBay for a new page, and an open
+            # write would lock everyone else (other pages, automations) out of the database meanwhile.
+            conn.commit()
             n += 1
             if n % 50 == 0:
                 STATUS["progress"] = f"{n} orders"
-                conn.commit()
-        conn.commit()
         result["orders"] = n
         settings.set("last_sync_orders", now.strftime("%Y-%m-%dT%H:%M:%SZ"))
 
@@ -97,11 +98,10 @@ def run_sync(full: bool = False) -> dict:
             m = 0
             for tx in client.iter_transactions(f_since, now):
                 _save_transaction(conn, tx)
+                conn.commit()                      # see above: never hold a write while waiting on eBay
                 m += 1
                 if m % 200 == 0:
                     STATUS["progress"] = f"{m} transactions"
-                    conn.commit()
-            conn.commit()
             result["transactions"] = m
             settings.set("last_sync_finances", now.strftime("%Y-%m-%dT%H:%M:%SZ"))
         except EbayError as e:
@@ -274,6 +274,7 @@ def sync_listings(conn, listings) -> int:
     now = now_iso()
     seen = set()
     n = 0
+    listings = list(listings)          # download everything first, so the lock below only covers the writes
     with write_lock():
         for L in listings:
             lid = L["legacy_item_id"]
@@ -317,6 +318,7 @@ def sync_listings(conn, listings) -> int:
                          (st, now, r["legacy_item_id"]))
             add_event(conn, r["item_id"], st, "Listing sold out" if sold else "Listing ended",
                       r["legacy_item_id"])
+        conn.commit()
     return n
 
 
@@ -384,7 +386,7 @@ def fill_dispatch_dates(conn, client, max_calls=400) -> int:
         if shipped:
             with write_lock():
                 conn.execute("UPDATE sales SET shipped_at=? WHERE order_id=?", (shipped, r["order_id"]))
-    conn.commit()
+                conn.commit()                  # don't keep the database locked through the next eBay call
     return n
 
 

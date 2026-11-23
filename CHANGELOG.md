@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.4.2
+- Fix: while a sync was running (especially the first, long one) other pages could hang and then show
+  "database is locked", e.g. Automations. The sync no longer keeps the database locked while it waits for eBay.
+
 ## 1.4.1
 - Fix: on a server (Oracle, behind Tailscale Serve or Cloudflare) every page said "Forbidden". The
   check that keeps other Wi-Fi devices out was also turning away visitors coming through the proxy.
