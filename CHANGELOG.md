@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.4.1
+- Fix: on a server (Oracle, behind Tailscale Serve or Cloudflare) every page said "Forbidden". The
+  check that keeps other Wi-Fi devices out was also turning away visitors coming through the proxy.
+
 ## 1.4.0
 - When Flip for Free starts from a terminal (run.bat, run.command, run.sh), it says when it's ready, gives the
   address for this computer and the address for other devices on the same Wi-Fi (and that it only works on that

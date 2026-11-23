@@ -1283,6 +1283,10 @@ def lan_guard():
     Setup, eBay sign-in and the folder browser stay on this computer."""
     if is_local(request.remote_addr) or request.endpoint in OPEN_ENDPOINTS:
         return None
+    if app.config.get("PUBLIC_URL"):
+        # Server mode: Flip listens on 127.0.0.1 only and the proxy (Tailscale Serve / Cloudflare) decides who gets
+        # in. ProxyFix turns remote_addr into the visitor's own address, so it never looks local here.
+        return None
     if not app.config.get("LAN"):
         abort(403)
     if (request.endpoint or "").startswith("api_v1"):
