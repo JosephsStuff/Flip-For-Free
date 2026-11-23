@@ -56,7 +56,7 @@
 <section class="card">
   <div class="cardhead"><h2>Items in this bulk buy <small class="muted">({{ items|length }} logged{% if b.item_count %} of {{ b.item_count }}{% endif %})</small></h2>
     <span class="muted small">Still listed: <b>{{ list_value|gbp }}</b></span></div>
-  <form method="post" action="{{ url_for('inventory_new') }}" class="row" style="margin-bottom:10px">
+  <form method="post" action="{{ url_for('inventory_new') }}" class="row" style="margin-bottom:var(--s-3)">
     <input type="hidden" name="bulk_buy_id" value="{{ b.id }}"><input type="hidden" name="source" value="{{ b.source or '' }}">
     <input type="hidden" name="location" value="{{ b.location or '' }}"><input type="hidden" name="purchased_at" value="{{ b.purchased_at or '' }}">
     <input type="hidden" name="back" value="{{ request.path }}">
@@ -69,7 +69,7 @@
     <summary>Link existing eBay listings to this bulk buy</summary>
     {% if linkable or linkable_sales %}
     <form method="post" action="{{ url_for('bulk_link_listings', bulk_id=b.id) }}" id="linkForm">
-      <div class="row" style="margin:8px 0">
+      <div class="row" style="margin:var(--s-2) 0">
         <input type="search" placeholder="Filter listings…" oninput="filterLinkable(this)" style="flex:1">
         <button class="btn small">Link ticked listings</button>
       </div>

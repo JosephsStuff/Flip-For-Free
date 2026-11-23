@@ -16,11 +16,11 @@
 <section class="card">
   {% for n in rows %}
     <div class="notif {{ 'unread' if not n.read }}">
-      <span class="ico">{{ {'sale': '£', 'issue': '⚠', 'automation': '↻'}.get(n.kind, 'ⓘ') }}</span>
+      <span class="ico">{{ icon({'sale': 'sale', 'issue': 'alert', 'automation': 'repeat'}.get(n.kind, 'info')) }}</span>
       <div class="txt"><b>{% if n.link %}<a href="{{ n.link }}">{{ n.title }}</a>{% else %}{{ n.title }}{% endif %}</b>
         <span class="muted small">{{ n.body }}</span></div>
       <span class="muted small nowrap">{{ n.at|ago }}</span>
-      {% if not n.read %}<form method="post" action="{{ url_for('notifications_read') }}" class="inline"><input type="hidden" name="id" value="{{ n.id }}"><input type="hidden" name="back" value="{{ request.full_path }}"><button class="linkbtn" title="Mark read">✓</button></form>{% endif %}
+      {% if not n.read %}<form method="post" action="{{ url_for('notifications_read') }}" class="inline"><input type="hidden" name="id" value="{{ n.id }}"><input type="hidden" name="back" value="{{ request.full_path }}"><button class="linkbtn" title="Mark read" aria-label="Mark read">{{ icon('check') }}</button></form>{% endif %}
     </div>
   {% else %}<p class="muted">No notifications yet. New sales, problems eBay charged you for, and automation results show up here.</p>{% endfor %}
 </section>

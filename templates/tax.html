@@ -27,7 +27,7 @@
   <a class="btn small ghost" href="{{ url_for('tax_export', year=year) }}">Download for accountant (CSV)</a>
 </div>
 
-{% if closed %}<div class="flash">🔒 {{ r.label }} is marked as filed. Any change that would alter these figures asks you to confirm first.</div>{% endif %}
+{% if closed %}<div class="flash">{{ icon('lock') }} {{ r.label }} is marked as filed. Any change that would alter these figures asks you to confirm first.</div>{% endif %}
 
 <div class="kpis three">
   <div class="kpi"><span class="label">Turnover (box 9)</span><span class="value">{{ r.box9|gbp }}</span><span class="sub">{{ r.sales_count }} sales{% if r.refunds %}, after {{ r.refunds|gbp }} refunds{% endif %}</span></div>
@@ -55,7 +55,7 @@
       <h2>Before you file</h2>
       {% if r.checks %}
         <ul class="check-list">{% for c in r.checks %}<li class="{{ c.level }}"><b>{{ c.title }}</b>{{ c.body }} <a href="{{ c.link }}">Fix →</a></li>{% endfor %}</ul>
-      {% else %}<p class="pos">✓ No missing data found for {{ r.label }}.</p>{% endif %}
+      {% else %}<p class="pos">{{ icon('check') }} No missing data found for {{ r.label }}.</p>{% endif %}
     </section>
 
     <section class="card">

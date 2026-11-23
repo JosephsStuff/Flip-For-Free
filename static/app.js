@@ -61,12 +61,12 @@ function initSetup() {
     if (j.error) list.innerHTML = '<li class="muted">' + j.error + '</li>';
     j.dbs.forEach(d => {
       const li = document.createElement('li'); li.className = 'db';
-      li.textContent = '🗄 ' + d; li.title = 'Open this database';
+      li.innerHTML = '<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14a9 3 0 0 0 18 0V5"/><path d="M3 12a9 3 0 0 0 18 0"/></svg>'; li.append(d); li.title = 'Open this database';
       li.onclick = () => { input.value = here + sep(here) + d; mode.value = 'file'; box.hidden = true; };
       list.appendChild(li);
     });
     j.dirs.forEach(d => {
-      const li = document.createElement('li'); li.textContent = '📁 ' + d;
+      const li = document.createElement('li'); li.innerHTML = '<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/></svg>'; li.append(d);
       li.onclick = () => load(here + sep(here) + d);
       list.appendChild(li);
     });

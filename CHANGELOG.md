@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.5.0
+- A design pass across the whole app, following the tasteskill design rules:
+  - one type scale (13px labels, 14px secondary text, 16px reading text) instead of about 20 sizes; no small text
+    below 13px
+  - sentence case everywhere: table headings, status pills and section headings are no longer spaced-out capitals
+  - one spacing scale (4, 8, 12, 16, 24, 32, 48, 64) and three corner radii
+  - buttons and fields are 44px tall (36px for compact buttons in tables and toolbars), and buttons beside fields
+    match their height
+  - a visible focus ring on every button and link when you use the keyboard, plus a "Skip to content" link
+  - a proper icon set (bell, settings, warnings, phone, lock, pause and so on) replaces the emoji
+  - dashboard cards line up: equal widths in each row, and on a phone one card per row
+- Fix: on a phone, the dashboard, Settings, Automations, Insights, Mileage and Expenses pages could scroll sideways.
+
 ## 1.4.3
 - The "Accounts" menu is now called "Accounting".
 

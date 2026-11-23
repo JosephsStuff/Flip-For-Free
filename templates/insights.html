@@ -15,7 +15,7 @@
   <div class="kpi"><span class="label">Avg time to sell</span><span class="value">{{ '%.0f'|format(kpi.days_to_sell) ~ ' d' if kpi.days_to_sell is not none else '—' }}</span><span class="sub">single items, listed → sold</span></div>
   <div class="kpi"><span class="label">Avg time to list</span><span class="value">{{ '%.0f'|format(kpi.days_to_list) ~ ' d' if kpi.days_to_list is not none else '—' }}</span><span class="sub">bought → listed</span></div>
 </div>
-{% if kpi.missing_cost %}<div class="notes"><a class="note warn" href="{{ url_for('sales_list', filter='missing_cost', period=period, start=start, end=end) }}">⚠ {{ kpi.missing_cost }} sales have no cost, so profit, margin and ROI are overstated →</a></div>{% endif %}
+{% if kpi.missing_cost %}<div class="notes"><a class="note warn" href="{{ url_for('sales_list', filter='missing_cost', period=period, start=start, end=end) }}">{{ icon('alert') }} {{ kpi.missing_cost }} sales have no cost, so profit, margin and ROI are overstated →</a></div>{% endif %}
 
 <div class="cols">
   <section class="card">

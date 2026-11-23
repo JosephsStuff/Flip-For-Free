@@ -18,7 +18,7 @@
       <label>Packaging (£)<input data-k="pack" inputmode="decimal" value="{{ '%.2f'|format(defaults.packaging) if defaults.packaging else '0.30' }}"></label>
       <label>Handling (labour) (£)<input data-k="labour" inputmode="decimal" value="{{ '%.2f'|format(defaults.handling) if defaults.handling else '0' }}"></label>
     </div>
-    <table class="waterfall" style="margin-top:14px">
+    <table class="waterfall" style="margin-top:var(--s-4)">
       <tr><td>eBay fees</td><td class="num neg" id="o_fees"></td></tr>
       <tr><td>Ad fee</td><td class="num neg" id="o_ad"></td></tr>
       <tr class="sub"><td>You receive</td><td class="num" id="o_net"></td></tr>
@@ -36,7 +36,7 @@
         <label>Items sold<input data-s="sold" inputmode="numeric" value="{{ sold90 }}"></label>
         <label>Still listed<input data-s="active" inputmode="numeric" value="{{ active }}"></label>
       </div>
-      <p style="font-size:1.6rem; font-weight:700; margin:.6rem 0 0" id="o_str"></p>
+      <p style="font-size:var(--t-figure); font-weight:700; margin:var(--s-2) 0 0" id="o_str"></p>
       <p class="muted small" id="o_str_note"></p>
       <p class="hint">Pre-filled with your last 90 days. Under about 20% usually means too much stock for how fast it sells; over 60% can mean you're pricing too low.</p>
     </section>

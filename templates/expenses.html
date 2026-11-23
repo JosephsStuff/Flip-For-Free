@@ -38,7 +38,7 @@
           <td>{{ e.description }}{% if e.item_title %} <small class="muted">· {{ e.item_title }}</small>{% endif %}
             {% if e.receipt_path %} <a class="tag green" href="{{ url_for('receipt', expense_id=e.id) }}" target="_blank">receipt</a>{% else %}<span class="tag">no receipt</span>{% endif %}</td>
           <td class="num">{{ e.amount|gbp }}</td>
-          <td><form method="post" class="inline"><input type="hidden" name="id" value="{{ e.id }}"><input type="hidden" name="date" value="{{ e.date }}"><input type="hidden" name="delete" value="1"><button class="linkbtn" onclick="return confirm('Delete this expense?')">✕</button></form></td></tr>
+          <td><form method="post" class="inline"><input type="hidden" name="id" value="{{ e.id }}"><input type="hidden" name="date" value="{{ e.date }}"><input type="hidden" name="delete" value="1"><button class="linkbtn" onclick="return confirm('Delete this expense?')" aria-label="Delete this expense" title="Delete">{{ icon('x') }}</button></form></td></tr>
       {% else %}<tr><td colspan="5" class="empty-row">No expenses for {{ label }} yet.</td></tr>{% endfor %}</tbody>
     </table>
   </section>

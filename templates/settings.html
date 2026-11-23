@@ -10,8 +10,8 @@
   <p class="muted small">{{ counts.sales }} sales · {{ counts.orders }} orders · {{ counts.transactions }} eBay money movements · {{ counts.bulk }} bulk buys</p>
   <p class="hint">To use this on another device: install the app there, choose the same folder on the setup screen, and sign in with eBay. Avoid having it open on two devices at the same time.</p>
   <div class="row"><a class="btn ghost" href="{{ url_for('setup') }}">Change database location / eBay keys</a>
-  <a class="btn ghost" href="{{ url_for('phone') }}">📱 Use on your phone</a></div>
-  <p class="muted small" style="margin-top:1rem">This device: <b>{{ device }}</b> · local config in <code>{{ config_dir }}</code></p>
+  <a class="btn ghost" href="{{ url_for('phone') }}">{{ icon('phone') }} Use on your phone</a></div>
+  <p class="muted small" style="margin-top:var(--s-4)">This device: <b>{{ device }}</b> · local config in <code>{{ config_dir }}</code></p>
 </section>
 
 <section class="card">
@@ -78,7 +78,7 @@
     </div>
     <div class="row" style="flex-wrap:wrap; align-items:flex-end; gap:8px">
       <label>Minutes per parcel<input name="labour_minutes" id="labMin" inputmode="decimal" value="{{ s.labour_minutes or '' }}" placeholder="5" style="width:110px"></label>
-      <span style="padding-bottom:8px">×</span>
+      <span style="padding-bottom:var(--s-2)">×</span>
       <label>Hourly rate (£)<input name="labour_rate" id="labRate" inputmode="decimal" value="{{ s.labour_rate or '' }}" placeholder="12.71" style="width:110px"></label>
       <button type="button" class="btn small ghost" onclick="(function(){const m=parseFloat(labMin.value)||0,r=parseFloat(labRate.value)||0;if(m&&r){defHandling.value=(m/60*r).toFixed(2);}})()">= Use as handling per sale</button>
     </div>
@@ -97,9 +97,9 @@
     <div class="flash ok"><b>Version {{ upd.latest }} is available.</b>{% if upd.notes %}<br><span class="small" style="white-space:pre-line">{{ upd.notes }}</span>{% endif %}</div>
     <form method="post" action="{{ url_for('update_apply') }}"><button class="btn" onclick="return confirm('Update Flip for Free now? Your database is backed up first and nothing in it is changed. The app restarts in a few seconds.')">Update now</button></form>
   {% endif %}
-  <form method="post" action="{{ url_for('update_check') }}" class="row" style="margin-top:8px"><button class="btn small ghost">Check for updates</button>
+  <form method="post" action="{{ url_for('update_check') }}" class="row" style="margin-top:var(--s-2)"><button class="btn small ghost">Check for updates</button>
     {% if upd.checked_at %}<span class="muted small" style="align-self:center">Checked {{ upd.checked_at|replace('T', ' ') }}</span>{% endif %}</form>
-  <form method="post" class="stack" style="margin-top:10px">
+  <form method="post" class="stack" style="margin-top:var(--s-3)">
     {% set fy = (s.fy_start or '04-06').split('-') %}
     <input type="hidden" name="include_account_fees" value="{{ '1' if (s.include_account_fees or '1') == '1' else '' }}">
     <input type="hidden" name="profit_basis" value="{{ s.profit_basis or 'bought' }}">
@@ -162,7 +162,7 @@
   <p class="muted small">An API key lets Claude (or a script) read and update Flip for Free for you: add stock, fill in costs, record sales, log expenses and mileage, check profit and tax. Anyone with a key can change your data, so keep keys private and revoke any you don't use.</p>
   {% if new_key %}
     <div class="flash ok"><b>Your new key (copy it now, it won't be shown again):</b><br>
-      <code class="copy" style="font-size:.95rem; user-select:all">{{ new_key }}</code></div>
+      <code class="copy" style="font-size:var(--t-small); user-select:all">{{ new_key }}</code></div>
   {% endif %}
   {% if api_keys %}
   <table class="data compact">
@@ -173,7 +173,7 @@
     {% endfor %}</tbody>
   </table>
   {% endif %}
-  <form method="post" action="{{ url_for('api_keys') }}" class="row" style="margin-top:10px">
+  <form method="post" action="{{ url_for('api_keys') }}" class="row" style="margin-top:var(--s-3)">
     <input name="name" placeholder="What's it for? e.g. Claude desktop" maxlength="40" style="flex:1">
     <button class="btn">Create API key</button>
   </form>

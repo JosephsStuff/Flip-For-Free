@@ -29,7 +29,7 @@
     {% if unlogged %}
     <form method="post" action="{{ url_for('mileage_from_dispatches') }}" id="dispForm">
       <input type="hidden" name="back" value="{{ request.full_path }}">
-      <div class="row" style="margin-bottom:10px; flex-wrap:wrap; align-items:center">
+      <div class="row" style="margin-bottom:var(--s-3); flex-wrap:wrap; align-items:center">
         <select name="location_id" {% if not locs %}disabled{% endif %}>{% for l in locs %}<option value="{{ l.id }}" {{ 'selected' if l.is_default }}>{{ l.name }} · {{ '%.1f'|format(l.miles_one_way or 0) }} mi each way</option>{% endfor %}</select>
         <button class="btn" {% if not locs %}disabled{% endif %}>Log ticked days</button>
         <span class="muted small" id="dispTotal"></span>
@@ -46,7 +46,7 @@
       </div>
     </form>
     {% elif days %}
-      <p class="pos">✓ All {{ days|length }} dispatch days in {{ label }} are logged.</p>
+      <p class="pos">{{ icon('check') }} All {{ days|length }} dispatch days in {{ label }} are logged.</p>
     {% else %}
       <p class="muted">No dispatches found for {{ label }} yet. They appear after a sync.</p>
     {% endif %}
@@ -77,15 +77,15 @@
               <form method="post" action="{{ url_for('mileage_locations') }}" class="inline-form">
                 <input type="hidden" name="id" value="{{ l.id }}"><input type="hidden" name="action" value="miles">
                 <input name="miles_one_way" value="{{ '%.1f'|format(l.miles_one_way or 0) }}" style="width:64px" inputmode="decimal" title="One-way miles"> mi
-                <button class="linkbtn" title="Save distance">✓</button>
+                <button class="linkbtn" title="Save distance" aria-label="Save distance">{{ icon('check') }}</button>
               </form></td>
             <td class="nowrap">
               {% if not l.is_default %}<form method="post" action="{{ url_for('mileage_locations') }}" class="inline"><input type="hidden" name="id" value="{{ l.id }}"><input type="hidden" name="action" value="default"><button class="linkbtn">Make default</button></form>{% endif %}
-              <form method="post" action="{{ url_for('mileage_locations') }}" class="inline"><input type="hidden" name="id" value="{{ l.id }}"><input type="hidden" name="action" value="delete"><button class="linkbtn" onclick="return confirm('Remove this drop-off point?')">✕</button></form></td></tr>
+              <form method="post" action="{{ url_for('mileage_locations') }}" class="inline"><input type="hidden" name="id" value="{{ l.id }}"><input type="hidden" name="action" value="delete"><button class="linkbtn" onclick="return confirm('Remove this drop-off point?')" aria-label="Remove this drop-off point" title="Remove">{{ icon('x') }}</button></form></td></tr>
         {% endfor %}</tbody>
       </table>
       {% endif %}
-      <form method="post" action="{{ url_for('mileage_locations') }}" class="grid2" style="margin-top:10px">
+      <form method="post" action="{{ url_for('mileage_locations') }}" class="grid2" style="margin-top:var(--s-3)">
         <label>Name<input name="name" placeholder="Post Office, InPost locker…" required></label>
         <label>Postcode<input name="postcode" placeholder="e.g. IP4 1AA"></label>
         <label>Miles each way <small class="muted">(blank = work it out)</small><input name="miles_one_way" inputmode="decimal"></label>
@@ -117,7 +117,7 @@
     <thead><tr><th>Date</th><th>Purpose</th><th>Route</th><th>Vehicle</th><th class="num">Miles</th><th></th></tr></thead>
     <tbody>{% for m in rows %}
       <tr><td class="nowrap">{{ m.date|d }}</td><td>{{ m.purpose }}{% if m.dispatch_date %} <span class="tag green">from dispatches</span>{% endif %}</td><td class="muted">{{ m.route }}</td><td>{{ m.vehicle }}</td><td class="num">{{ '%.1f'|format(m.miles) }}</td>
-        <td><form method="post" class="inline"><input type="hidden" name="id" value="{{ m.id }}"><input type="hidden" name="date" value="{{ m.date }}"><input type="hidden" name="delete" value="1"><button class="linkbtn" onclick="return confirm('Delete this journey?')">✕</button></form></td></tr>
+        <td><form method="post" class="inline"><input type="hidden" name="id" value="{{ m.id }}"><input type="hidden" name="date" value="{{ m.date }}"><input type="hidden" name="delete" value="1"><button class="linkbtn" onclick="return confirm('Delete this journey?')" aria-label="Delete this journey" title="Delete">{{ icon('x') }}</button></form></td></tr>
     {% else %}<tr><td colspan="6" class="empty-row">No journeys logged for {{ label }}.</td></tr>{% endfor %}</tbody>
   </table>
 </section>

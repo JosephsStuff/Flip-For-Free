@@ -15,7 +15,7 @@
       <option value="fy" {{ 'selected' if mode == 'fy' }}>Financial year</option>
       <option value="quarter" {{ 'selected' if mode == 'quarter' }}>Quarter</option>
       <option value="custom" {{ 'selected' if mode == 'custom' }}>Date range</option>
-      {% if saved_ranges %}<optgroup label="Saved ranges">{% for r in saved_ranges %}<option value="r:{{ r.id }}" {{ 'selected' if mode == 'r:' ~ r.id }}>★ {{ r.name }}</option>{% endfor %}</optgroup>{% endif %}
+      {% if saved_ranges %}<optgroup label="Saved ranges">{% for r in saved_ranges %}<option value="r:{{ r.id }}" {{ 'selected' if mode == 'r:' ~ r.id }}>{{ r.name }} (saved)</option>{% endfor %}</optgroup>{% endif %}
     </select>
     <select name="year" data-m="fy quarter" {{ 'hidden' if mode not in ('fy', 'quarter') }}>{% for y in years %}<option value="{{ y }}" {{ 'selected' if y == year }}>{{ fy_label(y) }}</option>{% endfor %}</select>
     <select name="q" data-m="quarter" {{ 'hidden' if mode != 'quarter' }}>{% for i in range(1, 5) %}<option value="{{ i }}" {{ 'selected' if q == i }}>Q{{ i }}</option>{% endfor %}</select>
@@ -39,7 +39,7 @@
   <div class="kpi"><span class="label">Item profit</span><span class="value {{ cls(r.item_profit) }}">{{ r.item_profit|gbp }}</span><span class="sub">sales less their own costs{% if r.margin is not none %} · {{ r.margin|pct }}{% endif %}</span></div>
   <div class="kpi"><span class="label">Stock on hand</span><span class="value">{{ stock.value|gbp }}</span><span class="sub">at cost, an asset, not in the P&amp;L</span></div>
 </div>
-{% if r.missing_cost %}<div class="notes"><a class="note warn noprint" href="{{ url_for('sales_list', filter='missing_cost') }}">⚠ {{ r.missing_cost }} sales in this period have no cost, so cost of goods is understated →</a></div>{% endif %}
+{% if r.missing_cost %}<div class="notes"><a class="note warn noprint" href="{{ url_for('sales_list', filter='missing_cost') }}">{{ icon('alert') }} {{ r.missing_cost }} sales in this period have no cost, so cost of goods is understated →</a></div>{% endif %}
 
 <section class="card">
   <table class="waterfall">

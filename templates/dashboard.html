@@ -33,8 +33,8 @@
 
 {% if tot.missing_cost or tot.estimated %}
 <div class="notes">
-  {% if tot.missing_cost %}<a class="note warn" href="{{ url_for('sales_list', filter='missing_cost', period=period, start=start, end=end) }}">⚠ {{ tot.missing_cost }} sale{{ 's' if tot.missing_cost != 1 }} with no price paid and no bulk buy — profit is overstated until you add them →</a>{% endif %}
-  {% if tot.estimated %}<span class="note">ⓘ {{ tot.estimated }} sale{{ 's' if tot.estimated != 1 }} use estimated fees (eBay's money data hasn't arrived yet).</span>{% endif %}
+  {% if tot.missing_cost %}<a class="note warn" href="{{ url_for('sales_list', filter='missing_cost', period=period, start=start, end=end) }}">{{ icon('alert') }} {{ tot.missing_cost }} sale{{ 's' if tot.missing_cost != 1 }} with no price paid and no bulk buy — profit is overstated until you add them →</a>{% endif %}
+  {% if tot.estimated %}<span class="note">{{ icon('info') }} {{ tot.estimated }} sale{{ 's' if tot.estimated != 1 }} use estimated fees (eBay's money data hasn't arrived yet).</span>{% endif %}
 </div>
 {% endif %}
 

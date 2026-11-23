@@ -8,7 +8,7 @@
   </div>
   <form method="post" action="{{ url_for('automation_pause') }}">
     <input type="hidden" name="paused" value="{{ '0' if paused else '1' }}">
-    <button class="btn {{ '' if paused else 'ghost' }}">{{ '▶ Resume automations' if paused else '⏸ Pause all' }}</button>
+    <button class="btn {{ '' if paused else 'ghost' }}">{{ icon('play') ~ ' Resume automations' if paused else icon('pause') ~ ' Pause all' }}</button>
   </form>
 </div>
 {% if paused %}<div class="flash warn">All automations are paused. Nothing will change on eBay until you resume.</div>{% endif %}
@@ -54,7 +54,7 @@
         <label class="span3">eBay campaign name<input name="campaign_name" value="{{ r.cfg.campaign_name }}"></label>
       </div>
     {% endif %}
-    <div class="row" style="margin-top:12px">
+    <div class="row" style="margin-top:var(--s-3)">
       <button class="btn">Save</button>
       {% if r.last_run %}<span class="muted small" style="align-self:center">Last run {{ r.last_run|ago }}</span>{% endif %}
     </div>
@@ -100,7 +100,7 @@
           <td><span class="pill {{ 'ok' if q.status == 'approved' else 'warn' }}">{{ q.status }}</span></td></tr>
       {% endfor %}</tbody>
     </table>
-    <div class="row" style="margin-top:8px"><button class="btn small" name="action" value="approve">Approve ticked (or all if none ticked)</button>
+    <div class="row" style="margin-top:var(--s-2)"><button class="btn small" name="action" value="approve">Approve ticked (or all if none ticked)</button>
       <button class="btn small ghost" name="action" value="reject">Skip ticked</button></div>
   </form>
   {% endif %}

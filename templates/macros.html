@@ -17,7 +17,7 @@
       <button name="period" value="{{ key }}" class="{{ 'on' if key == period }}" {% if key == 'custom' %}type="button" onclick="showCustomRange(this)"{% endif %}>{{ label }}</button>
     {% endfor %}
     {% for r in saved_ranges %}
-      <button name="period" value="r:{{ r.id }}" class="saved {{ 'on' if period == 'r:' ~ r.id }}" title="{{ r.start|d }} – {{ r.end|d }}">★ {{ r.name }}</button>
+      <button name="period" value="r:{{ r.id }}" class="saved {{ 'on' if period == 'r:' ~ r.id }}" title="{{ r.start|d }} – {{ r.end|d }}">{{ icon('star', 'sm') }} {{ r.name }}</button>
     {% endfor %}
   </div>
   <div class="custom" {% if not is_custom %}hidden{% endif %}>
@@ -28,7 +28,7 @@
     <input name="range_name" placeholder="Name it, e.g. Christmas rush" maxlength="40" aria-label="Range name">
     <button class="btn small ghost save-range" formaction="{{ url_for('range_save') }}" formmethod="post">Save range</button>
     {% if saved_ranges %}
-      <span class="saved-list">{% for r in saved_ranges %}<button class="chip" formaction="{{ url_for('range_delete') }}" formmethod="post" name="range_id" value="{{ r.id }}" title="Remove this saved range" onclick="return confirm('Remove “{{ r.name }}”?')">★ {{ r.name }} ✕</button>{% endfor %}</span>
+      <span class="saved-list">{% for r in saved_ranges %}<button class="chip" formaction="{{ url_for('range_delete') }}" formmethod="post" name="range_id" value="{{ r.id }}" title="Remove this saved range" onclick="return confirm('Remove “{{ r.name }}”?')">{{ icon('star', 'sm') }} {{ r.name }} {{ icon('x', 'sm') }}</button>{% endfor %}</span>
     {% endif %}
   </div>
 </form>
