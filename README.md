@@ -77,7 +77,13 @@ This is a record-keeping aid, not tax advice.
    or `git clone https://github.com/JosephsStuff/flip-for-free.git`.
 3. Double-click `run.bat` (Windows) or `run.command` (Mac), or run `./run.sh` (Linux).
    (`python app.py` works too, but the run files also restart Flip for Free after an update.)
-4. Your browser opens at **https://localhost:8765**. The first time, the browser warns about the certificate. That's expected: the app makes its own certificate because eBay needs an https sign-in address. Choose *Advanced → Proceed to localhost*.
+4. When it's ready, the window shows two addresses and opens the first in your browser:
+   - **On this computer:** `https://localhost:8765` – finish the setup here.
+   - **On other devices:** e.g. `https://192.168.1.23:8765` – for your phone, tablet or another computer.
+     This one **only works on the same Wi-Fi or network** as this computer, and each device is paired once first
+     (**Settings → Use on your phone**). Start with `--local-only` if you want only this computer to reach it.
+
+   The first time, the browser warns about the certificate. That's expected: the app makes its own certificate because eBay needs an https sign-in address. Choose *Advanced → Proceed to localhost*.
 
 **On a server instead?** One command on Ubuntu (e.g. Oracle Cloud's free tier) installs everything:
 ```
@@ -175,7 +181,7 @@ private to your own devices, at a real https address (which also fixes eBay sign
 setup, including automatic restarts and nightly backups. Server mode is `python app.py --public-url https://…`.
 
 ## Using it on your phone
-Start the app with `python app.py --lan`, then open **Settings → Use on your phone** on your computer and scan the one-time pairing link (it expires after 10 minutes). Your phone must be on the same Wi-Fi. Phones can add stock and costs, record sales, and check the dashboard and relists. Setup and eBay sign-in only work on the computer. Without `--lan` the app can only be reached from the computer it runs on.
+The run files (`run.bat`, `run.command`, `run.sh`) turn this on (with `python app.py`, add `--lan`). Open **Settings → Use on your phone** on your computer and scan the one-time pairing link (it expires after 10 minutes). Your phone must be on the same Wi-Fi. Phones can add stock and costs, record sales, and check the dashboard and relists. Setup and eBay sign-in only work on the computer. Without `--lan` the app can only be reached from the computer it runs on.
 
 ## Using it on another device
 Install the app on the other device, choose the **same Google Drive folder** on its setup page, and sign in with eBay. The setup page sees the existing database and opens it instead of making a new one. Your eBay keys, sign-in token, costs and bulk buys are all stored in that one file.

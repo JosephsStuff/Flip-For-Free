@@ -1128,6 +1128,77 @@ def _background_error(where, e):
         errors.log.exception("couldn't store the error notification")
 
 
+def setup_stage():
+    """What's left to set up: 'database', 'ebay_keys', 'sign_in' or None when ready."""
+    try:
+        if not db_ready():
+            return "database"
+        st = Settings()
+        if not (st.get("client_id") and st.get("client_secret") and st.get("ru_name")):
+            return "ebay_keys"
+        if not st.get("refresh_token"):
+            return "sign_in"
+    except Exception:  # noqa: BLE001
+        return "database"
+    return None
+
+
+def _announce_ready(url, args, ip=None):
+    """Wait until the web server answers, then tell the person in the terminal where to go next."""
+    import socket
+    for _ in range(150):
+        try:
+            with socket.create_connection(("127.0.0.1", args.port), timeout=1):
+                break
+        except OSError:
+            time.sleep(0.2)
+    stage = "demo" if app.config.get("DEMO") else setup_stage()
+    where = "on this computer, " if (args.lan and ip) else ""
+    addr = "the first address" if (args.lan and ip) else "the address"
+    nxt = {
+        "database": f"Next, {where}go to {addr} to finish setting up: choose where to keep your data,\n"
+                    "  add your eBay developer keys and sign in with eBay.",
+        "ebay_keys": f"Next, {where}go to {addr} to finish setting up: add your eBay developer keys,\n"
+                     "  then sign in with eBay.",
+        "sign_in": f"Next, {where}go to {addr} and click Sign in with eBay to finish setting up.",
+        "demo": "Demo mode: go to the address to look around with made-up data.",
+        None: "Everything's set up. Go to the address in your browser.",
+    }[stage]
+    line = "=" * 70
+    lines = ["", line, "  Flip for Free is ready.", ""]
+    if app.config.get("PUBLIC_URL"):
+        lines += [f"  Go to:  {url}"]
+    elif args.lan:
+        net = f"{app.config['SCHEME']}://{ip}:{args.port}/" if ip else None
+        lines += [f"  On this computer:      {url}"]
+        if net:
+            lines += [f"  On other devices:      {net}",
+                      "",
+                      "  The second address is for your phone, tablet or another computer, and it ONLY works",
+                      "  on devices connected to the same Wi-Fi or network as this computer. It won't work",
+                      "  over mobile data or from anywhere else. Each device must be paired once first: on",
+                      "  this computer open Settings → Use on your phone and scan the code."]
+        else:
+            lines += ["  (Couldn't find this computer's network address, so only this computer can use it.)"]
+    else:
+        lines += [f"  Go to:  {url}", "", "  Only this computer can reach it (started with --local-only)."]
+    lines += ["", f"  {nxt}"]
+    if app.config["SCHEME"] == "https" and not app.config.get("PUBLIC_URL"):
+        lines += ["  The first time, your browser warns about the certificate. That's expected:",
+                  "  choose Advanced, then Proceed (or Show details, then Visit this website)."]
+    if args.lan and ip and sys.platform.startswith("win"):
+        lines += ["  If Windows asks whether Python may use the network, allow Private networks only."]
+    if not args.no_browser:
+        lines += ["", "  Opening it in your browser now…"]
+    lines += ["", "  Keep this window open while you use Flip for Free. Ctrl+C stops it.", line, ""]
+    print("\n".join(lines), flush=True)
+    if not args.no_browser:
+        try:
+            webbrowser.open(url)
+        except Exception:  # noqa: BLE001
+            pass
+
+
 def auto_sync_loop():
     time.sleep(30)
     while True:
@@ -1266,6 +1337,8 @@ def main():
     ap.add_argument("--public-url", default=os.environ.get("FLIP_PUBLIC_URL", ""),
                     help="server mode: the https address people use, e.g. https://flip.tailnet.ts.net "
                          "(Flip runs on plain http behind Tailscale/Cloudflare, which add the https)")
+    ap.add_argument("--local-only", action="store_true",
+                    help="only this computer can reach Flip for Free (turns --lan off)")
     ap.add_argument("--docker", action="store_true", default=os.environ.get("FLIP_DOCKER") == "1",
                     help="running in a Docker container: listen on all interfaces, trust Docker's own network")
     ap.add_argument("--lan", action="store_true",
@@ -1300,18 +1373,24 @@ def main():
     threading.Thread(target=automation_loop, daemon=True).start()
     threading.Thread(target=update_loop, daemon=True).start()
 
-    url = (public + "/") if public else f"{app.config['SCHEME']}://localhost:{args.port}/"
-    print(f"\n  Flip for Free running at {url}\n  (Ctrl+C to stop)\n")
-    if not args.no_browser:
-        threading.Timer(1.2, lambda: webbrowser.open(url)).start()
+    if args.local_only:
+        args.lan = False
     app.config["LAN"] = args.lan
     app.config["DOCKER"] = args.docker
     if args.docker:
         args.no_browser = True
+    url = (public + "/") if public else f"{app.config['SCHEME']}://localhost:{args.port}/"
     ip = features2.lan_ip() if args.lan else None
     ssl_ctx = None if args.no_https else ensure_cert(ip)
-    if args.lan:
-        print(f"  Phone access is on: open Settings → Use on your phone to pair (https://{ip}:{args.port}/)\n")
+    # Keep the terminal readable: our own "ready" message instead of the web server's developer banner.
+    import logging
+    logging.getLogger("werkzeug").setLevel(logging.WARNING)
+    try:
+        import flask.cli
+        flask.cli.show_server_banner = lambda *a, **k: None
+    except Exception:  # noqa: BLE001
+        pass
+    threading.Thread(target=_announce_ready, args=(url, args, ip), daemon=True).start()
     app.run(host="0.0.0.0" if (args.lan or args.docker) else "127.0.0.1", port=args.port, ssl_context=ssl_ctx, debug=False,
             threaded=True)
 

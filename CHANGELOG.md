@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.4.0
+- When Flip for Free starts from a terminal (run.bat, run.command, run.sh), it says when it's ready, gives the
+  address for this computer and the address for other devices on the same Wi-Fi (and that it only works on that
+  network), and says what to do next to finish setting up.
+- The run files now let paired devices on your network use it (each one is paired once from this computer).
+  Use `--local-only` to keep it to this computer.
+
 ## 1.3.1
 - Docker: `docker compose exec flip flip-address` prints the address to open in your browser (the same command
   on Windows, Mac and Linux). The address is also shown at the top of the container's log.
