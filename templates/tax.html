@@ -14,7 +14,7 @@
     <p class="muted">Tax year 6 April {{ r.year }} – 5 April {{ r.year + 1 }}. Figures for the self-employment pages (SA103S). They update as you sync and add records.</p>
   </div>
   <form method="get" class="row">
-    <select name="year" onchange="this.form.submit()">{% for y, l in years %}<option value="{{ y }}" {{ 'selected' if y == year }}>{{ l }}</option>{% endfor %}</select>
+    <select name="year" onchange="this.form.submit()" aria-label="Tax year">{% for y, l in years %}<option value="{{ y }}" {{ 'selected' if y == year }}>{{ l }}</option>{% endfor %}</select>
     <div class="seg">
       <button name="basis" value="cash" class="{{ 'on' if r.basis == 'cash' }}" title="Count stock when you pay for it (HMRC default for sole traders)">Cash basis</button>
       <button name="basis" value="accrual" class="{{ 'on' if r.basis == 'accrual' }}" title="Count stock when it sells">Accruals</button>

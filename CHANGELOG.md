@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.7.3
+- Accessibility: every page now passes an automated WCAG 2.1 AA check (axe-core) in light and dark mode, down from
+  over 600 issues. Every checkbox, dropdown and text box has a name a screen reader can read ("Select Blue-Eyes White
+  Dragon…", "Tax year", "Drop-off point"), links inside sentences are underlined, and low-contrast text (refunded rows,
+  green figures and links in light mode, warning text) was darkened or lightened to at least 4.5:1.
+- Website: code examples can be scrolled with the keyboard; the API and install pages pass the same check.
+
 ## 1.7.2
 - On phones, the Sales and Inventory lists show one card per row with buyer paid, eBay took, money made, price paid
   and profit (or status, location and cost) visible, instead of a table you had to scroll sideways.

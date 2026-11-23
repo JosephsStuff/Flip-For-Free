@@ -11,7 +11,7 @@
 <form method="get" class="filters">
   <input type="hidden" name="period" value="{{ period }}"><input type="hidden" name="start" value="{{ start }}"><input type="hidden" name="end" value="{{ end }}">
   <input type="search" name="q" value="{{ q }}" placeholder="Search title, order no., item ID, SKU">
-  <select name="bulk" onchange="this.form.submit()">
+  <select name="bulk" onchange="this.form.submit()" aria-label="Bulk buy">
     <option value="">Any bulk buy</option>
     <option value="none" {{ 'selected' if bulk == 'none' }}>Not in a bulk buy</option>
     {% for b in bulks %}<option value="{{ b.id }}" {{ 'selected' if bulk == b.id|string }}>{{ b.name }}</option>{% endfor %}
@@ -59,7 +59,7 @@
     <tbody>
     {% for s in sales %}
       <tr class="{{ 'refunded' if s.ebay_deductions.get('Refunds') }}">
-        <td class="cb"><input type="checkbox" name="ids" value="{{ s.line_item_id }}"></td>
+        <td class="cb"><input type="checkbox" name="ids" value="{{ s.line_item_id }}" aria-label="Select {{ s.title }}"></td>
         <td class="nowrap" data-label="Sold">{{ s.sold_at|d }}</td>
         <td class="title"><a href="{{ url_for('manual_sale', line_id=s.line_item_id) if s.source in ('manual', 'cardtrader', 'shopify') else url_for('sale_detail', line_id=s.line_item_id, back=request.full_path) }}">{{ s.title }}</a>
           {% if s.estimated %}<span class="tag" title="Fees estimated until eBay's money data arrives">est.</span>{% endif %}

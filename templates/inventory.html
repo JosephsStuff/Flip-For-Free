@@ -54,9 +54,9 @@
 <form method="get" class="filters">
   <input type="hidden" name="status" value="{{ status }}">
   <input type="search" name="q" value="{{ q }}" placeholder="Search title, SKU, notes">
-  <select name="location" onchange="this.form.submit()"><option value="">Any location</option>{% for l in locations %}<option {{ 'selected' if l == loc }}>{{ l }}</option>{% endfor %}</select>
-  <select name="source" onchange="this.form.submit()"><option value="">Any source</option>{% for s in sources %}<option {{ 'selected' if s == src }}>{{ s }}</option>{% endfor %}</select>
-  <select name="filter" onchange="this.form.submit()">
+  <select name="location" onchange="this.form.submit()" aria-label="Location"><option value="">Any location</option>{% for l in locations %}<option {{ 'selected' if l == loc }}>{{ l }}</option>{% endfor %}</select>
+  <select name="source" onchange="this.form.submit()" aria-label="Bought from"><option value="">Any source</option>{% for s in sources %}<option {{ 'selected' if s == src }}>{{ s }}</option>{% endfor %}</select>
+  <select name="filter" onchange="this.form.submit()" aria-label="Show">
     <option value="">All items</option>
     <option value="no_cost" {{ 'selected' if filter == 'no_cost' }}>Missing price paid</option>
     <option value="no_date" {{ 'selected' if filter == 'no_date' }}>Missing purchase date</option>
@@ -84,7 +84,7 @@
     <tbody>
     {% for it in items %}
       <tr>
-        <td class="cb"><input type="checkbox" name="ids" value="{{ it.id }}"></td>
+        <td class="cb"><input type="checkbox" name="ids" value="{{ it.id }}" aria-label="Select {{ it.title }}"></td>
         <td class="thumbcell" style="width:46px">{% if it.image_url %}<img class="thumb" src="{{ it.image_url }}" alt="" loading="lazy" referrerpolicy="no-referrer">{% else %}<span class="thumb"></span>{% endif %}</td>
         <td class="title"><a href="{{ url_for('item_detail', item_id=it.id) }}">{{ it.title }}</a>
           {% if it.restock_url %}<a class="tag green" href="{{ it.restock_url }}" target="_blank" rel="noopener noreferrer" title="Restock: {{ it.restock_url }}">{{ icon('repeat', 'sm') }} restock</a>{% endif %}{% if it.vinted_listed_at %}<a class="tag" href="{{ url_for('vinted_copy', item_id=it.id) }}" title="Also listed on Vinted">Vinted</a>{% endif %}

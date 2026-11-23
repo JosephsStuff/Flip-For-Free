@@ -22,12 +22,12 @@
     <div class="stack">
       <div class="copyfield">
         <div class="row between"><b>Title</b><span class="muted small"><span data-count="v-title"></span> characters</span></div>
-        <textarea id="v-title" rows="2">{{ title }}</textarea>
+        <textarea id="v-title" rows="2" aria-label="Title">{{ title }}</textarea>
         <button class="btn small ghost" type="button" data-copy="v-title">Copy title</button>
       </div>
       <div class="copyfield">
         <div class="row between"><b>Description</b><span class="muted small"><span data-count="v-desc"></span> characters</span></div>
-        <textarea id="v-desc" rows="12">{{ description }}</textarea>
+        <textarea id="v-desc" rows="12" aria-label="Description">{{ description }}</textarea>
         <p class="hint">Taken from your eBay description and item specifics, with the formatting removed. Edit it here
           before copying if you like; changes aren't saved.</p>
         <button class="btn small ghost" type="button" data-copy="v-desc">Copy description</button>

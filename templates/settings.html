@@ -123,7 +123,7 @@
   <p class="hint">Keep the file private: it contains your eBay keys and sign-in. Receipts are separate files in the "Profit Tracker receipts" folder next to the database.</p>
   <h3>Restore from a downloaded copy</h3>
   <form method="post" action="{{ url_for('database_restore') }}" enctype="multipart/form-data" class="row" style="flex-wrap:wrap">
-    <input type="file" name="file" accept=".db" required>
+    <input type="file" name="file" accept=".db" required aria-label="Database file to restore">
     <button class="btn ghost" onclick="return confirm('Replace ALL current data with this file? Your current data is backed up first.')">Restore</button>
   </form>
   <p class="hint">Your current data is saved to the backups folder first, so a restore can be undone.</p>

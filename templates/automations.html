@@ -94,7 +94,7 @@
     <table class="data compact">
       <thead><tr><th class="cb"></th><th>Listing</th><th class="num">Price now</th><th class="num">New price</th><th>Status</th></tr></thead>
       <tbody>{% for q in queue %}
-        <tr><td class="cb">{% if q.status == 'pending' %}<input type="checkbox" name="ids" value="{{ q.id }}">{% endif %}</td>
+        <tr><td class="cb">{% if q.status == 'pending' %}<input type="checkbox" name="ids" value="{{ q.id }}" aria-label="Select {{ q.title }}">{% endif %}</td>
           <td class="title">{% if q.item_id %}<a href="{{ url_for('item_detail', item_id=q.item_id) }}">{{ q.title }}</a>{% else %}{{ q.title }}{% endif %}</td>
           <td class="num">{{ q.price|gbp }}</td><td class="num">{{ q.new_price|gbp if q.new_price else 'same' }}</td>
           <td><span class="pill {{ 'ok' if q.status == 'approved' else 'warn' }}">{{ q.status }}</span></td></tr>

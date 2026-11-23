@@ -109,8 +109,8 @@
   {% else %}
     <p class="muted small">Damaged, lost, kept, donated or binned? Writing it off takes it out of stock and puts its cost ({{ ((it.unit_cost or 0) * it.remaining)|gbp }}) on your P&L as a write-off.</p>
     <form method="post" action="{{ url_for('item_write_off', item_id=it.id) }}" class="inline-form">
-      <select name="reason">{% for r in ['Damaged', 'Lost', 'Donated', 'Binned', 'Kept for personal use', 'Other'] %}<option>{{ r }}</option>{% endfor %}</select>
-      <input type="date" name="date" value="{{ today }}">
+      <select name="reason" aria-label="Reason">{% for r in ['Damaged', 'Lost', 'Donated', 'Binned', 'Kept for personal use', 'Other'] %}<option>{{ r }}</option>{% endfor %}</select>
+      <input type="date" name="date" aria-label="Date" value="{{ today }}">
       <button class="btn small ghost danger" onclick="return confirm('Write this item off?')">Write off</button>
     </form>
   {% endif %}

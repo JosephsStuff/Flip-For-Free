@@ -7,7 +7,7 @@
   <h1>Sold prices</h1>
   <form method="get" class="filters">
     <input type="search" name="q" value="{{ q }}" placeholder="Search items">
-    <select name="sort" onchange="this.form.submit()">
+    <select name="sort" onchange="this.form.submit()" aria-label="Sort by">
       {% for k, l in [('recent','Recently sold'),('sold','Most sold'),('avg','Highest price'),('title','A–Z')] %}<option value="{{ k }}" {{ 'selected' if sort == k }}>{{ l }}</option>{% endfor %}
     </select>
   </form>

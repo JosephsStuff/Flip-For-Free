@@ -11,15 +11,15 @@
 <div class="pagehead">
   <div><h1>Profit &amp; loss</h1><p class="muted">{{ label }}</p></div>
   <form method="get" class="row noprint" style="flex-wrap:wrap">
-    <select name="mode" onchange="this.form.querySelectorAll('[data-m]').forEach(e => e.hidden = !e.dataset.m.includes(this.value))">
+    <select name="mode" aria-label="Period" onchange="this.form.querySelectorAll('[data-m]').forEach(e => e.hidden = !e.dataset.m.includes(this.value))">
       <option value="fy" {{ 'selected' if mode == 'fy' }}>Financial year</option>
       <option value="quarter" {{ 'selected' if mode == 'quarter' }}>Quarter</option>
       <option value="custom" {{ 'selected' if mode == 'custom' }}>Date range</option>
       {% if saved_ranges %}<optgroup label="Saved ranges">{% for r in saved_ranges %}<option value="r:{{ r.id }}" {{ 'selected' if mode == 'r:' ~ r.id }}>{{ r.name }} (saved)</option>{% endfor %}</optgroup>{% endif %}
     </select>
-    <select name="year" data-m="fy quarter" {{ 'hidden' if mode not in ('fy', 'quarter') }}>{% for y in years %}<option value="{{ y }}" {{ 'selected' if y == year }}>{{ fy_label(y) }}</option>{% endfor %}</select>
-    <select name="q" data-m="quarter" {{ 'hidden' if mode != 'quarter' }}>{% for i in range(1, 5) %}<option value="{{ i }}" {{ 'selected' if q == i }}>Q{{ i }}</option>{% endfor %}</select>
-    <span data-m="custom" class="pnl-range" {{ 'hidden' if mode != 'custom' }}><input type="date" name="start" value="{{ args.get('start', '') }}"> – <input type="date" name="end" value="{{ args.get('end', '') }}">
+    <select name="year" aria-label="Financial year" data-m="fy quarter" {{ 'hidden' if mode not in ('fy', 'quarter') }}>{% for y in years %}<option value="{{ y }}" {{ 'selected' if y == year }}>{{ fy_label(y) }}</option>{% endfor %}</select>
+    <select name="q" aria-label="Quarter" data-m="quarter" {{ 'hidden' if mode != 'quarter' }}>{% for i in range(1, 5) %}<option value="{{ i }}" {{ 'selected' if q == i }}>Q{{ i }}</option>{% endfor %}</select>
+    <span data-m="custom" class="pnl-range" {{ 'hidden' if mode != 'custom' }}><input type="date" name="start" aria-label="From" value="{{ args.get('start', '') }}"> – <input type="date" name="end" aria-label="To" value="{{ args.get('end', '') }}">
       <input name="range_name" placeholder="Name it to save" maxlength="40" aria-label="Range name" style="width:150px">
       <button class="btn small ghost save-range" formaction="{{ url_for('range_save') }}" formmethod="post">Save range</button></span>
     <button class="btn small apply-range">Show</button>

@@ -7,12 +7,12 @@
   --line: #dcdfdd;
   --accent: #3ecf8e;          /* Flip for Free mint: fills, buttons, marks */
   --accent-ink: #0d2419;      /* text on mint */
-  --link: #17784f;            /* mint dark enough to read as text on grey */
+  --link: #0f6a43;            /* mint dark enough to read as text on grey and on mint tints (4.5:1) */
   --accent-soft: rgba(62, 207, 142, .22);
-  --pos: #11804b;
+  --pos: #0b6b3c;
   --neg: #c2362c;
   --neg-soft: rgba(194, 54, 44, .18);
-  --warn: #9a6400;
+  --warn: #845500;
   --warn-bg: #fff6e0;
   --info-bg: #e9f2ff;
   --chip: #eef0ea;
@@ -197,7 +197,7 @@ table.data td { padding: var(--s-3); border-bottom: 1px solid var(--line); verti
 table.data tr:last-child td { border-bottom: 0; }
 table.data tbody tr:hover { background: var(--chip); }
 table.data tr.sel { background: var(--accent-soft) !important; }
-table.data tr.refunded td { opacity: .75; }
+table.data tr.refunded td.title a { text-decoration: line-through; text-decoration-thickness: 1px; }   /* the 'refunded' tag says why; no faded text */
 table.data.compact td { padding: var(--s-2) var(--s-3); }
 td.title { max-width: 420px; }
 td.title a { color: var(--ink); }
@@ -404,3 +404,7 @@ label small { font-weight: 400; line-height: 1.4; }
   table.stack-sm.inv td[data-label="Status"]::before { display: none; }
 }
 @media (max-width: 640px) { .filters > input, .filters > select { flex: 1 1 100%; } }
+/* links inside running text are underlined, so they don't rely on colour alone (WCAG 1.4.1) */
+p a:not(.btn):not(.tag), li a:not(.btn):not(.tag), .hint a, .flash a, .note a, .check-list a { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 2px; }
+/* tinted tags and positive figures keep 4.5:1 contrast */
+.tag.red { color: color-mix(in srgb, var(--neg) 55%, var(--ink)); }

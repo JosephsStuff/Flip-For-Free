@@ -10,6 +10,8 @@ NAV = [("index.html", "Home"), ("install.html", "Install"), ("how-it-works.html"
 def page(*, file: str, title: str, description: str, body: str, toc: list[tuple[str, str]] | None = None,
          extra_head: str = "", script: str = "") -> str:
     nav = "".join(f'<a href="{h}"{" aria-current=page" if h == file else ""}>{escape(t)}</a>' for h, t in NAV)
+    # code blocks scroll sideways, so they must be reachable with the keyboard (WCAG 2.1.1)
+    body = body.replace("<pre>", '<pre tabindex="0">').replace("<pre id=", '<pre tabindex="0" id=')
     toc_html = ""
     if toc:
         toc_html = ('<aside class="toc" aria-label="On this page"><p>On this page</p><ol>' +

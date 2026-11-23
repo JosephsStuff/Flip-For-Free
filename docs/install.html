@@ -67,14 +67,14 @@ Move the folder to <code>Documents</code>.</li>
 </ol>
 
 <h2 id="linux">Linux</h2>
-<pre><code>git clone https://github.com/JosephsStuff/Flip-For-Free.git
+<pre tabindex="0"><code>git clone https://github.com/JosephsStuff/Flip-For-Free.git
 cd Flip-For-Free
 ./run.sh</code></pre>
 <p>Needs Python 3.10+ with <code>venv</code> (on Ubuntu: <code>sudo apt install python3-venv</code>).</p>
 
 <h2 id="ready">When it's running</h2>
 <p>The window prints two addresses and opens the first one:</p>
-<pre><code>On this computer:   https://localhost:8765/
+<pre tabindex="0"><code>On this computer:   https://localhost:8765/
 On other devices:   https://192.168.1.23:8765/   (same Wi-Fi only; pair each device once)</code></pre>
 <ul>
 <li>The browser warns about the certificate the first time. That's expected: Flip makes its own certificate because
@@ -105,12 +105,12 @@ two years.</li>
 
 <h2 id="docker">Docker</h2>
 <p>For Docker Desktop on Windows or Mac, or Docker on a NAS or Linux server:</p>
-<pre><code>git clone https://github.com/JosephsStuff/Flip-For-Free.git
+<pre tabindex="0"><code>git clone https://github.com/JosephsStuff/Flip-For-Free.git
 cd Flip-For-Free
 docker compose up -d --build</code></pre>
 <p>Open <code>https://localhost:8765</code>. Forgotten the address? This works in PowerShell, Command Prompt, Mac
 Terminal and Linux:</p>
-<pre><code>docker compose exec flip flip-address</code></pre>
+<pre tabindex="0"><code>docker compose exec flip flip-address</code></pre>
 <ul>
 <li>Your data lives in <code>flip-data</code> next to <code>docker-compose.yml</code>. Back that folder up; rebuilding
 the container never touches it.</li>
@@ -122,7 +122,7 @@ the container never touches it.</li>
 <h2 id="server">A free server that's always on</h2>
 <p>Oracle Cloud's Always Free tier plus Tailscale runs Flip for Free 24/7, private to your own devices, at a real https
 address. One command installs everything, including automatic restarts and nightly backups:</p>
-<pre><code>curl -fsSL https://raw.githubusercontent.com/JosephsStuff/Flip-For-Free/main/deploy/install.sh | bash</code></pre>
+<pre tabindex="0"><code>curl -fsSL https://raw.githubusercontent.com/JosephsStuff/Flip-For-Free/main/deploy/install.sh | bash</code></pre>
 <p>The <a href="oracle.html">step-by-step Oracle guide</a> covers creating the account, the network (create it with
 Oracle's <i>VCN Wizard → Create VCN with Internet Connectivity</i> first, so the server gets a public address), the
 server itself and Tailscale.</p>
@@ -139,7 +139,7 @@ an app from its Dev Dashboard with the listed access scopes, installed on your s
 <figure><img src="shots/shops.webp" alt="Settings, Other shops: connect CardTrader and Shopify" loading="lazy" width="1600" height="1000"><figcaption>Connecting other shops.</figcaption></figure>
 
 <h2 id="demo">Try it without an eBay account</h2>
-<pre><code>python app.py --demo</code></pre>
+<pre tabindex="0"><code>python app.py --demo</code></pre>
 <p>Fills the app with a year of realistic fake sales, stock and bulk buys so you can look around. Nothing is saved
 and nothing touches eBay.</p>
 

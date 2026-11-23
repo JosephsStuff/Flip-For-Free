@@ -10,7 +10,7 @@
 <p class="crumbs"><a href="{{ url_for('tax', year=year) }}">← Tax {{ label }}</a></p>
 <div class="pagehead">
   <div><h1>Business mileage</h1><p class="muted">Post office runs and sourcing trips, claimed at HMRC's simplified rates: cars and vans {{ '%.0f'|format(car_rate[0] * 100) }}p a mile for the first 10,000 miles in {{ label }}, then {{ '%.0f'|format(car_rate[1] * 100) }}p.</p></div>
-  <form method="get"><select name="year" onchange="this.form.submit()">{% for y, l in years %}<option value="{{ y }}" {{ 'selected' if y == year }}>{{ l }}</option>{% endfor %}</select></form>
+  <form method="get"><select name="year" onchange="this.form.submit()" aria-label="Tax year">{% for y, l in years %}<option value="{{ y }}" {{ 'selected' if y == year }}>{{ l }}</option>{% endfor %}</select></form>
 </div>
 
 <div class="kpis three">
@@ -30,7 +30,7 @@
     <form method="post" action="{{ url_for('mileage_from_dispatches') }}" id="dispForm">
       <input type="hidden" name="back" value="{{ request.full_path }}">
       <div class="row" style="margin-bottom:var(--s-3); flex-wrap:wrap; align-items:center">
-        <select name="location_id" {% if not locs %}disabled{% endif %}>{% for l in locs %}<option value="{{ l.id }}" {{ 'selected' if l.is_default }}>{{ l.name }} · {{ '%.1f'|format(l.miles_one_way or 0) }} mi each way</option>{% endfor %}</select>
+        <select name="location_id" aria-label="Drop-off point" {% if not locs %}disabled{% endif %}>{% for l in locs %}<option value="{{ l.id }}" {{ 'selected' if l.is_default }}>{{ l.name }} · {{ '%.1f'|format(l.miles_one_way or 0) }} mi each way</option>{% endfor %}</select>
         <button class="btn" {% if not locs %}disabled{% endif %}>Log ticked days</button>
         <span class="muted small" id="dispTotal"></span>
       </div>
@@ -38,7 +38,7 @@
       <table class="data compact">
         <thead><tr><th class="cb"><input type="checkbox" id="dispAll" checked aria-label="Select all"></th><th>Dispatched</th><th class="num">Parcels</th><th>Items</th></tr></thead>
         <tbody>{% for d in unlogged %}
-          <tr><td class="cb"><input type="checkbox" name="dates" value="{{ d.date }}" checked></td>
+          <tr><td class="cb"><input type="checkbox" name="dates" value="{{ d.date }}" checked aria-label="Log {{ d.date }}"></td>
             <td class="nowrap">{{ d.date|d }}</td><td class="num">{{ d.parcels }}</td>
             <td class="small muted">{{ d.titles|join(', ')|truncate(70) }}</td></tr>
         {% endfor %}</tbody>

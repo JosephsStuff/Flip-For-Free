@@ -1,7 +1,7 @@
 /* Flip for Free — reading pages (API, how it works, install). Read mode: structure first, quiet chrome. */
 :root {
   --bg: #f4f5f4; --panel: #ffffff; --ink: #18201c; --muted: #56615b; --line: #dde2df;
-  --accent: #3ecf8e; --accent-ink: #0b2a1c; --link: #13784a; --code-bg: #1d2420; --code-ink: #dbe7e0;
+  --accent: #3ecf8e; --accent-ink: #0b2a1c; --link: #0f6a43; --code-bg: #1d2420; --code-ink: #dbe7e0;
   --get: #1f7a52; --post: #2457a6; --patch: #8a5a00; --delete: #a33a3a;
   --s-1: 4px; --s-2: 8px; --s-3: 12px; --s-4: 16px; --s-5: 24px; --s-6: 32px; --s-7: 48px; --s-8: 64px;
   --r-sm: 8px; --r-md: 12px; --r-lg: 20px;
