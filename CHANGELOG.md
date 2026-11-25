@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.8.0-beta.3
+- Showcase mode shows a small "Showcase" tag next to the logo (like the Beta tag) instead of a banner, and hides the
+  Sync button while it's on (sync is off for fake data). Turn it off in Settings → Showcase mode.
+
 ## 1.8.0-beta.2
 - Showcase mode (Settings → Showcase mode): show someone around Flip with a year of fake sales, stock, bulk buys and
   automations instead of your own figures. Only that browser changes; your data, syncs and automations carry on as

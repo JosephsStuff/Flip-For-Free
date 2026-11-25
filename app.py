@@ -146,7 +146,8 @@ def showcase_on():
         return redirect(url_for("dashboard"))
     build_showcase(fresh=bool(request.form.get("fresh")))
     session["showcase"] = True
-    flash("Showcase mode is on: everything you see is fake data. Your own figures are untouched.", "ok")
+    flash("Showcase mode is on: everything you see is fake data, and your own figures are untouched. "
+          "Turn it off in Settings.", "ok")
     return redirect(url_for("dashboard"))
 
 

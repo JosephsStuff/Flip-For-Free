@@ -15,8 +15,8 @@
 <body>
 <a class="skip" href="#main">Skip to content</a>
 {% if request.endpoint not in ('setup', 'login') %}
-<header class="topbar{{ ' is-beta' if beta }}">
-  <a class="brand" href="{{ url_for('dashboard') }}"><span class="logo" aria-hidden="true"></span><span class="brandname">Flip for Free</span>{% if beta %}<span class="tag beta" title="You're on the beta channel (Settings → Updates)">Beta</span>{% endif %}</a>
+<header class="topbar{{ ' is-beta' if beta }}{{ ' is-showcase' if showcase }}">
+  <a class="brand" href="{{ url_for('dashboard') }}"><span class="logo" aria-hidden="true"></span><span class="brandname">Flip for Free</span>{% if beta %}<span class="tag beta" title="You're on the beta channel (Settings → Updates)">Beta</span>{% endif %}{% if showcase %}<span class="tag showcase" title="Showcase mode: fake data. Turn it off in Settings.">Showcase</span>{% endif %}</a>
   <nav>
     {% set ep = request.endpoint or '' %}
     <a href="{{ url_for('dashboard') }}" class="{{ 'on' if ep == 'dashboard' }}">Dashboard</a>
@@ -42,9 +42,7 @@
 </header>
 {% endif %}
 
-{% if showcase %}<div class="banner info showcase-banner">{{ icon('eye', 'sm') }} <span><b>Showcase mode:</b> fake data<span class="wide-only"> for showing Flip off. Your own figures are hidden and untouched</span>.</span>
-  <form method="post" action="{{ url_for('showcase_off') }}" class="inline"><input type="hidden" name="back" value="{{ request.full_path }}"><button class="btn small ghost">Turn off</button></form></div>
-{% elif demo %}<div class="banner info">Demo mode — this is fake data. Run <code>python app.py</code> without <code>--demo</code> to use your eBay account.</div>{% endif %}
+{% if demo and not showcase %}<div class="banner info">Demo mode — this is fake data. Run <code>python app.py</code> without <code>--demo</code> to use your eBay account.</div>{% endif %}
 {% if device_warning %}<div class="banner warn">This database was used on <b>{{ device_warning }}</b> in the last few minutes. Close the app there first — editing from two devices at once can make Google Drive create conflicting copies.</div>{% endif %}
 
 <main id="main" class="{% block mainclass %}wrap{% endblock %}">

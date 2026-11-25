@@ -260,9 +260,8 @@ ul.plain li + li { margin-top: var(--s-2); }
   .synctext { display: none; }
 }
 .center-text { text-align: center; }
-.showcase-banner { display: flex; align-items: center; justify-content: center; gap: var(--s-3); flex-wrap: wrap; }
-.showcase-banner .btn { min-height: var(--control-sm); }
-@media (max-width: 640px) { .wide-only { display: none; } .showcase-banner { flex-wrap: nowrap; gap: var(--s-2); text-align: left; } }
+.tag.showcase { background: var(--info-bg, #e7f0ff); color: var(--ink); font-size: 11px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; padding: 2px 6px; border-radius: var(--r-sm); }
+.is-showcase #syncBtn { display: none; }          /* sync is off while showing fake data */
 .tag.beta { background: var(--warn-bg, #fff3d6); color: var(--warn); font-size: 11px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; padding: 2px 6px; border-radius: var(--r-sm); }
 fieldset.choices { border: 0; padding: 0; margin: 0; display: grid; gap: var(--s-1); }
 fieldset.choices legend { padding: 0; margin-bottom: var(--s-1); }
@@ -273,10 +272,12 @@ fieldset.choices legend { padding: 0; margin-bottom: var(--s-1); }
   .topright { margin-left: auto; }
   nav { order: 3; flex-basis: 100%; margin: 0 calc(-1 * var(--s-4)); padding: 0 var(--s-4); scrollbar-width: none; }
   nav::-webkit-scrollbar { display: none; }
-  .is-beta #syncBtn .synclabel { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+  .is-showcase .brand .tag.showcase { margin-left: 0; }
+  .is-beta.is-showcase .brandname { display: none; }
+  .is-showcase #syncBtn .synclabel, .is-beta #syncBtn .synclabel { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
   .brand .tag.beta { margin-left: 0; }
 }
-@media (max-width: 380px) { .is-beta .brandname { display: none; } #syncBtn .synclabel { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); } }
+@media (max-width: 380px) { .is-beta .brandname, .is-showcase .brandname { display: none; } #syncBtn .synclabel { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); } }
 
 /* ---- v2: notifications, inventory, automations, tax ---- */
 .iconbtn { display: inline-grid; place-items: center; width: var(--control); height: var(--control); border-radius: var(--r-sm); color: var(--muted); position: relative; }

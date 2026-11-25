@@ -26,7 +26,7 @@ def test_showcase_hides_real_data_and_never_writes_to_it(real):
     assert "MY-REAL-ITEM" in page(c, "/sales?period=all")
     assert c.post("/showcase/on").status_code == 302
     shown = page(c, "/sales?period=all")
-    assert "MY-REAL-ITEM" not in shown and "Showcase mode" in shown
+    assert "MY-REAL-ITEM" not in shown and 'class="tag showcase"' in shown
     c.post("/settings/market", data={"marketplace_id": "EBAY_US", "currency": ""})   # a change while showcasing
     assert "$" in page(c, "/pnl")
     assert db.get_db_path() == real_path                                              # outside the request: yours
@@ -34,7 +34,7 @@ def test_showcase_hides_real_data_and_never_writes_to_it(real):
     assert c.get("/setup").status_code == 302                                          # setup is off-limits
     c.post("/showcase/off")
     back = page(c, "/sales?period=all")
-    assert "MY-REAL-ITEM" in back and "Showcase mode:" not in back
+    assert "MY-REAL-ITEM" in back and 'class="tag showcase"' not in back
 
 
 def test_other_browsers_keep_seeing_real_data(real, flask_app):
