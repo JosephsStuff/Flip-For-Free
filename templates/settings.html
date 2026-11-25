@@ -26,6 +26,7 @@
     <tr><td>Fees synced</td><td>{{ s.last_sync_finances|ago }}</td></tr>
   </table>
   <form id="fullSyncForm" class="inline"><button type="button" class="btn ghost small" id="fullSyncBtn" {% if demo %}disabled{% endif %}>Re-download everything</button></form>
+  {% if not demo %}<form method="post" action="{{ url_for('logout') }}" class="inline"><button class="btn ghost small">{{ icon('logout', 'sm') }} Sign out{% if user_name %} of {{ user_name }}{% endif %}</button></form>{% endif %}
 </section>
 </div>
 

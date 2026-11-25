@@ -16,7 +16,7 @@
 <a class="skip" href="#main">Skip to content</a>
 {% if request.endpoint not in ('setup', 'login') %}
 <header class="topbar">
-  <a class="brand" href="{{ url_for('dashboard') }}"><span class="logo" aria-hidden="true"></span> Flip for Free</a>
+  <a class="brand" href="{{ url_for('dashboard') }}"><span class="logo" aria-hidden="true"></span><span class="brandname">Flip for Free</span></a>
   <nav>
     {% set ep = request.endpoint or '' %}
     <a href="{{ url_for('dashboard') }}" class="{{ 'on' if ep == 'dashboard' }}">Dashboard</a>
@@ -32,9 +32,9 @@
     <a class="iconbtn bell" href="{{ url_for('notifications') }}" title="Notifications" aria-label="Notifications" id="bell">{{ icon('bell') }}<span class="badge" id="bellCount" {% if not unread %}hidden{% endif %}>{{ unread }}</span></a>
     <a class="iconbtn {{ 'on' if (request.endpoint or '') == 'settings_page' }}" href="{{ url_for('settings_page') }}" title="Settings" aria-label="Settings">{{ icon('settings') }}</a>
     <span class="synctext" id="syncText" title="Last sync">{% if sync_status.running %}Syncing…{% else %}Synced {{ last_sync|ago }}{% endif %}</span>
-    <button class="btn small" id="syncBtn" {% if demo %}disabled title="Disabled in demo mode"{% else %}title="Last synced {{ last_sync|ago }}"{% endif %}>Sync now</button>
+    <button class="btn small" id="syncBtn" {% if demo %}disabled title="Disabled in demo mode"{% else %}title="Last synced {{ last_sync|ago }}"{% endif %}>{{ icon('repeat', 'sm') }}<span class="synclabel">Sync now</span></button>
     {% if not demo %}
-    <form method="post" action="{{ url_for('logout') }}" class="inline">
+    <form method="post" action="{{ url_for('logout') }}" class="inline signout">
       <button class="linkbtn" title="Sign out">{{ user_name or 'Account' }} {{ icon('logout', 'sm') }}</button>
     </form>
     {% endif %}

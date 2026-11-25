@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.7.5
+- Phones: the top bar is two rows instead of three. Just the logo (no name), with notifications, settings and Sync
+  on the same row and the menu underneath. Your account name and sign-out are hidden on phones; Sign out is now
+  also in Settings → eBay connection. On very narrow screens Sync shows just its icon.
+
 ## 1.7.4
 - Docs for contributors: CONTRIBUTING.md (run, test, where things are, how the docs site is generated) and seven
   architecture decision records in docs/adr explaining why Flip works the way it does.
