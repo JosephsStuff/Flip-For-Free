@@ -4,8 +4,10 @@ Your data never lives in the app folder: the database (and receipts) are in the 
 the setup page, and settings are in your user config folder. Updating only replaces the app's code.
 
 How it updates:
-  * if the app folder is a git clone  -> `git pull --ff-only`
-  * otherwise                         -> download the latest zip from GitHub and copy it over the app
+  * if the app folder is a git clone  -> fetch the channel's branch and check it out
+  * otherwise                         -> download that branch's zip from GitHub and copy it over the app
+Channels: "main" (the normal release, branch main) or "beta" (branch beta: new features to try first).
+Switching channel installs that branch's latest version, even if its version number is lower.
 Before every update it saves a backup of your database and a copy of the current app version.
 Then it restarts itself (works under run.bat / run.command / run.sh, systemd on a server, or plain python).
 """
@@ -27,9 +29,11 @@ import db
 
 APP_DIR = Path(__file__).resolve().parent
 DEFAULT_REPO = "JosephsStuff/flip-for-free"
-BRANCH = "main"
+CHANNELS = {"main": "main", "beta": "beta"}      # update channel -> GitHub branch
+CHANNEL_FILE = APP_DIR / ".flip-channel"          # which channel the code in this folder came from
 KEEP = {".git", ".venv", "venv", "__pycache__"}          # never overwritten or removed
-STATE = {"checking": False, "latest": None, "notes": None, "checked_at": None, "error": None, "updating": False}
+STATE = {"checking": False, "latest": None, "notes": None, "checked_at": None, "error": None, "updating": False,
+         "channel": None}
 
 
 def current_version() -> str:
@@ -46,25 +50,55 @@ def repo() -> str:
         return DEFAULT_REPO
 
 
+def channel() -> str:
+    """The channel you've chosen in Settings: 'main' (default) or 'beta'."""
+    try:
+        c = db.Settings().get("update_channel")
+    except Exception:
+        c = None
+    return c if c in CHANNELS else "main"
+
+
+def installed_channel() -> str:
+    """The channel the running code came from (main unless a beta was installed)."""
+    try:
+        c = CHANNEL_FILE.read_text().strip()
+    except OSError:
+        c = ""
+    return c if c in CHANNELS else "main"
+
+
+def switching() -> bool:
+    """You've picked a different channel from the one that's installed."""
+    return channel() != installed_channel()
+
+
 def _vtuple(v):
-    out = []
-    for p in str(v).strip().lstrip("v").split("."):
-        try:
-            out.append(int("".join(ch for ch in p if ch.isdigit()) or 0))
-        except ValueError:
-            out.append(0)
-    return tuple(out + [0] * (3 - len(out)))
+    """'1.8.0' > '1.8.0-beta.2' > '1.8.0-beta.1' > '1.7.6'."""
+    core, _, pre = str(v).strip().lstrip("v").partition("-")
+    nums = []
+    for p in core.split(".")[:3]:
+        nums.append(int("".join(ch for ch in p if ch.isdigit()) or 0))
+    nums += [0] * (3 - len(nums))
+    if not pre:
+        return (*nums, 1, 0)
+    return (*nums, 0, int("".join(ch for ch in pre if ch.isdigit()) or 0))
 
 
 def is_newer(latest, current=None) -> bool:
     return bool(latest) and _vtuple(latest) > _vtuple(current or current_version())
 
 
+def update_available() -> bool:
+    """A newer version on your channel, or a switch of channel waiting to be installed."""
+    return bool(STATE.get("latest")) and STATE.get("channel") == channel() and (switching() or is_newer(STATE["latest"]))
+
+
 def check() -> dict:
-    """Ask GitHub for the latest version number and its notes."""
-    STATE.update(checking=True, error=None)
+    """Ask GitHub for the latest version number and its notes on your channel."""
+    STATE.update(checking=True, error=None, channel=channel())
     try:
-        base = f"https://raw.githubusercontent.com/{repo()}/{BRANCH}"
+        base = f"https://raw.githubusercontent.com/{repo()}/{CHANNELS[channel()]}"
         r = requests.get(f"{base}/VERSION", timeout=20)
         if r.status_code != 200:
             raise RuntimeError(f"GitHub replied {r.status_code} for {repo()}")
@@ -140,13 +174,17 @@ def apply_update() -> str:
         before_req = (APP_DIR / "requirements.txt").read_text() if (APP_DIR / "requirements.txt").exists() else ""
         backup = backup_database()
         _snapshot_app()
+        ch = channel()
+        branch = CHANNELS[ch]
         if (APP_DIR / ".git").exists() and shutil.which("git"):
-            r = subprocess.run(["git", "-C", str(APP_DIR), "pull", "--ff-only"], capture_output=True, text=True,
-                               timeout=180)
-            if r.returncode != 0:
-                raise RuntimeError("git pull failed: " + (r.stderr or r.stdout)[-400:])
+            # fetch the channel's branch and move to it (works for updates and for switching main <-> beta)
+            for cmd in (["fetch", "origin", f"+refs/heads/{branch}:refs/remotes/origin/{branch}"],
+                        ["checkout", "-B", branch, f"origin/{branch}"]):
+                r = subprocess.run(["git", "-C", str(APP_DIR), *cmd], capture_output=True, text=True, timeout=180)
+                if r.returncode != 0:
+                    raise RuntimeError(f"git {cmd[0]} failed: " + (r.stderr or r.stdout)[-400:])
         else:
-            url = f"https://codeload.github.com/{repo()}/zip/refs/heads/{BRANCH}"
+            url = f"https://codeload.github.com/{repo()}/zip/refs/heads/{branch}"
             r = requests.get(url, timeout=120)
             if r.status_code != 200:
                 raise RuntimeError(f"Download failed ({r.status_code}) from {url}")
@@ -166,11 +204,13 @@ def apply_update() -> str:
                     else:
                         dest.parent.mkdir(parents=True, exist_ok=True)
                         shutil.copy2(f, dest)
+        CHANNEL_FILE.write_text(ch)
         after_req = (APP_DIR / "requirements.txt").read_text() if (APP_DIR / "requirements.txt").exists() else ""
         if after_req != before_req:
             subprocess.run([sys.executable, "-m", "pip", "install", "-q", "-r", str(APP_DIR / "requirements.txt")],
                            capture_output=True, timeout=600)
-        return (f"Updated to version {current_version()}. Your data was backed up first"
+        label = " (beta)" if ch == "beta" else ""
+        return (f"Updated to version {current_version()}{label}. Your data was backed up first"
                 + (f" ({backup.name})" if backup else "") + ". Restarting…")
     finally:
         STATE["updating"] = False

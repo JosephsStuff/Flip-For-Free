@@ -106,7 +106,7 @@ def inject():
     from common import period_label, saved_ranges
     ctx = {"demo": app.config["DEMO"], "sync_status": sync.STATUS, "db_path": db.get_db_path(),
            "user_name": session.get("user_name"), "device_warning": None, "last_sync": None, "unread": 0,
-           "saved_ranges": [], "period_label": period_label}
+           "saved_ranges": [], "period_label": period_label, "beta": updater.installed_channel() == "beta"}
     try:
         ctx["saved_ranges"] = saved_ranges()
     except Exception:
@@ -951,11 +951,24 @@ def update_check():
     st = updater.check()
     if st.get("error"):
         flash(st["error"], "error")
+    elif updater.switching():
+        flash(f"Click Update now to switch to the {'beta' if updater.channel() == 'beta' else 'main release'} "
+              f"(version {st['latest']}).", "ok")
     elif updater.is_newer(st.get("latest")):
         flash(f"Version {st['latest']} is available (you have {updater.current_version()}).", "ok")
     else:
         flash(f"You're on the latest version ({updater.current_version()}).", "ok")
     return redirect(url_for("settings_page") + "#updates")
+
+
+@app.route("/settings/update/channel", methods=["POST"])
+@login_required
+def update_channel():
+    ch = request.form.get("channel")
+    if ch not in updater.CHANNELS:
+        abort(400)
+    Settings().set("update_channel", ch)
+    return update_check()
 
 
 @app.route("/settings/update/apply", methods=["POST"])
@@ -1083,7 +1096,8 @@ def settings_page():
     return render_template("settings.html", api_keys=api.list_keys(), new_key=g.get("new_key"),
                            sync_choices=SYNC_CHOICES, sync_minutes=sync_interval_minutes(st),
                            version=updater.current_version(), upd=updater.STATE, repo=updater.repo(),
-                           update_available=updater.is_newer(updater.STATE.get("latest")),
+                           update_available=updater.update_available(), channel=updater.channel(),
+                           installed_channel=updater.installed_channel(),
                            server_mode=bool(app.config.get("PUBLIC_URL")),
                            api_base=(app.config.get("PUBLIC_URL") or f"{request.scheme}://{request.host}") + api.PREFIX,
                            today=date.today().isoformat(), s=s, log=log, counts=counts, cfg=db.load_config(),

@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.7.7
+- Beta channel: Settings → Updates → Release channel lets you choose the main release (the default) or the beta,
+  which gets new features to try before they go into the main release. A "Beta" badge shows in the top bar while
+  you're on it, and you can switch back at any time (your data is backed up first).
+
 ## 1.7.6
 - Phones: the "Flip for Free" name is back next to the logo; it fits on the top row with the icons and Sync.
 

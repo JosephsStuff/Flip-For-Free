@@ -13,3 +13,4 @@ Don't delete old ones; mark them *Superseded by ADR-00N* instead.
 | [0005](0005-stock-sync-once-per-sale.md) | Stock is kept in step once per sale, only for listings that existed when it sold |
 | [0006](0006-tailscale-for-servers.md) | Servers are reached through Tailscale, not open ports |
 | [0007](0007-server-rendered-no-build-step.md) | Server-rendered pages with no front-end build step |
+| [0008](0008-main-and-beta-channels.md) | Main and beta release channels from two branches |

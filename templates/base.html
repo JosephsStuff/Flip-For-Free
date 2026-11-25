@@ -15,8 +15,8 @@
 <body>
 <a class="skip" href="#main">Skip to content</a>
 {% if request.endpoint not in ('setup', 'login') %}
-<header class="topbar">
-  <a class="brand" href="{{ url_for('dashboard') }}"><span class="logo" aria-hidden="true"></span><span class="brandname">Flip for Free</span></a>
+<header class="topbar{{ ' is-beta' if beta }}">
+  <a class="brand" href="{{ url_for('dashboard') }}"><span class="logo" aria-hidden="true"></span><span class="brandname">Flip for Free</span>{% if beta %}<span class="tag beta" title="You're on the beta channel (Settings → Updates)">Beta</span>{% endif %}</a>
   <nav>
     {% set ep = request.endpoint or '' %}
     <a href="{{ url_for('dashboard') }}" class="{{ 'on' if ep == 'dashboard' }}">Dashboard</a>

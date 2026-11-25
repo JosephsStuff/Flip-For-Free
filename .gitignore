@@ -17,3 +17,4 @@ Thumbs.db
 
 # Docker data folder (your database and settings)
 flip-data/
+.flip-channel

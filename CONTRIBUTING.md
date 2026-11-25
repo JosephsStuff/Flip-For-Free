@@ -65,6 +65,21 @@ If you add an API endpoint, add it to `api.ENDPOINTS` and an example call to `to
 - Never automate a marketplace whose terms forbid it (see ADR-0004).
 - Money is GBP in the database; convert on the way in (`fx.py`).
 
-## Releasing
+## Releasing: main and beta
 
-Bump `VERSION`, add a `CHANGELOG.md` entry, push to `main`. Users get it from Settings → Updates.
+There are two release channels. Users pick one in Settings → Updates → Release channel.
+
+| Channel | Branch | Versions | Who it's for |
+|---|---|---|---|
+| Main release | `main` | `1.8.0` | Everyone (the default) |
+| Beta | `beta` | `1.8.0-beta.1`, `1.8.0-beta.2` … | People who want to try new features first |
+
+1. **New feature:** commit it to `beta`, set `VERSION` to the next version with a beta number (`1.8.0-beta.1`, then
+   `-beta.2` for each fix) and add a `CHANGELOG.md` entry with that exact version as its heading. Beta users get it
+   from Settings → Updates (or automatically, if they've turned that on).
+2. **Happy with it:** merge `beta` into `main`, set `VERSION` to `1.8.0` (no beta number), tidy the changelog entry
+   and push. Main users get it; beta users get it too, because `1.8.0` counts as newer than `1.8.0-beta.N`.
+3. **Fixes for main** that can't wait go straight to `main` as `1.7.x`; then merge `main` into `beta` so beta has them.
+
+Switching back from beta to main installs the latest main release even if its version number is lower. The
+database is backed up first; new tables or columns a beta added are simply ignored by older code (see ADR-0008).
