@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.8.0-beta.4
+- Sales and inventory never need side-scrolling: long bulk-buy names wrap onto more lines, column headings and dates
+  wrap on laptop screens, and tablets get the card layout phones use (four figures per row). Checked from 360px to
+  1366px wide.
+
 ## 1.8.0-beta.3
 - Showcase mode shows a small "Showcase" tag next to the logo (like the Beta tag) instead of a banner, and hides the
   Sync button while it's on (sync is off for fake data). Turn it off in Settings → Showcase mode.

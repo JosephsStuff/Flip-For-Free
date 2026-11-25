@@ -79,7 +79,7 @@
     <button class="btn small" name="action" value="bulk">Set bulk buy</button>
   </div>
   <div class="tablewrap">
-  <table class="data stack-sm inv">
+  <table class="data stack-sm fit inv">
     <thead><tr><th class="cb"><input type="checkbox" id="checkAll" aria-label="Select all"></th><th></th><th>Item</th><th>Status</th><th>Stored at</th><th>Bought from</th><th class="num">Cost each</th><th class="num">Listed at</th><th class="num">Days listed</th><th>Bulk buy</th></tr></thead>
     <tbody>
     {% for it in items %}
@@ -96,7 +96,7 @@
         <td class="num" data-label="Cost each">{% if it.unit_cost is not none %}{{ it.unit_cost|gbp }}{% if it.bulk_buy_id and not it.cost_locked %}<small class="muted"> share</small>{% endif %}{% else %}<a class="addcost" href="{{ url_for('item_detail', item_id=it.id) }}">+ add</a>{% endif %}</td>
         <td class="num" data-label="Listed at">{{ it.list_price|gbp('') }}</td>
         <td class="num" data-label="Days listed">{{ it.days_listed if it.days_listed is not none and it.status == 'listed' else '' }}</td>
-        <td data-label="Bulk buy">{% if it.bulk_name %}<a class="tag green" href="{{ url_for('bulk_detail', bulk_id=it.bulk_buy_id) }}">{{ it.bulk_name }}</a>{% endif %}</td>
+        <td data-label="Bulk buy">{% if it.bulk_name %}<a class="tag green wrap" href="{{ url_for('bulk_detail', bulk_id=it.bulk_buy_id) }}">{{ it.bulk_name }}</a>{% endif %}</td>
       </tr>
     {% else %}
       <tr><td colspan="10" class="empty-row">Nothing here yet. Add stock you've bought, import a spreadsheet, or sync to pull in your eBay listings.</td></tr>

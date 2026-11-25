@@ -49,7 +49,7 @@
   </div>
 
   <div class="tablewrap">
-  <table class="data stack-sm">
+  <table class="data stack-sm fit">
     <thead><tr>
       <th class="cb"><input type="checkbox" id="checkAll" aria-label="Select all"></th>
       <th>Sold</th><th>Item</th><th class="num">Qty</th><th class="num">Buyer paid</th>
@@ -60,7 +60,7 @@
     {% for s in sales %}
       <tr class="{{ 'refunded' if s.ebay_deductions.get('Refunds') }}">
         <td class="cb"><input type="checkbox" name="ids" value="{{ s.line_item_id }}" aria-label="Select {{ s.title }}"></td>
-        <td class="nowrap" data-label="Sold">{{ s.sold_at|d }}</td>
+        <td class="nowrap date" data-label="Sold">{{ s.sold_at|d }}</td>
         <td class="title"><a href="{{ url_for('manual_sale', line_id=s.line_item_id) if s.source in ('manual', 'cardtrader', 'shopify') else url_for('sale_detail', line_id=s.line_item_id, back=request.full_path) }}">{{ s.title }}</a>
           {% if s.estimated %}<span class="tag" title="Fees estimated until eBay's money data arrives">est.</span>{% endif %}
           {% if s.status %}<span class="tag red">{{ s.status }}</span>{% elif s.ebay_deductions.get('Refunds') %}<span class="tag red">refund</span>{% endif %}
@@ -73,7 +73,7 @@
         <td class="num" data-label="Money made">{{ s.money_made|gbp }}</td>
         <td class="num" data-label="Price paid">{% if s.in_bulk %}{% if s.item_cost is not none %}{{ s.item_cost|gbp }}<small class="muted"> share</small>{% else %}<span class="muted small">bulk</span>{% endif %}{% elif s.item_cost is none %}<a class="addcost" href="{{ url_for('sale_detail', line_id=s.line_item_id, back=request.full_path) }}">+ add</a>{% else %}{{ s.item_cost|gbp }}{% endif %}</td>
         <td class="num {{ cls(s.profit) }}" data-label="Profit"><b>{{ s.profit|gbp('') }}</b></td>
-        <td data-label="Bulk buy">{% if s.bulk_name %}<a class="tag green" href="{{ url_for('bulk_detail', bulk_id=s.bulk_buy_id) }}">{{ s.bulk_name }}</a>{% endif %}</td>
+        <td data-label="Bulk buy">{% if s.bulk_name %}<a class="tag green wrap" href="{{ url_for('bulk_detail', bulk_id=s.bulk_buy_id) }}">{{ s.bulk_name }}</a>{% endif %}</td>
       </tr>
     {% else %}
       <tr><td colspan="11" class="empty-row">No sales match.</td></tr>
