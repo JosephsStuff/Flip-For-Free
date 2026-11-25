@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.7.6
+- Phones: the "Flip for Free" name is back next to the logo; it fits on the top row with the icons and Sync.
+
 ## 1.7.5
 - Phones: the top bar is two rows instead of three. Just the logo (no name), with notifications, settings and Sync
   on the same row and the menu underneath. Your account name and sign-out are hidden on phones; Sign out is now

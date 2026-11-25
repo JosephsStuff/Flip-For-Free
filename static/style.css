@@ -257,10 +257,10 @@ ul.plain { padding-left: var(--s-5); margin: 0; }
   .synctext { display: none; }
 }
 .center-text { text-align: center; }
-/* Phones: logo only, no account button (sign out lives in Settings), icons + sync on the logo's row, nav below. */
+/* Phones: no account button (sign out lives in Settings), icons + sync on the logo's row, nav below. */
 @media (max-width: 640px) {
   .topbar { flex-wrap: wrap; gap: var(--s-2); padding: var(--s-2) var(--s-4); min-height: 0; }
-  .brandname, .topbar .signout { display: none; }
+  .topbar .signout { display: none; }
   .topright { margin-left: auto; }
   nav { order: 3; flex-basis: 100%; margin: 0 calc(-1 * var(--s-4)); padding: 0 var(--s-4); scrollbar-width: none; }
   nav::-webkit-scrollbar { display: none; }
