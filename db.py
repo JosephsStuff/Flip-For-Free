@@ -9,6 +9,7 @@ Two kinds of storage:
     second device at the same file gives you the same data.
 """
 import json
+import contextvars
 import os
 import secrets
 import socket
@@ -71,7 +72,27 @@ def save_config(cfg: dict) -> None:
     tmp.replace(p)
 
 
+# Showcase mode: one browser session can look at a separate fake database while everything else uses yours.
+_override: contextvars.ContextVar = contextvars.ContextVar("flip_db_override", default=None)
+
+
+def use_database(path: str | None):
+    """Point this request (or thread context) at another database. Returns a token for reset_database()."""
+    return _override.set(path)
+
+
+def reset_database(token) -> None:
+    _override.reset(token)
+
+
+def database_override() -> str | None:
+    return _override.get()
+
+
 def get_db_path() -> str | None:
+    o = _override.get()
+    if o:
+        return o
     path = load_config().get("db_path")
     return path if path else None
 

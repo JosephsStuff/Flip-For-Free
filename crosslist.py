@@ -14,7 +14,7 @@ from html.parser import HTMLParser
 from urllib.parse import urlparse
 
 import requests
-from flask import Response, abort, current_app, flash, redirect, render_template, request, url_for
+from flask import Response, abort, flash, redirect, render_template, request, url_for
 
 import profit
 from common import login_required, parse_float
@@ -32,10 +32,8 @@ _COND = {"1000": "New with tags", "1500": "New without tags", "1750": "New witho
 
 
 def _demo() -> bool:
-    try:
-        return bool(current_app.config.get("DEMO"))
-    except RuntimeError:                       # background sync: no app context, never demo
-        return False
+    from common import demo_active
+    return demo_active()
 
 
 # --------------------------------------------------------------------------- #

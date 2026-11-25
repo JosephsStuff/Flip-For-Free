@@ -4,7 +4,7 @@ from datetime import date, datetime, timedelta, timezone
 from functools import wraps
 from pathlib import Path
 
-from flask import current_app, redirect, render_template, request, session, url_for
+from flask import current_app, g, redirect, render_template, request, session, url_for
 
 import db
 import markets
@@ -159,6 +159,14 @@ def sales_where(start, end, extra=""):
     return " AND ".join(where), params
 
 
+def demo_active() -> bool:
+    """Fake data on screen: the whole app started with --demo, or this browser is in showcase mode."""
+    try:
+        return bool(current_app.config.get("DEMO") or g.get("showcase"))
+    except RuntimeError:                       # background work outside a request: never
+        return False
+
+
 def login_required(f):
     @wraps(f)
     def wrapper(*a, **kw):
@@ -166,7 +174,7 @@ def login_required(f):
         if not db_ready():
             return redirect(url_for("setup"))
         db.ensure_schema()
-        if not current_app.config["DEMO"]:
+        if not demo_active():
             if not EbayClient().configured:
                 return redirect(url_for("setup"))
             if not session.get("user_id"):

@@ -30,6 +30,24 @@
 </section>
 </div>
 
+<section class="card" id="showcase">
+  <h2>Showcase mode</h2>
+  {% if showcase %}
+    <p>Showcase mode is on in this browser. Everything you see is fake.</p>
+    <div class="row">
+      <form method="post" action="{{ url_for('showcase_off') }}" class="inline"><button class="btn">Turn off showcase mode</button></form>
+      <form method="post" action="{{ url_for('showcase_on') }}" class="inline"><input type="hidden" name="fresh" value="1"><button class="btn ghost">Reset the fake data</button></form>
+    </div>
+  {% elif not demo %}
+    <p>Show someone around Flip without showing your own figures. This browser switches to a year of fake sales,
+      stock, bulk buys and automations, so every page has something to show. You can click around and change things
+      freely: it's a separate copy.</p>
+    <form method="post" action="{{ url_for('showcase_on') }}"><button class="btn">{{ icon('eye', 'sm') }} Turn on showcase mode</button></form>
+    <p class="hint">Only this browser changes. Your data, syncs and automations carry on as normal, other devices still
+      see your own figures, and nothing is sent to eBay. Signing out turns it off.</p>
+  {% endif %}
+</section>
+
 <section class="card" id="market">
   <h2>Market and currency</h2>
   <form method="post" action="{{ url_for('settings_market') }}" class="stack">

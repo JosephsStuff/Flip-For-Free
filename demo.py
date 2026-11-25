@@ -49,9 +49,11 @@ def _addr(rnd):
     return {"postalCode": pc, "countryCode": c, "city": city}
 
 
-def seed(path: str):
+def seed(path: str, set_path: bool = True):
+    """Fill `path` with a year of fake data. set_path=False leaves the app's database setting alone (showcase)."""
     init_db(path)
-    db.set_db_path(path)
+    if set_path:
+        db.set_db_path(path)
     rnd = random.Random(42)
     settings = Settings(path)
     settings.set_many({

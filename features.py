@@ -1,4 +1,5 @@
 """Inventory, multi-marketplace sales, import, insights, automations, UK tax and notifications."""
+import contextvars
 import csv
 import io
 import json
@@ -13,7 +14,7 @@ import automation
 import markets
 import profit
 import taxcalc
-from common import (PERIODS, closed_guard, closed_years, login_required, parse_float, parse_int, parse_money,
+from common import (PERIODS, closed_guard, closed_years, demo_active, login_required, parse_float, parse_int, parse_money,
                     period_range, sales_where, tax_year_label, tax_year_of)
 from db import Settings, add_event, connect, now_iso, write_lock
 from markets import money as fmt_money
@@ -686,7 +687,7 @@ def register(app):  # noqa: C901  (one place to see every route)
         finally:
             conn.close()
         from ebay_api import EbayClient
-        can_promote = True if app.config["DEMO"] else EbayClient().can_promote()
+        can_promote = True if demo_active() else EbayClient().can_promote()
         st = Settings().get_many(["automations_paused", "automation_runner"])
         return render_template("automations.html", rules=rules, log=log, paused=st.get("automations_paused") == "1",
                                runner=st.get("automation_runner"), state=automation.STATE, active=active,
@@ -709,8 +710,8 @@ def register(app):  # noqa: C901  (one place to see every route)
             conn.close()
         if action == "approve" and n:
             rid = parse_int(request.form.get("rule_id"))
-            threading.Thread(target=automation.run_all, kwargs={
-                "only_rule": rid, "simulate": app.config["DEMO"], "triggered_by": "manual"}, daemon=True).start()
+            threading.Thread(target=contextvars.copy_context().run, args=(automation.run_all,), kwargs={
+                "only_rule": rid, "simulate": demo_active(), "triggered_by": "manual"}, daemon=True).start()
             flash(f"Approved {n} relist{'s' if n != 1 else ''} — relisting now.", "ok")
         else:
             flash(f"Skipped {n} relist{'s' if n != 1 else ''}. They won't be suggested again for these listings.", "ok")
@@ -766,8 +767,8 @@ def register(app):  # noqa: C901  (one place to see every route)
     @login_required
     def automation_run():
         rid = parse_int(request.form.get("rule_id"))
-        threading.Thread(target=automation.run_all, kwargs={
-            "only_rule": rid, "simulate": app.config["DEMO"], "triggered_by": "manual"}, daemon=True).start()
+        threading.Thread(target=contextvars.copy_context().run, args=(automation.run_all,), kwargs={
+            "only_rule": rid, "simulate": demo_active(), "triggered_by": "manual"}, daemon=True).start()
         flash("Running now — refresh in a minute to see the results in the log.", "ok")
         return redirect(url_for("automations"))
 

@@ -129,13 +129,15 @@ TOP_FIVE = [k for k, v in SITES.items() if v.get("tax")]
 
 
 _KEYS = ("marketplace_id", "currency", "fy_start")
-_cache = {"at": -1e9, "values": {}}
+_cache = {}          # database (override path, or "" for yours) -> {"at", "values"}
 
 
 def _settings(*keys):
     """The market settings, cached for a few seconds (money() runs hundreds of times a page)."""
-    if time.monotonic() - _cache["at"] < 5:
-        return _cache["values"]
+    key = db.database_override() or ""
+    hit = _cache.get(key)
+    if hit and time.monotonic() - hit["at"] < 5:
+        return hit["values"]
     values = {}
     try:
         path = db.get_db_path()
@@ -143,13 +145,13 @@ def _settings(*keys):
             values = db.Settings().get_many(list(_KEYS))
     except Exception:  # noqa: BLE001 - before setup there's no database
         values = {}
-    _cache.update(at=time.monotonic(), values=values)
+    _cache[key] = {"at": time.monotonic(), "values": values}
     return values
 
 
 def invalidate():
     """Call after changing the eBay site, currency or financial year."""
-    _cache["at"] = -1e9
+    _cache.clear()
 
 
 def site_id() -> str:

@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.8.0-beta.2
+- Showcase mode (Settings → Showcase mode): show someone around Flip with a year of fake sales, stock, bulk buys and
+  automations instead of your own figures. Only that browser changes; your data, syncs and automations carry on as
+  normal, other devices still see your figures, and nothing is sent to eBay. A banner shows while it's on, with a
+  Turn off button; signing out also turns it off. The fake data is a separate copy you can click around and change,
+  refreshed daily or with "Reset the fake data".
+
 ## 1.8.0-beta.1
 - Sell on eBay outside the UK. Settings → Market and currency sets your eBay site and currency; money shows as $, €,
   A$, C$ and so on everywhere (pages, notifications, CSVs), eBay links go to your site, and distances use miles or km.

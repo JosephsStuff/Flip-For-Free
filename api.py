@@ -805,7 +805,7 @@ def register(app):
     def api_v1_sync():
         import sync
         from flask import current_app
-        if current_app.config.get("DEMO"):
+        if current_app.config.get("DEMO") or db.database_override():
             return jsonify({"started": False, "message": "Sync is disabled in demo mode."})
         started = sync.start_background(full=bool(_body().get("full")))
         return jsonify({"started": started, "message": "Sync started." if started else "A sync is already running."})

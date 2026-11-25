@@ -27,7 +27,7 @@ import markets
 import updater
 import profit
 import sync
-from common import (PERIODS, closed_guard, db_ready, login_required, parse_int, parse_money, period_range,
+from common import (PERIODS, closed_guard, db_ready, demo_active, login_required, parse_int, parse_money, period_range,
                     sales_where)
 from db import Settings, connect, write_lock
 from ebay_api import EbayClient, EbayError, new_state
@@ -90,6 +90,73 @@ def ago(v):
     return f"{int(secs // 86400)} days ago"
 
 
+# --------------------------------------------------------------------------- #
+# Showcase mode: this browser sees a separate fake database; your data, syncs and other devices are untouched.
+# --------------------------------------------------------------------------- #
+SHOWCASE_ALLOWED = {"showcase_off", "static", "service_worker", "manifest"}
+
+
+def showcase_path() -> Path:
+    return db.config_dir() / "showcase" / "flip-showcase.db"
+
+
+def build_showcase(fresh=False) -> str:
+    """Create (or refresh, once a day) the fake database. Never touches your database setting."""
+    import demo
+    p = showcase_path()
+    p.parent.mkdir(parents=True, exist_ok=True)
+    stale = not p.exists() or date.fromtimestamp(p.stat().st_mtime) < date.today()
+    if fresh or stale:
+        for f in p.parent.glob(p.name + "*"):
+            f.unlink(missing_ok=True)
+        token = db.use_database(str(p))
+        try:
+            demo.seed(str(p), set_path=False)
+        finally:
+            db.reset_database(token)
+    return str(p)
+
+
+@app.before_request
+def showcase_switch():
+    g.showcase = False
+    if session.get("showcase") and not app.config["DEMO"]:
+        if not session.get("user_id"):              # signed out: showcase ends with the session
+            session.pop("showcase", None)
+            return None
+        g.showcase = True
+        g.showcase_token = db.use_database(build_showcase())
+        if (request.endpoint or "").startswith(("setup", "auth", "update_", "folder", "database_restore")):
+            flash("That's turned off in showcase mode. Turn showcase off first.", "error")
+            return redirect(url_for("dashboard"))
+    return None
+
+
+@app.teardown_request
+def showcase_reset(_exc=None):
+    t = g.pop("showcase_token", None)
+    if t is not None:
+        db.reset_database(t)
+
+
+@app.route("/showcase/on", methods=["POST"])
+@login_required
+def showcase_on():
+    if app.config["DEMO"]:
+        return redirect(url_for("dashboard"))
+    build_showcase(fresh=bool(request.form.get("fresh")))
+    session["showcase"] = True
+    flash("Showcase mode is on: everything you see is fake data. Your own figures are untouched.", "ok")
+    return redirect(url_for("dashboard"))
+
+
+@app.route("/showcase/off", methods=["POST"])
+def showcase_off():
+    session.pop("showcase", None)
+    flash("Showcase mode is off. These are your own figures again.", "ok")
+    return redirect(request.form.get("back") or url_for("dashboard"))
+
+
 @app.before_request
 def same_origin_check():
     """Basic CSRF protection: POSTs must come from this app's own pages."""
@@ -105,7 +172,7 @@ def same_origin_check():
 @app.context_processor
 def inject():
     from common import period_label, saved_ranges
-    ctx = {"demo": app.config["DEMO"], "sync_status": sync.STATUS, "db_path": db.get_db_path(),
+    ctx = {"demo": demo_active(), "showcase": g.get("showcase", False), "sync_status": sync.STATUS, "db_path": db.get_db_path(),
            "user_name": session.get("user_name"), "device_warning": None, "last_sync": None, "unread": 0,
            "saved_ranges": [], "period_label": period_label, "beta": updater.installed_channel() == "beta",
            "cur": markets.symbol(), "market": markets.site(), "tax_profile": markets.tax(), "unit": markets.unit_word(),
@@ -172,7 +239,7 @@ def setup():
 
 @app.route("/setup/db", methods=["POST"])
 def setup_db():
-    if db_ready() and session.get("user_id") is None and not app.config["DEMO"] \
+    if db_ready() and session.get("user_id") is None and not demo_active() \
             and EbayClient().configured and Settings().get("owner_user_id"):
         # Changing DB while one is configured requires being signed in.
         flash("Sign in first to change the database location.", "error")
@@ -208,7 +275,7 @@ def setup_ebay():
     if not db_ready():
         return redirect(url_for("setup"))
     st = Settings()
-    if st.get("owner_user_id") and not session.get("user_id") and not app.config["DEMO"]:
+    if st.get("owner_user_id") and not session.get("user_id") and not demo_active():
         flash("Sign in first to change eBay app keys.", "error")
         return redirect(url_for("login"))
     vals = {
@@ -265,7 +332,7 @@ def api_browse():
 def login():
     if not db_ready():
         return redirect(url_for("setup"))
-    if app.config["DEMO"]:
+    if demo_active():
         return redirect(url_for("dashboard"))
     client = EbayClient()
     if not client.configured:
@@ -996,7 +1063,7 @@ def update_channel():
 @app.route("/settings/update/apply", methods=["POST"])
 @login_required
 def update_apply():
-    if app.config["DEMO"]:
+    if demo_active():
         flash("Updating is turned off in demo mode.", "error")
         return redirect(url_for("settings_page") + "#updates")
     if sync.STATUS.get("running") or automation.STATE.get("running"):
@@ -1132,7 +1199,7 @@ def settings_page():
 @app.route("/sync", methods=["POST"])
 @login_required
 def sync_now():
-    if app.config["DEMO"]:
+    if demo_active():
         return jsonify({"started": False, "message": "Sync is disabled in demo mode."})
     started = sync.start_background(full=bool(request.form.get("full")))
     return jsonify({"started": started, "message": "Sync started." if started else "A sync is already running."})
