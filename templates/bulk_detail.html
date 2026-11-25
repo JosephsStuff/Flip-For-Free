@@ -36,11 +36,11 @@
       <label>Number of items<input name="item_count" inputmode="numeric" value="{{ b.item_count or '' }}"><small class="muted">Used to split the cost{% if alloc.per_unit is not none and alloc.method != 'price' %}: {{ alloc.per_unit|gbp }} each{% endif %}</small></label>
       <label>Split the cost
         <select name="split_method"><option value="even" {{ 'selected' if (b.split_method or 'even') == 'even' }}>Evenly per item</option><option value="price" {{ 'selected' if b.split_method == 'price' }}>By each item's price</option></select>
-        <small class="muted">By price: a £40 card carries more of the cost than a £2 one.</small></label>
+        <small class="muted">By price: a {{ 40|money }} card carries more of the cost than a {{ 2|money }} one.</small></label>
       <label>Bought from<input name="source" value="{{ b.source or '' }}"></label>
       <label>Stored at<input name="location" value="{{ b.location or '' }}"></label>
-      <label>Price paid (£)<input name="total_cost" class="money" inputmode="decimal" value="{{ '%.2f'|format(b.total_cost or 0) }}"></label>
-      <label>Extra costs (£)<input name="extra_costs" class="money" inputmode="decimal" value="{{ '%.2f'|format(b.extra_costs or 0) }}"></label>
+      <label>Price paid ({{ cur|trim }})<input name="total_cost" class="money" inputmode="decimal" value="{{ '%.2f'|format(b.total_cost or 0) }}"></label>
+      <label>Extra costs ({{ cur|trim }})<input name="extra_costs" class="money" inputmode="decimal" value="{{ '%.2f'|format(b.extra_costs or 0) }}"></label>
       <label class="span2">Notes<textarea name="notes" rows="2">{{ b.notes or '' }}</textarea></label>
       <div class="span2 row between"><button class="btn">Save</button>
         <button class="btn danger ghost" formaction="{{ url_for('bulk_delete', bulk_id=b.id) }}" onclick="return confirm('Delete this bulk buy? Its sales are kept, just unassigned.')">Delete</button></div>
@@ -61,7 +61,7 @@
     <input type="hidden" name="location" value="{{ b.location or '' }}"><input type="hidden" name="purchased_at" value="{{ b.purchased_at or '' }}">
     <input type="hidden" name="back" value="{{ request.path }}">
     <input name="title" placeholder="Add an item from this lot, e.g. Blue-Eyes White Dragon LOB-001" style="flex:1" required>
-    <input name="cost" class="money" placeholder="fixed £ (optional)" style="width:150px" oninput="this.form.cost_locked.checked = !!this.value">
+    <input name="cost" class="money" placeholder="fixed {{ cur|trim }} (optional)" style="width:150px" oninput="this.form.cost_locked.checked = !!this.value">
     <input type="checkbox" name="cost_locked" value="1" hidden>
     <button class="btn small">Add</button>
   </form>
@@ -95,7 +95,7 @@
     </form>
     {% else %}<p class="muted small">No listings to link yet. They appear after a sync.</p>{% endif %}
   </details>
-  {% if alloc.locked_total and alloc.locked_total > alloc.cost %}<div class="flash warn">The fixed costs you've given items ({{ alloc.locked_total|gbp }}) add up to more than the whole lot ({{ alloc.cost|gbp }}), so the other items get £0 each. Lower the fixed costs or raise the bulk buy's price.</div>{% endif %}
+  {% if alloc.locked_total and alloc.locked_total > alloc.cost %}<div class="flash warn">The fixed costs you've given items ({{ alloc.locked_total|gbp }}) add up to more than the whole lot ({{ alloc.cost|gbp }}), so the other items get {{ 0|money }} each. Lower the fixed costs or raise the bulk buy's price.</div>{% endif %}
   {% if items %}
   <div class="tablewrap"><table class="data compact">
     <thead><tr><th>Item</th><th>Status</th><th class="num">Cost each</th><th class="num">Listed at</th></tr></thead>

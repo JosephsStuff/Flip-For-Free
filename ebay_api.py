@@ -21,6 +21,7 @@ from urllib.parse import urlencode, urlparse
 import requests
 from cryptography.hazmat.primitives import serialization
 
+import markets
 from db import Settings
 
 ENVIRONMENTS = {
@@ -49,7 +50,9 @@ MARKETING_SCOPE = "https://api.ebay.com/oauth/api_scope/sell.marketing"
 
 TRADING_NS = "urn:ebay:apis:eBLBaseComponents"
 TRADING_COMPAT = "1349"
-SITE_IDS = {"EBAY_GB": "3", "EBAY_US": "0", "EBAY_DE": "77", "EBAY_IE": "205", "EBAY_AU": "15"}
+SITE_IDS = {"EBAY_GB": "3", "EBAY_US": "0", "EBAY_DE": "77", "EBAY_IE": "205", "EBAY_AU": "15", "EBAY_CA": "2",
+            "EBAY_FR": "71", "EBAY_IT": "101", "EBAY_ES": "186", "EBAY_AT": "16", "EBAY_NL": "146", "EBAY_BE": "23",
+            "EBAY_CH": "193", "EBAY_PL": "212", "EBAY_HK": "201", "EBAY_SG": "216"}
 APP_SCOPES = ["https://api.ebay.com/oauth/api_scope"]
 
 TIMEOUT = 60
@@ -513,7 +516,7 @@ def _parse_item(it) -> dict:
     return {
         "legacy_item_id": f("ItemID"), "title": f("Title"), "sku": f("SKU"),
         "price": float(price) if price else None,
-        "currency": cur_el.get("currencyID") if cur_el is not None else "GBP",
+        "currency": cur_el.get("currencyID") if cur_el is not None else markets.currency(),
         "quantity": qty, "quantity_sold": sold,
         "quantity_available": int(avail) if avail else max(qty - sold, 0),
         "listing_type": f("ListingType"), "duration": f("ListingDuration"),
@@ -538,8 +541,8 @@ def money(obj) -> float:
         return 0.0
 
 
-def currency(obj, default="GBP") -> str:
-    return (obj or {}).get("currency") or default
+def currency(obj, default=None) -> str:
+    return (obj or {}).get("currency") or default or markets.currency()
 
 
 def dumps(obj) -> str:

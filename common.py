@@ -1,4 +1,5 @@
 """Helpers shared by every page."""
+import re
 from datetime import date, datetime, timedelta, timezone
 from functools import wraps
 from pathlib import Path
@@ -6,12 +7,17 @@ from pathlib import Path
 from flask import current_app, redirect, render_template, request, session, url_for
 
 import db
+import markets
 
 
 def parse_money(v):
     if v is None:
         return None
-    v = str(v).strip().replace("£", "").replace(",", "")
+    v = re.sub(r"[^\d.,\-]", "", str(v).strip())
+    if re.search(r",\d{1,2}$", v) and (v.count(",") == 1):      # 12,50 or 1.234,50 (decimal comma)
+        v = v.replace(".", "").replace(",", ".")
+    else:
+        v = v.replace(",", "")
     if v == "":
         return None
     try:
@@ -45,16 +51,16 @@ PERIODS = [("today", "Today"), ("week", "This week"), ("month", "This month"), (
 
 
 # --------------------------------------------------------------------------- #
-# Financial year (you choose the start; default is the UK tax year, 6 April)
+# Financial year (you choose the start; default is your market's tax year, e.g. 6 April in the UK)
 # --------------------------------------------------------------------------- #
 def fy_start_md() -> tuple[int, int]:
-    raw = (db.Settings().get("fy_start") or "04-06") if db_ready() else "04-06"
+    raw = (db.Settings().get("fy_start") or "") if db_ready() else ""
     try:
         m, d = (int(x) for x in raw.split("-"))
         date(2001, m, d)
         return m, d
     except (ValueError, TypeError):
-        return 4, 6
+        return markets.year_start()
 
 
 def fy_of(d=None, md=None) -> int:
@@ -173,10 +179,10 @@ def login_required(f):
 
 
 # --------------------------------------------------------------------------- #
-# UK tax years & closed-year protection
+# Tax years (your market's) & closed-year protection
 # --------------------------------------------------------------------------- #
 def tax_year_of(d) -> int | None:
-    """Tax year identified by its starting calendar year: 6 Apr 2025 – 5 Apr 2026 -> 2025."""
+    """Tax year identified by its starting calendar year: UK 6 Apr 2025 – 5 Apr 2026 -> 2025; US 2025 -> 2025."""
     if not d:
         return None
     if isinstance(d, str):
@@ -186,15 +192,16 @@ def tax_year_of(d) -> int | None:
             return None
     if isinstance(d, datetime):
         d = d.date()
-    return d.year if (d.month, d.day) >= (4, 6) else d.year - 1
+    return d.year if (d.month, d.day) >= markets.year_start() else d.year - 1
 
 
 def tax_year_range(y: int):
-    return date(y, 4, 6).isoformat(), date(y + 1, 4, 6).isoformat()
+    m, d = markets.year_start()
+    return date(y, m, d).isoformat(), date(y + 1, m, d).isoformat()
 
 
 def tax_year_label(y: int) -> str:
-    return f"{y}/{str(y + 1)[-2:]}"
+    return str(y) if markets.year_start() == (1, 1) else f"{y}/{str(y + 1)[-2:]}"
 
 
 def closed_years() -> set[int]:

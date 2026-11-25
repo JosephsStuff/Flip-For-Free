@@ -1,4 +1,5 @@
-"""UK Self Assessment figures (self-employment short pages, SA103S).
+"""Tax figures. UK: Self Assessment (self-employment short pages, SA103S). US, Germany, Australia and Canada:
+the same figures regrouped onto that country's form (see `summary` and markets.TAX).
 
 Box numbers follow the 2026 SA103S form:
   9  turnover                         11 cost of goods bought for resale
@@ -13,6 +14,7 @@ This is a helper for record keeping, not tax advice.
 """
 from collections import defaultdict
 
+import markets
 import profit
 from common import tax_year_label, tax_year_range
 
@@ -61,8 +63,19 @@ def mileage_rates(vehicle: str, year: int):
     return (0.55 if year >= 2026 else 0.45), 0.25
 
 
+MILEAGE_LABEL = "Business mileage"
+
+
 def mileage_allowance(rows, year: int):
-    """HMRC simplified mileage for one tax year. Car/van 10,000-mile threshold is per tax year."""
+    """Mileage claim for one tax year: HMRC simplified rates in the UK (car/van 10,000-mile tier per tax year),
+    else your market's per-mile/km rate (Australia: up to 5,000 km; Canada: none, actual costs instead)."""
+    if markets.tax_code() != "UK":
+        dist = sum(r["miles"] or 0 for r in rows)
+        rate = markets.mileage_rate(year)
+        cap = (markets.tax() or {}).get("mileage_cap")
+        claimable = min(dist, cap) if cap else dist
+        return {"by_vehicle": {}, "total": round(claimable * rate, 2), "miles": dist, "rate": rate,
+                "capped": bool(cap and dist > cap), "cap": cap}
     totals = defaultdict(float)
     for r in rows:
         totals[r["vehicle"] or "car"] += r["miles"] or 0
@@ -142,7 +155,7 @@ def compute(conn, year: int, basis: str = "cash") -> dict:
     miles = [dict(r) for r in conn.execute("SELECT * FROM mileage WHERE date >= ? AND date < ?", (start, end))]
     mil = mileage_allowance(miles, year)
     if mil["total"]:
-        lines[12]["Business mileage (HMRC simplified rate)"] += mil["total"]
+        lines[12][MILEAGE_LABEL] += mil["total"]
 
     for b, items in lines.items():
         for k in list(items):
@@ -183,7 +196,7 @@ def compute(conn, year: int, basis: str = "cash") -> dict:
                            "body": "Add the date you bought them.", "link": "/bulk"})
     if any(not m.get("purpose") for m in miles):
         checks.append({"level": "info", "title": "Some mileage trips have no purpose",
-                       "body": "HMRC expects a business reason for each journey.", "link": f"/mileage?year={year}"})
+                       "body": "Tax authorities expect a business reason for each journey.", "link": f"/mileage?year={year}"})
     if total_exp and any(e for e in lines[12] if "mileage" not in e.lower()) and mil["total"]:
         checks.append({"level": "info", "title": "You have both mileage and travel costs",
                        "body": "You can't claim fuel or running costs for a vehicle you also claim mileage for.",
@@ -202,6 +215,34 @@ def compute(conn, year: int, basis: str = "cash") -> dict:
         },
         "over_vat": income > VAT_THRESHOLD, "checks": checks, "sales": sales,
     }
+
+
+def summary(conn, year: int, basis: str = "cash") -> dict:
+    """The year's figures on your market's form lines (US Schedule C, German EÜR, Australian business schedule,
+    Canadian T2125). Record-keeping aid, not tax advice."""
+    r = compute(conn, year, basis)
+    t = markets.tax()
+    rows = []
+    mil = r["mileage"]["total"]
+    if mil and t.get("mileage_line"):
+        rows.append({"line": t["mileage_line"], "amount": mil, "items": {}})
+    for b in range(11, 20):
+        items = {k: v for k, v in r["lines"][b].items() if k != MILEAGE_LABEL}
+        amt = round(sum(items.values()), 2)
+        if items:
+            rows.append({"line": t["lines"][b], "amount": amt, "items": items})
+    merged = {}
+    for row in rows:
+        m = merged.setdefault(row["line"], {"line": row["line"], "amount": 0.0, "items": {}})
+        m["amount"] = round(m["amount"] + row["amount"], 2)
+        m["items"].update(row["items"])
+    rows = list(merged.values())
+    total = round(sum(x["amount"] for x in rows), 2)
+    income = r["box9"] + r["box10"]
+    limit, limit_label = t.get("threshold") or (None, None)
+    return {**r, "profile": t, "rows": rows, "last_day": _minus_day(r["end"]), "total_expenses": total, "income": round(income, 2),
+            "profit": round(income - total, 2), "threshold": limit, "threshold_label": limit_label,
+            "threshold_pct": min(income / limit * 100, 100) if limit else None}
 
 
 def _minus_day(iso):

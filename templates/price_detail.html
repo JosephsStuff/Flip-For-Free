@@ -4,7 +4,7 @@
 {% block content %}
 <p class="crumbs"><a href="{{ url_for('prices') }}">← Sold prices</a></p>
 <h1 class="h-title">{{ title }}</h1>
-<p class="muted">{{ sales|length }} sale{{ 's' if sales|length != 1 }}{% if hist[0].legacy_item_id %} · <a href="https://www.ebay.co.uk/itm/{{ hist[0].legacy_item_id }}" target="_blank" rel="noopener">Listing {{ hist[0].legacy_item_id }} ↗</a>{% endif %}</p>
+<p class="muted">{{ sales|length }} sale{{ 's' if sales|length != 1 }}{% if hist[0].legacy_item_id %} · <a href="{{ ebay_item_url(hist[0].legacy_item_id) }}" target="_blank" rel="noopener">Listing {{ hist[0].legacy_item_id }} ↗</a>{% endif %}</p>
 {% if hist|length > 1 %}
 <section class="card"><div class="chartbox"><canvas id="priceChart"></canvas></div></section>
 {% endif %}

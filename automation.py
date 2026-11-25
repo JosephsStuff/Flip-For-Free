@@ -16,6 +16,8 @@ from datetime import datetime, timedelta, timezone
 
 from db import Settings, add_event, connect, device_name, notify, now_iso, write_lock
 from ebay_api import EbayClient, EbayError
+import markets
+from markets import money as fmt_money
 
 RENEW_DAYS = 30
 
@@ -29,7 +31,7 @@ DEFAULTS = {
         "price_drop_pct": 5.0,         # cut price by this % on each relist (0 = keep price)
         "max_cycles": 20,              # stop cutting the price after this many relists
         "max_total_drop_pct": 25.0,    # never go below original price minus this %
-        "min_price": 0.0,              # never go below this price (£, 0 = no fixed floor)
+        "min_price": 0.0,              # never go below this price (your currency, 0 = no fixed floor)
         "never_below_cost": True,      # never go below what you paid
         "skip_with_sales": True,       # skip multi-quantity listings that already have sales
         "skip_watchers_at": 0,         # skip if this many people watch it (0 = don't skip)
@@ -337,13 +339,13 @@ def _run_relist(conn, client, rule, cfg, manual=False) -> str:
                 (new_id, c["item_id"], c["title"], c["sku"], price, c["original_price"] or c["price"],
                  c["currency"], c["quantity_available"] or c["quantity"], c["quantity_available"] or c["quantity"],
                  c["listing_type"], c["duration"], now_iso(), c["image_url"],
-                 f"https://www.ebay.co.uk/itm/{new_id}", lid, (c["relist_count"] or 0) + 1, now_iso(), now_iso()))
+                 markets.listing_url(new_id), lid, (c["relist_count"] or 0) + 1, now_iso(), now_iso()))
             rule_row = conn.execute("SELECT * FROM listing_rules WHERE legacy_item_id=?", (lid,)).fetchone()
             if rule_row:
                 conn.execute("INSERT OR REPLACE INTO listing_rules(legacy_item_id, bulk_buy_id, unit_cost) "
                              "VALUES (?,?,?)", (new_id, rule_row["bulk_buy_id"], rule_row["unit_cost"]))
-            change = (f" at £{price:,.2f} (was £{c['price']:,.2f})" if c["new_price"]
-                      else f" at £{price:,.2f}")
+            change = (f" at {fmt_money(price)} (was {fmt_money(c['price'])})" if c["new_price"]
+                      else f" at {fmt_money(price)}")
             conn.execute("UPDATE relist_queue SET status='done' WHERE legacy_item_id=? AND status='approved'", (lid,))
             add_event(conn, c["item_id"], "relisted", f"Relisted as #{new_id}{change}", new_id)
             _log(conn, rule["id"], lid, "relist", "ok", f"→ #{new_id}{change}")

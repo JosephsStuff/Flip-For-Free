@@ -8,6 +8,7 @@ from datetime import datetime, timedelta, timezone
 import db
 from db import connect, init_db, Settings, write_lock, now_iso
 from sync import _save_order, _save_transaction, detect_issues, link_sales_to_items, sync_listings
+from markets import money as fmt_money
 
 UK_POSTCODES = ["SW1A 1AA", "M1 1AE", "B1 1BB", "LS1 4AP", "G1 1XQ", "EH1 1YZ", "CF10 1EP", "BS1 4DJ", "NE1 7RU",
                 "L1 8JQ", "NG1 5FS", "S1 2HE", "BT1 5GS", "AB10 1XG", "PL1 2AA", "NR1 3QU", "CB2 1TN", "OX1 2JD",
@@ -251,7 +252,7 @@ def _seed_v2(conn, rnd, now, bulk):
             cur = conn.execute("""INSERT INTO items(title, quantity, cost, source, purchased_at, location, created_at, updated_at)
                                   VALUES (?,1,?,?,?,?,?,?)""", (title, cost, src, (now - timedelta(days=days)).date().isoformat(),
                                                                 rnd.choice(LOCATIONS), now_iso(), now_iso()))
-            db.add_event(conn, cur.lastrowid, "created", f"Bought from {src} for £{cost:,.2f}",
+            db.add_event(conn, cur.lastrowid, "created", f"Bought from {src} for {fmt_money(cost)}",
                          at=(now - timedelta(days=days)).date().isoformat())
         conn.commit()
     link_sales_to_items(conn)
@@ -328,7 +329,7 @@ def _seed_v2(conn, rnd, now, bulk):
         r = conn.execute("""SELECT s.line_item_id, s.title, s.item_price, i.location FROM sales s LEFT JOIN items i ON i.id=s.item_id
                             WHERE s.source='ebay' ORDER BY s.sold_at DESC LIMIT 2""").fetchall()
         for x in r:
-            db.notify(conn, "sale", f"Sold: {x['title']}", f"£{x['item_price']:,.2f} · Stored at: {x['location'] or '—'}",
+            db.notify(conn, "sale", f"Sold: {x['title']}", f"{fmt_money(x['item_price'])} · Stored at: {x['location'] or '—'}",
                       f"/sales/{x['line_item_id']}", key=f"sale-{x['line_item_id']}")
         conn.commit()
     detect_issues(conn)

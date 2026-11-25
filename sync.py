@@ -6,6 +6,7 @@ from datetime import datetime, timedelta, timezone
 
 from db import Settings, add_event, connect, device_name, notify, now_iso, write_lock
 from ebay_api import EbayClient, EbayError, currency, dumps, money
+from markets import money as fmt_money
 
 STATUS = {"running": False, "message": "", "last_result": None, "progress": ""}
 _lock = threading.Lock()
@@ -269,7 +270,7 @@ def _new_sale_notification(conn, line_id, legacy, title, price, sold_at, where):
         r = conn.execute("""SELECT i.location FROM listings l JOIN items i ON i.id=l.item_id
                             WHERE l.legacy_item_id=?""", (legacy,)).fetchone()
         loc = r["location"] if r else None
-    body = f"£{price:,.2f}" + (f" · to {where}" if where else "")
+    body = f"{fmt_money(price)}" + (f" · to {where}" if where else "")
     body += f" · Stored at: {loc}" if loc else " · No storage location logged"
     notify(conn, "sale", f"Sold: {title}", body, f"/sales/{line_id}", key=f"sale-{line_id}", at=sold_at)
     if legacy:
@@ -305,12 +306,12 @@ def sync_listings(conn, listings) -> int:
                     (lid, item_id, L["title"], L["sku"], L["price"], L["price"], L["currency"], L["quantity"],
                      L["quantity_available"], L["quantity_sold"], L["listing_type"], L["duration"],
                      L["start_time"], L["end_time"], L["watch_count"], L["image_url"], L["url"], now, now))
-                add_event(conn, item_id, "listed", f"Listed at £{(L['price'] or 0):,.2f} (#{lid})", lid,
+                add_event(conn, item_id, "listed", f"Listed at {fmt_money((L['price'] or 0))} (#{lid})", lid,
                           at=L["start_time"])
             else:
                 if old["price"] is not None and L["price"] is not None and abs(old["price"] - L["price"]) > 0.004:
                     add_event(conn, old["item_id"], "price",
-                              f"Price changed £{old['price']:,.2f} → £{L['price']:,.2f}", lid)
+                              f"Price changed {fmt_money(old['price'])} → {fmt_money(L['price'])}", lid)
                 if old["title"] and L["title"] and old["title"] != L["title"]:
                     add_event(conn, old["item_id"], "title", f"Title changed to “{L['title']}”", lid)
                 conn.execute(
@@ -368,7 +369,7 @@ def link_sales_to_items(conn) -> None:
                                  (SELECT 1 FROM item_events e WHERE e.kind='sold' AND e.detail LIKE
                                   '%' || s.line_item_id || '%')""").fetchall():
             add_event(conn, r["item_id"], "sold",
-                      f"Sold {r['quantity'] or 1} for £{(r['item_price'] or 0):,.2f} (line {r['line_item_id']})",
+                      f"Sold {r['quantity'] or 1} for {fmt_money((r['item_price'] or 0))} (line {r['line_item_id']})",
                       at=r["sold_at"])
 
 
@@ -413,7 +414,7 @@ def detect_issues(conn) -> None:
                                    AND date >= ?
                                  GROUP BY order_id HAVING n > 1""", (_since(90),)).fetchall():
             notify(conn, "issue", "Possible duplicate postage label charge",
-                   f"Order {r['order_id']} has {r['n']} label charges totalling £{r['total']:,.2f}. "
+                   f"Order {r['order_id']} has {r['n']} label charges totalling {fmt_money(r['total'])}. "
                    "Void any label you didn't use.", _order_link(conn, r["order_id"]),
                    key=f"duplabel-{r['order_id']}-{r['n']}")
         # label refunds / adjustments and fee credits
@@ -427,7 +428,7 @@ def detect_issues(conn) -> None:
             else:
                 title = "eBay adjustment"
             sign = "+" if t["booking"] == "CREDIT" else "-"
-            body = f"{sign}£{(t['amount'] or 0):,.2f}" + (f" on order {t['order_id']}" if t["order_id"] else "")
+            body = f"{sign}{fmt_money((t['amount'] or 0))}" + (f" on order {t['order_id']}" if t["order_id"] else "")
             if t["memo"]:
                 body += f" — {t['memo']}"
             notify(conn, "issue", title, body, _order_link(conn, t["order_id"]),

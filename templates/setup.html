@@ -73,8 +73,8 @@
     </label>
     <label>Marketplace
       <select name="marketplace_id">
-        {% for m, l in [('EBAY_GB','eBay UK'),('EBAY_US','eBay US'),('EBAY_DE','eBay DE'),('EBAY_IE','eBay IE'),('EBAY_AU','eBay AU')] %}
-        <option value="{{ m }}" {{ 'selected' if ebay.get('marketplace_id', 'EBAY_GB') == m }}>{{ l }}</option>{% endfor %}
+        {% for m, site in all_sites.items() %}
+        <option value="{{ m }}" {{ 'selected' if ebay.get('marketplace_id', 'EBAY_GB') == m }}>{{ site.name }}</option>{% endfor %}
       </select>
     </label>
     <label class="span2">App ID (Client ID)<input name="client_id" value="{{ ebay.get('client_id', '') }}" required autocomplete="off" placeholder="e.g. YourName-YourApp-PRD-1a2b3c4d5-6e7f8a9b"></label>

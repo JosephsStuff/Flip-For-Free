@@ -20,7 +20,7 @@
     <input type="hidden" name="back" value="{{ request.full_path }}">
     <label class="span2">Title<input name="title" id="addTitle" placeholder="e.g. Nintendo DS Lite – Cobalt Blue"></label>
     <label>Quantity<input name="quantity" inputmode="numeric" value="1"></label>
-    <label>Price paid each (£)<input name="cost" class="money" inputmode="decimal" placeholder="0.00"></label>
+    <label>Price paid each ({{ cur|trim }})<input name="cost" class="money" inputmode="decimal" placeholder="0.00"></label>
     <label>Bought from<input name="source" list="sourceList" placeholder="Car boot, Facebook, charity shop…"></label>
     <label>Bought on<input type="date" name="purchased_at" value="{{ today }}"></label>
     <label>Stored at<input name="location" list="locList" placeholder="Shelf B2, Box 4…"></label>
@@ -68,7 +68,7 @@
   <input type="hidden" name="back" value="{{ request.full_path }}">
   <div class="actionbar" id="actionBar" hidden>
     <span id="selCount">0 selected</span><span class="sep"></span>
-    <input name="value" placeholder="Location / source / £ amount">
+    <input name="value" placeholder="Location / source / {{ cur|trim }} amount">
     <button class="btn small ghost" name="action" value="location">Set location</button>
     <button class="btn small ghost" name="action" value="source">Set source</button>
     <button class="btn small ghost" name="action" value="cost">Set price paid</button>

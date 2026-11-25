@@ -15,10 +15,12 @@ from datetime import date, datetime, timedelta, timezone
 from flask import abort, current_app, flash, redirect, render_template, request, url_for
 
 import fx
+import markets
 from cardtrader_api import CardTraderClient, CardTraderError, money
 from common import login_required, parse_float, parse_int
 from db import Settings, add_event, connect, notify, now_iso, write_lock
 from shopify_api import ShopifyClient, ShopifyError, clean_shop
+from markets import money as fmt_money
 
 CARD_GAMES_FIRST = ("yu-gi-oh", "yugioh", "pokemon", "pokémon", "magic", "one piece", "lorcana", "flesh")
 CACHE_DAYS = {"games": 30, "expansions": 7, "categories": 30, "blueprints": 7}
@@ -261,10 +263,10 @@ def _upsert_sale(conn, vals: dict) -> bool:
                                               "ship_city": vals.get("ship_city")})
             if vals.get("item_id"):
                 add_event(conn, vals["item_id"], "sold",
-                          f"Sold {vals['quantity']} on {vals['channel']} for £{vals['item_price']:,.2f}",
+                          f"Sold {vals['quantity']} on {vals['channel']} for {fmt_money(vals['item_price'])}",
                           at=vals["sold_at"])
             if vals["sold_at"] >= (datetime.now(timezone.utc) - timedelta(days=3)).isoformat():
-                notify(conn, "sale", f"Sold on {vals['channel']}: {vals['title']}", f"£{vals['item_price']:,.2f}",
+                notify(conn, "sale", f"Sold on {vals['channel']}: {vals['title']}", f"{fmt_money(vals['item_price'])}",
                        "/sales", key=f"sale-{vals['line_item_id']}", at=vals["sold_at"])
         conn.commit()
     return not exists
@@ -307,9 +309,9 @@ def import_cardtrader(conn, client) -> int:
                 name = f"{name} ({exp})" if exp else name
             new += _upsert_sale(conn, {
                 "line_item_id": f"CT-{it.get('id')}", "order_id": f"CT-{o.get('id')}", "title": name,
-                "quantity": it.get("quantity") or 1, "item_price": fx.to_gbp(price, icur),
-                "delivery_charged": fx.to_gbp(shipping, cur) if n == 0 else 0.0,
-                "manual_fees": fx.to_gbp(fee * share, cur), "channel": "CardTrader",
+                "quantity": it.get("quantity") or 1, "item_price": fx.to_home(price, icur),
+                "delivery_charged": fx.to_home(shipping, cur) if n == 0 else 0.0,
+                "manual_fees": fx.to_home(fee * share, cur), "channel": "CardTrader",
                 "sold_at": sold_at, "item_id": link["item_id"] if link else None, "status": status,
                 "source": "cardtrader",
                 "notes": f"CardTrader order {o.get('code') or o.get('id')}"
@@ -346,8 +348,8 @@ def import_shopify(conn, client) -> int:
             new += _upsert_sale(conn, {
                 "line_item_id": "SH-" + li["id"].rsplit("/", 1)[-1], "order_id": "SH-" + o["id"].rsplit("/", 1)[-1],
                 "title": li.get("title") or "Shopify sale", "quantity": li.get("quantity") or 1,
-                "item_price": fx.to_gbp(price, cur), "delivery_charged": fx.to_gbp(shipping, scur) if n == 0 else 0.0,
-                "manual_fees": fx.to_gbp(fee, cur), "channel": "Shopify",
+                "item_price": fx.to_home(price, cur), "delivery_charged": fx.to_home(shipping, scur) if n == 0 else 0.0,
+                "manual_fees": fx.to_home(fee, cur), "channel": "Shopify",
                 "sold_at": o.get("processedAt") or o.get("createdAt"), "item_id": link["item_id"] if link else None,
                 "status": status, "source": "shopify", "notes": f"Shopify order {o.get('name')}",
                 "ship_country": addr.get("countryCodeV2"), "ship_city": addr.get("city")})
@@ -598,7 +600,7 @@ def register(app):
                 suggested = None
                 if listing_price and currency:
                     try:
-                        suggested = fx.from_gbp(listing_price, currency)
+                        suggested = fx.convert(listing_price, markets.currency(), currency)
                     except fx.FxError:
                         suggested = None
                 ctx.update(games=games, game_id=game_id, expansions=exps, expansion_id=exp_id, code=code,

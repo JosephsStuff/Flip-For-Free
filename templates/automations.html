@@ -36,7 +36,7 @@
         <label>Cut price by (% each relist)<input name="price_drop_pct" inputmode="decimal" value="{{ r.cfg.price_drop_pct }}"><small class="muted">0 = keep the price</small></label>
         <label>Stop cutting after (relists)<input name="max_cycles" inputmode="numeric" value="{{ r.cfg.max_cycles }}"><small class="muted">up to 20; it keeps relisting at the last price</small></label>
         <label>Never more than (% below original)<input name="max_total_drop_pct" inputmode="decimal" value="{{ r.cfg.max_total_drop_pct }}"></label>
-        <label>Floor price (£)<input name="min_price" class="money" inputmode="decimal" value="{{ r.cfg.min_price }}"><small class="muted">0 = none. Items can have their own floor.</small></label>
+        <label>Floor price ({{ cur|trim }})<input name="min_price" class="money" inputmode="decimal" value="{{ r.cfg.min_price }}"><small class="muted">0 = none. Items can have their own floor.</small></label>
         <label>Most relists per day<input name="max_per_day" inputmode="numeric" value="{{ r.cfg.max_per_day }}"><small class="muted">max 200 · {{ today_count }} done today</small></label>
         <label>Only listings older than (days)<input name="min_age_days" inputmode="numeric" value="{{ r.cfg.min_age_days }}"></label>
         <label>Skip if watched by at least<input name="skip_watchers_at" inputmode="numeric" value="{{ r.cfg.skip_watchers_at }}"><small class="muted">0 = don't skip</small></label>

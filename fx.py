@@ -71,3 +71,22 @@ def from_gbp(amount: float, currency: str | None) -> float:
     if cur not in r:
         raise FxError(f"No exchange rate for {cur}.")
     return round(float(amount) / r["GBP"] * r[cur], 2)
+
+
+def convert(amount: float, from_cur: str | None, to_cur: str) -> float:
+    """Convert between any two ECB currencies."""
+    if not amount or not from_cur or from_cur.upper() == to_cur.upper():
+        return float(amount or 0)
+    r = rates()
+    a, b = from_cur.upper(), to_cur.upper()
+    for c in (a, b):
+        if c != "EUR" and c not in r:
+            raise FxError(f"No exchange rate for {c}.")
+    eur = float(amount) / (1.0 if a == "EUR" else r[a])
+    return round(eur * (1.0 if b == "EUR" else r[b]), 2)
+
+
+def to_home(amount: float, currency: str | None) -> float:
+    """Into your currency (Settings → Market and currency)."""
+    import markets
+    return convert(amount, currency, markets.currency())

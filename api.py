@@ -21,6 +21,7 @@ import profit
 import taxcalc
 from common import closed_years, parse_int, parse_money, period_range, sales_where, tax_year_label, tax_year_of
 from db import Settings, add_event, connect, now_iso, write_lock
+from markets import money as fmt_money
 
 PREFIX = "/api/v1"
 
@@ -364,7 +365,7 @@ def register(app):
                      b.get("channel") or "Other", sold + "T12:00:00Z", item_id, bulk, b.get("notes"), now_iso()))
                 if item_id:
                     add_event(conn, item_id, "sold", f"Sold on {b.get('channel') or 'Other'} for "
-                              f"£{_money(b['item_price'], 'item_price'):,.2f}", at=sold)
+                              f"{fmt_money(_money(b['item_price'], 'item_price'))}", at=sold)
                 conn.commit()
             s = profit.compute_sales(conn, "s.line_item_id = ?", (lid,))[0]
             ebay_note = None
@@ -480,7 +481,7 @@ def register(app):
                     ids.append(cur.lastrowid)
                     add_event(conn, cur.lastrowid, "created", "Added by API" +
                               (f" · bought from {v['source']}" if v.get("source") else "") +
-                              (f" for £{v['cost']:,.2f}" if v.get("cost") is not None else ""),
+                              (f" for {fmt_money(v['cost'])}" if v.get("cost") is not None else ""),
                               at=v.get("purchased_at"))
                 conn.commit()
             items = _load(conn, f"i.id IN ({','.join('?' * len(ids))})", tuple(ids))

@@ -6,7 +6,7 @@
 <div class="pagehead">
   <div>
     <h1 class="h-title">{{ s.title }}</h1>
-    <p class="muted">Sold {{ s.sold_at|d }} · Order <code>{{ s.order_id }}</code>{% if s.legacy_item_id %} · Item <a href="https://www.ebay.co.uk/itm/{{ s.legacy_item_id }}" target="_blank" rel="noopener">{{ s.legacy_item_id }} ↗</a>{% endif %}{% if s.quantity > 1 %} · Qty {{ s.quantity }}{% endif %}
+    <p class="muted">Sold {{ s.sold_at|d }} · Order <code>{{ s.order_id }}</code>{% if s.legacy_item_id %} · Item <a href="{{ ebay_item_url(s.legacy_item_id) }}" target="_blank" rel="noopener">{{ s.legacy_item_id }} ↗</a>{% endif %}{% if s.quantity > 1 %} · Qty {{ s.quantity }}{% endif %}
       {% if s.status %} · <span class="tag red">{{ s.status }}</span>{% endif %}</p>
     <p class="muted small">{% if s.item_id %}<a href="{{ url_for('item_detail', item_id=s.item_id) }}">Inventory item</a>{% if s.item_location %} · stored at <b>{{ s.item_location }}</b>{% endif %}{% if s.item_source %} · from {{ s.item_source }}{% endif %} · {% endif %}{% if s.ship_city or s.ship_outcode %}Buyer in {{ s.ship_city or '' }} {{ s.ship_outcode or '' }}{% if s.ship_country and s.ship_country != 'GB' %} ({{ s.ship_country }}){% endif %}{% endif %}</p>
   </div>
@@ -49,17 +49,17 @@
           {% for b in bulks %}<option value="{{ b.id }}" {{ 'selected' if s.bulk_buy_id == b.id }}>{{ b.name }}</option>{% endfor %}
         </select>
       </label>
-      <label id="costField">Price paid for {{ 'these items' if s.quantity > 1 else 'this item' }} (£)
+      <label id="costField">Price paid for {{ 'these items' if s.quantity > 1 else 'this item' }} ({{ cur|trim }})
         <input name="cost" class="money" inputmode="decimal" value="{{ '%.2f'|format(s.cost) if s.cost is not none else '' }}" placeholder="0.00">
         <small class="muted">{% if s.in_bulk %}Ignored while the sale is in a bulk buy: it takes its share of the bulk buy's cost.{% elif s.cost_source == 'item' %}Leave blank to use the inventory item's cost ({{ s.item_cost|gbp }}).{% endif %}</small>
       </label>
       <div class="grid2">
-        <label>Postage you paid (£)<input name="postage_cost" class="money" inputmode="decimal" value="{{ '%.2f'|format(s.postage_cost) if s.postage_cost is not none else '' }}" placeholder="0.00"></label>
-        <label>Packaging (£)<input name="packaging_cost" class="money" inputmode="decimal" value="{{ '%.2f'|format(s.packaging_cost) if s.packaging_cost is not none else '' }}" placeholder="{{ '%.2f'|format(s.packaging) if s.packaging else '0.00' }}">
+        <label>Postage you paid ({{ cur|trim }})<input name="postage_cost" class="money" inputmode="decimal" value="{{ '%.2f'|format(s.postage_cost) if s.postage_cost is not none else '' }}" placeholder="0.00"></label>
+        <label>Packaging ({{ cur|trim }})<input name="packaging_cost" class="money" inputmode="decimal" value="{{ '%.2f'|format(s.packaging_cost) if s.packaging_cost is not none else '' }}" placeholder="{{ '%.2f'|format(s.packaging) if s.packaging else '0.00' }}">
           {% if s.packaging_from in ('listing', 'default') %}<small class="muted">Using {{ s.packaging|gbp }} from the {{ 'listing' if s.packaging_from == 'listing' else 'default in Settings' }}. Type an amount to change it for this sale only.</small>{% endif %}</label>
-        <label>Handling (labour) (£)<input name="handling_cost" class="money" inputmode="decimal" value="{{ '%.2f'|format(s.handling_cost) if s.handling_cost is not none else '' }}" placeholder="{{ '%.2f'|format(s.handling) if s.handling else '0.00' }}">
+        <label>Handling (labour) ({{ cur|trim }})<input name="handling_cost" class="money" inputmode="decimal" value="{{ '%.2f'|format(s.handling_cost) if s.handling_cost is not none else '' }}" placeholder="{{ '%.2f'|format(s.handling) if s.handling else '0.00' }}">
           {% if s.handling_from in ('listing', 'default') %}<small class="muted">Using {{ s.handling|gbp }} from the {{ 'listing' if s.handling_from == 'listing' else 'default in Settings' }}.</small>{% endif %}</label>
-        <label>Other (£)<input name="other_cost" class="money" inputmode="decimal" value="{{ '%.2f'|format(s.other_cost) if s.other_cost is not none else '' }}" placeholder="0.00"></label>
+        <label>Other ({{ cur|trim }})<input name="other_cost" class="money" inputmode="decimal" value="{{ '%.2f'|format(s.other_cost) if s.other_cost is not none else '' }}" placeholder="0.00"></label>
       </div>
       <p class="hint">Only enter postage here if you bought it outside eBay — eBay postage labels are already deducted above.</p>
       <label>Notes<textarea name="notes" rows="2">{{ s.notes or '' }}</textarea></label>

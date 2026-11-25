@@ -42,7 +42,7 @@
       <form method="post" class="grid2">
         <input type="hidden" name="form" value="targets">
         <label>Sell-through rate at least (%)<input name="str" inputmode="decimal" value="{{ h.targets.str }}"></label>
-        <label>Average sale price at least (£)<input name="asp" inputmode="decimal" value="{{ h.targets.asp }}"></label>
+        <label>Average sale price at least ({{ cur|trim }})<input name="asp" inputmode="decimal" value="{{ h.targets.asp }}"></label>
         <label>Days to sell at most<input name="days" inputmode="decimal" value="{{ h.targets.days }}"></label>
         <label>Stale listings at most (%)<input name="stale" inputmode="decimal" value="{{ h.targets.stale }}"></label>
         <label>Counts as stale after (days)<input name="stale_days" inputmode="numeric" value="{{ h.targets.stale_days }}"></label>

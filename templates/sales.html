@@ -42,7 +42,7 @@
     <input name="new_bulk_name" id="newBulkName" placeholder="New bulk buy name" hidden>
     <button class="btn small" name="action" value="bulk">Assign to bulk buy</button>
     <span class="sep"></span>
-    <input name="cost_each" class="money" placeholder="£ each" inputmode="decimal">
+    <input name="cost_each" class="money" placeholder="{{ cur|trim }} each" inputmode="decimal">
     <button class="btn small ghost" name="action" value="cost">Set price paid</button>
     <button class="btn small ghost" name="action" value="packaging">Set packaging</button>
     <button class="btn small ghost" name="action" value="handling">Set handling</button>

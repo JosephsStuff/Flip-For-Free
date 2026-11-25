@@ -72,7 +72,7 @@
     <div class="grid2">
       <label>Shopify payment fee (%) <small class="muted">e.g. your Shopify Payments rate; used for profit</small>
         <input name="shopify_fee_pct" inputmode="decimal" value="{{ c.shopify_fee_pct }}"></label>
-      <label>Shopify fixed fee per order (£)<input name="shopify_fee_fixed" class="money" inputmode="decimal" value="{{ c.shopify_fee_fixed }}"></label>
+      <label>Shopify fixed fee per order ({{ cur|trim }})<input name="shopify_fee_fixed" class="money" inputmode="decimal" value="{{ c.shopify_fee_fixed }}"></label>
     </div>
     <p class="hint">CardTrader fees come from each order. Prices in other currencies are converted to pounds with the
       European Central Bank's daily rate.</p>

@@ -8,15 +8,15 @@
     <h2>Should I buy it?</h2>
     <p class="muted small">Estimate profit before you buy.{% if your_fee is not none %} The fee rates are filled in from your own eBay sales over the last 6 months.{% endif %}</p>
     <div class="grid2">
-      <label>Buy price (£)<input data-k="buy" inputmode="decimal" value="5"></label>
-      <label>Expected sale price (£)<input data-k="sale" inputmode="decimal" value="25"></label>
-      <label>Postage charged to buyer (£)<input data-k="pin" inputmode="decimal" value="0"></label>
-      <label>Postage you'll pay (£)<input data-k="pout" inputmode="decimal" value="3.20"></label>
-      <label>eBay fee (% of sale + postage)<input data-k="fee" inputmode="decimal" value="{{ '%.2f'|format(your_fee) if your_fee else '12.80' }}"></label>
-      <label>Per-order fee (£)<input data-k="fixed" inputmode="decimal" value="0.40"><small class="muted">eBay UK: £0.30 up to £10, £0.40 above</small></label>
+      <label>Buy price ({{ cur|trim }})<input data-k="buy" inputmode="decimal" value="5"></label>
+      <label>Expected sale price ({{ cur|trim }})<input data-k="sale" inputmode="decimal" value="25"></label>
+      <label>Postage charged to buyer ({{ cur|trim }})<input data-k="pin" inputmode="decimal" value="0"></label>
+      <label>Postage you'll pay ({{ cur|trim }})<input data-k="pout" inputmode="decimal" value="3.20"></label>
+      <label>eBay fee (% of sale + postage)<input data-k="fee" inputmode="decimal" value="{{ '%.2f'|format(your_fee) if your_fee else '%.2f'|format(fee_defaults[0]) }}"></label>
+      <label>Per-order fee ({{ cur|trim }})<input data-k="fixed" inputmode="decimal" value="{{ '%.2f'|format(fee_defaults[1]) }}"><small class="muted">Typical for {{ market.name }}; check eBay's current fee page.</small></label>
       <label>Promoted listing ad rate (%)<input data-k="ad" inputmode="decimal" value="{{ '%.1f'|format(your_promo) if your_promo else '0' }}"></label>
-      <label>Packaging (£)<input data-k="pack" inputmode="decimal" value="{{ '%.2f'|format(defaults.packaging) if defaults.packaging else '0.30' }}"></label>
-      <label>Handling (labour) (£)<input data-k="labour" inputmode="decimal" value="{{ '%.2f'|format(defaults.handling) if defaults.handling else '0' }}"></label>
+      <label>Packaging ({{ cur|trim }})<input data-k="pack" inputmode="decimal" value="{{ '%.2f'|format(defaults.packaging) if defaults.packaging else '0.30' }}"></label>
+      <label>Handling (labour) ({{ cur|trim }})<input data-k="labour" inputmode="decimal" value="{{ '%.2f'|format(defaults.handling) if defaults.handling else '0' }}"></label>
     </div>
     <table class="waterfall" style="margin-top:var(--s-4)">
       <tr><td>eBay fees</td><td class="num neg" id="o_fees"></td></tr>
@@ -51,7 +51,7 @@
 {% block scripts %}<script>
 (function () {
   const v = k => parseFloat(document.querySelector('[data-k=' + k + ']').value) || 0;
-  const f = n => (n < 0 ? '-£' : '£') + Math.abs(n).toFixed(2);
+  const f = n => (n < 0 ? '-' : '') + {{ cur|tojson }} + Math.abs(n).toFixed(2);
   const set = (id, t, cls) => { const e = document.getElementById(id); e.textContent = t; if (cls !== undefined) e.className = 'num ' + cls; };
   function calc() {
     const sale = v('sale'), pin = v('pin'), base = sale + pin;

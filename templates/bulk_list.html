@@ -12,8 +12,8 @@
   <form method="post" action="{{ url_for('bulk_new') }}" class="grid3">
     <label class="span2">Name<input name="name" required placeholder="e.g. Car boot binder, 12 Oct"></label>
     <label>Bought on<input type="date" name="purchased_at" value="{{ today }}"></label>
-    <label>Price paid (£)<input name="total_cost" class="money" inputmode="decimal" required placeholder="0.00"></label>
-    <label>Extra costs (£)<input name="extra_costs" class="money" inputmode="decimal" placeholder="fuel, delivery…"></label>
+    <label>Price paid ({{ cur|trim }})<input name="total_cost" class="money" inputmode="decimal" required placeholder="0.00"></label>
+    <label>Extra costs ({{ cur|trim }})<input name="extra_costs" class="money" inputmode="decimal" placeholder="fuel, delivery…"></label>
     <label>Number of items<input name="item_count" inputmode="numeric" placeholder="used to split the cost"></label>
     <label>Bought from<input name="source" placeholder="Car boot, auction, Facebook…"></label>
     <label>Stored at<input name="location" placeholder="Garage shelf 2"></label>

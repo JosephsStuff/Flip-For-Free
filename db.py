@@ -82,6 +82,8 @@ def set_db_path(path: str) -> None:
     recent = [p for p in cfg.get("recent_db_paths", []) if p != path]
     cfg["recent_db_paths"] = [path] + recent[:4]
     save_config(cfg)
+    import markets
+    markets.invalidate()
 
 
 def device_name() -> str:
@@ -512,6 +514,8 @@ class Settings:
                 conn.commit()
             finally:
                 conn.close()
+        import markets
+        markets.invalidate()
 
 
 def write_lock():

@@ -16,11 +16,13 @@ from urllib.parse import quote
 from flask import Response, abort, flash, jsonify, redirect, render_template, request, send_file, session, url_for
 
 import db
+import markets
 import profit
 import taxcalc
 from common import (fy_label, fy_of, fy_range, fy_start_md, login_required, parse_float, parse_int,
                     parse_money, tax_year_of)
 from db import Settings, add_event, connect, now_iso, write_lock
+from markets import money as fmt_money
 
 
 def _parse(ts):
@@ -49,11 +51,13 @@ SHIPPING = {"eBay postage labels", "Postage (paid by you)", "Packaging"}
 
 
 def mileage_amount(rows) -> float:
-    """HMRC simplified mileage across any date range: the 10,000-mile tier resets each tax year."""
-    total = 0.0
+    """Mileage claim across any date range, worked out tax year by tax year (tiers and caps reset each year)."""
     by_year = defaultdict(list)
     for r in rows:
         by_year[tax_year_of(r["date"])].append(r)
+    if markets.tax_code() != "UK":
+        return round(sum(taxcalc.mileage_allowance(rs, y)["total"] for y, rs in by_year.items()), 2)
+    total = 0.0
     for y, rs in by_year.items():
         used = 0.0
         for r in sorted(rs, key=lambda r: r["date"]):
@@ -257,6 +261,7 @@ def growth_lab(conn, days=365):
     sales = profit.compute_sales(conn, "s.sold_at >= ? AND COALESCE(s.status, '') <> 'cancelled'", (since,))
     fl = first_listed_map(conn)
     bands = []
+    sym = markets.symbol()
     for lo, hi in BANDS:
         ss = [s for s in sales if s["unit_price"] >= lo and (hi is None or s["unit_price"] < hi)]
         costed = [s for s in ss if s["profit"] is not None]
@@ -265,7 +270,7 @@ def growth_lab(conn, days=365):
         rev_c = sum(s["gross"] for s in costed)
         d2s = [d for d in (_days(fl.get(s.get("item_id")), s["sold_at"]) for s in ss if s.get("item_id"))
                if d is not None and d >= 0]
-        bands.append({"label": f"£{lo}–£{hi}" if hi else f"£{lo}+", "count": len(ss), "revenue": _r(rev),
+        bands.append({"label": f"{sym}{lo}–{sym}{hi}" if hi else f"{sym}{lo}+", "count": len(ss), "revenue": _r(rev),
                       "profit": _r(prof), "avg_profit": (prof / len(costed)) if costed else None,
                       "margin": (prof / rev_c * 100) if rev_c else None,
                       "days": (sum(d2s) / len(d2s)) if d2s else None})
@@ -379,12 +384,12 @@ def monthly_recap(conn) -> None:
     c = [x for x in ss if x["profit"] is not None]
     prof = sum(x["profit"] for x in c)
     rev = sum(x["gross"] for x in ss)
-    body = f"Revenue £{rev:,.2f} · item profit £{prof:,.2f} · {sum(x['quantity'] or 1 for x in ss)} items sold."
+    body = f"Revenue {fmt_money(rev)} · item profit {fmt_money(prof)} · {sum(x['quantity'] or 1 for x in ss)} items sold."
     g = goal_settings()
     if g["type"] in ("profit", "revenue") and g["amount"]:
         target = g["amount"] / (12 if g["period"] == "year" else 1)
         got = prof if g["type"] == "profit" else rev
-        body += f" Goal: £{target:,.0f} {g['type']} — {got / target * 100:.0f}% reached."
+        body += f" Goal: {markets.symbol()}{target:,.0f} {g['type']} — {got / target * 100:.0f}% reached."
     with write_lock():
         db.notify(conn, "info", f"{last_first:%B} recap", body, "/performance?tab=goals", key=key)
         conn.commit()
@@ -612,12 +617,12 @@ def register(app):  # noqa: C901
         cur = fy_of()
         years = list(range(cur, min(fy_of(first[:10]) if first else cur, year) - 1, -1))
         accountant = Settings().get("accountant_email") or ""
-        lines = [f"{label}", f"Revenue: £{r['revenue']:,.2f}", f"Cost of goods sold: £{r['cogs']:,.2f}",
-                 f"Selling fees: £{r['fee_total']:,.2f}", f"Promoted listings: £{r['promoted']:,.2f}",
-                 f"Shipping & packaging: £{r['shipping']:,.2f}", f"Handling (labour): £{r['labour']:,.2f}",
-                 f"Item profit: £{r['item_profit']:,.2f}",
-                 f"Business expenses: £{r['expense_total']:,.2f}", f"Write-offs: £{r['write_off_total']:,.2f}",
-                 f"Net profit (before income tax): £{r['net']:,.2f}", "",
+        lines = [f"{label}", f"Revenue: {fmt_money(r['revenue'])}", f"Cost of goods sold: {fmt_money(r['cogs'])}",
+                 f"Selling fees: {fmt_money(r['fee_total'])}", f"Promoted listings: {fmt_money(r['promoted'])}",
+                 f"Shipping & packaging: {fmt_money(r['shipping'])}", f"Handling (labour): {fmt_money(r['labour'])}",
+                 f"Item profit: {fmt_money(r['item_profit'])}",
+                 f"Business expenses: {fmt_money(r['expense_total'])}", f"Write-offs: {fmt_money(r['write_off_total'])}",
+                 f"Net profit (before income tax): {fmt_money(r['net'])}", "",
                  "The full statement (CSV) is attached."]
         mailto = (f"mailto:{quote(accountant)}?subject={quote('Profit & loss — ' + label)}"
                   f"&body={quote(chr(10).join(lines))}")
@@ -637,7 +642,7 @@ def register(app):  # noqa: C901
         buf = io.StringIO()
         w = csv.writer(buf)
         w.writerow([f"Profit and loss — {label}"])
-        w.writerow(["Line", "Amount (£)"])
+        w.writerow(["Line", f"Amount ({markets.currency()})"])
         rows = [("Item sales", r["item_sales"]), ("Postage charged", r["postage_in"]), ("Refunds", -r["refunds"]),
                 ("Revenue", r["revenue"]), ("Cost of goods sold", -r["cogs"])]
         rows += [(k, -v) for k, v in r["fees"].items()]

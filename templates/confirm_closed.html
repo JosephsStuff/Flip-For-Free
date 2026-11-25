@@ -5,7 +5,7 @@
 <section class="card">
   <h1>This changes a closed tax year</h1>
   <p>{{ what }} affects your <b>{{ years|join(', ') }}</b> tax report{{ 's' if years|length > 1 }}, which you marked as closed (filed).</p>
-  <p class="muted">If you've already filed that return, saving will make the report here differ from what you sent to HMRC. Only continue if you're correcting a mistake you'll also amend with HMRC.</p>
+  <p class="muted">If you've already filed that return, saving will make the report here differ from what you filed. Only continue if you're correcting a mistake you'll also amend with HMRC.</p>
   <form method="post" action="{{ action }}" class="row">
     {% for k, v in fields %}<input type="hidden" name="{{ k }}" value="{{ v }}">{% endfor %}
     <input type="hidden" name="confirm_closed" value="1">

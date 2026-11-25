@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% from "macros.html" import cls %}
+{% block title %}{{ r.profile.name }} {{ r.label }} · Flip for Free{% endblock %}
+{% block content %}
+{% include "_acct_tabs.html" %}
+{% set p = r.profile %}
+{% set ys = p.year_start %}
+<div class="pagehead">
+  <div>
+    <h1>{{ p.name }} {{ r.label }}</h1>
+    <p class="muted">Tax year {{ r.start|d }} – {{ r.last_day|d }}. Your year's figures grouped the way
+      the {{ p.form }} asks for them. They update as you sync and add records.</p>
+  </div>
+  <form method="get" class="row">
+    <select name="year" onchange="this.form.submit()" aria-label="Tax year">{% for y, l in years %}<option value="{{ y }}" {{ 'selected' if y == year }}>{{ l }}</option>{% endfor %}</select>
+    <div class="seg">
+      <button name="basis" value="cash" class="{{ 'on' if r.basis == 'cash' }}" title="Count stock when you pay for it">Cash basis</button>
+      <button name="basis" value="accrual" class="{{ 'on' if r.basis == 'accrual' }}" title="Count stock when it sells">Accruals</button>
+    </div>
+  </form>
+</div>
+<div class="subnav">
+  <a class="btn small ghost" href="{{ url_for('expenses', year=year) }}">Expenses ledger</a>
+  <a class="btn small ghost" href="{{ url_for('mileage', year=year) }}">Mileage log</a>
+  <a class="btn small ghost" href="{{ url_for('tax_export', year=year) }}">Download for accountant (CSV)</a>
+</div>
+
+{% if closed %}<div class="flash">{{ icon('lock') }} {{ r.label }} is marked as filed. Any change that would alter these figures asks you to confirm first.</div>{% endif %}
+
+<div class="kpis three">
+  <div class="kpi"><span class="label">Business income</span><span class="value">{{ r.income|money }}</span><span class="sub">{{ r.sales_count }} sales{% if r.refunds %}, after {{ r.refunds|money }} refunds{% endif %}</span></div>
+  <div class="kpi"><span class="label">Expenses</span><span class="value">{{ r.total_expenses|money }}</span><span class="sub">{{ 'cash' if r.basis == 'cash' else 'accruals' }} basis</span></div>
+  <div class="kpi"><span class="label">{{ 'Net profit' if r.profit >= 0 else 'Net loss' }}</span><span class="value {{ cls(r.profit) }}">{{ r.profit|abs|money }}</span><span class="sub">before tax</span></div>
+</div>
+
+<div class="cols">
+  <section class="card">
+    <h2>{{ p.form }}</h2>
+    <table class="waterfall">
+      <tr><td>{{ p.income }}</td><td class="num">{{ r.income|money }}</td></tr>
+      {% for row in r.rows %}
+        <tr><td>{% if row["items"] %}<details><summary>{{ row.line }}</summary><ul>{% for k, v in row["items"].items() %}<li>{{ k }}: {{ v|money }}</li>{% endfor %}</ul></details>{% else %}{{ row.line }}{% endif %}</td><td class="num">{{ row.amount|money }}</td></tr>
+      {% else %}
+        <tr><td class="muted">No expenses recorded for {{ r.label }} yet.</td><td></td></tr>
+      {% endfor %}
+      <tr class="total"><td>Total expenses</td><td class="num">{{ r.total_expenses|money }}</td></tr>
+      <tr class="total"><td>{{ 'Net profit' if r.profit >= 0 else 'Net loss' }}</td><td class="num {{ cls(r.profit) }}">{{ r.profit|abs|money }}</td></tr>
+    </table>
+    <p class="hint">Open a line to see what's in it. Your own time spent packing isn't an expense unless you pay someone.</p>
+  </section>
+
+  <div>
+    <section class="card">
+      <h2>Before you file</h2>
+      {% if r.checks %}
+        <ul class="check-list">{% for c in r.checks %}<li class="{{ c.level }}"><b>{{ c.title }}</b>{{ c.body }} <a href="{{ c.link }}">Fix →</a></li>{% endfor %}</ul>
+      {% else %}<p class="pos">{{ icon('check') }} No missing data found for {{ r.label }}.</p>{% endif %}
+    </section>
+
+    {% if r.threshold %}
+    <section class="card">
+      <h2>{{ r.threshold_label }}</h2>
+      <p>Your {{ r.label }} income so far: <b>{{ r.income|money }}</b> of {{ r.threshold|money }}.</p>
+      <div class="meter" role="img" aria-label="{{ '%.0f'|format(r.threshold_pct) }}% of the threshold"><span style="width:{{ '%.1f'|format(r.threshold_pct) }}%"></span></div>
+    </section>
+    {% endif %}
+
+    <section class="card">
+      <h2>Good to know</h2>
+      <ul class="plain">{% for n in p.notes %}<li>{{ n }}</li>{% endfor %}</ul>
+      <p class="hint">Mileage: {{ p.mileage_note }}.{% if r.mileage.capped %} You logged {{ '{:,.0f}'.format(r.mileage.miles) }} {{ unit }}; only the first {{ '{:,.0f}'.format(r.mileage.cap) }} count with this method.{% endif %}</p>
+    </section>
+
+    {% if r.by_channel %}
+    <section class="card">
+      <h2>Income by marketplace</h2>
+      <table class="waterfall">{% for k, v in r.by_channel.items() %}<tr><td>{{ k }}</td><td class="num">{{ v|money }}</td></tr>{% endfor %}</table>
+    </section>
+    {% endif %}
+
+    <section class="card">
+      <h2>Close this tax year</h2>
+      <p class="muted small">Once you've filed, mark the year as closed. Edits that would change {{ r.label }} will then ask before saving.</p>
+      <form method="post" action="{{ url_for('tax_close') }}">
+        <input type="hidden" name="year" value="{{ year }}"><input type="hidden" name="closed" value="{{ '0' if closed else '1' }}">
+        <button class="btn {{ 'ghost' if closed else '' }}">{{ 'Reopen ' ~ r.label if closed else 'Mark ' ~ r.label ~ ' as filed' }}</button>
+      </form>
+    </section>
+  </div>
+</div>
+<p class="hint">A record-keeping aid, not tax advice. Rules and rates change; check <a href="{{ p.source }}" target="_blank" rel="noopener">the official guidance</a> or ask an accountant before filing.</p>
+{% endblock %}

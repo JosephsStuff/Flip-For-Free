@@ -15,13 +15,13 @@
         {% for i in items %}<option value="{{ i.id }}" data-title="{{ i.title }}" {{ 'selected' if (row and row.item_id == i.id) or (not row and preselect == i.id) }}>{{ i.title }}{% if i.location %} · {{ i.location }}{% endif %}{% if i.unit_cost is not none %} · cost {{ i.unit_cost|gbp }}{% endif %}</option>{% endfor %}
       </select></label>
     <label class="span3">Title<input name="title" id="titleIn" value="{{ row.title if row else '' }}" required></label>
-    <label>Sale price (£)<input name="item_price" class="money" inputmode="decimal" value="{{ '%.2f'|format(row.item_price) if row else '' }}" required></label>
-    <label>Postage charged to buyer (£)<input name="delivery_charged" class="money" inputmode="decimal" value="{{ '%.2f'|format(row.delivery_charged or 0) if row else '' }}"></label>
-    <label>Platform fees (£)<input name="manual_fees" class="money" inputmode="decimal" value="{{ '%.2f'|format(row.manual_fees or 0) if row else '' }}"></label>
-    <label>Postage you paid (£)<input name="postage_cost" class="money" inputmode="decimal" value="{{ '%.2f'|format(row.postage_cost) if row and row.postage_cost is not none else '' }}"></label>
-    <label>Packaging (£)<input name="packaging_cost" class="money" inputmode="decimal" value="{{ '%.2f'|format(row.packaging_cost) if row and row.packaging_cost is not none else '' }}" placeholder="blank = listing/default"></label>
-    <label>Handling (labour) (£)<input name="handling_cost" class="money" inputmode="decimal" value="{{ '%.2f'|format(row.handling_cost) if row and row.handling_cost is not none else '' }}" placeholder="blank = listing/default"></label>
-    <label>Price paid (£) <small class="muted">if not from inventory</small><input name="cost" class="money" inputmode="decimal" value="{{ '%.2f'|format(row.cost) if row and row.cost is not none else '' }}"></label>
+    <label>Sale price ({{ cur|trim }})<input name="item_price" class="money" inputmode="decimal" value="{{ '%.2f'|format(row.item_price) if row else '' }}" required></label>
+    <label>Postage charged to buyer ({{ cur|trim }})<input name="delivery_charged" class="money" inputmode="decimal" value="{{ '%.2f'|format(row.delivery_charged or 0) if row else '' }}"></label>
+    <label>Platform fees ({{ cur|trim }})<input name="manual_fees" class="money" inputmode="decimal" value="{{ '%.2f'|format(row.manual_fees or 0) if row else '' }}"></label>
+    <label>Postage you paid ({{ cur|trim }})<input name="postage_cost" class="money" inputmode="decimal" value="{{ '%.2f'|format(row.postage_cost) if row and row.postage_cost is not none else '' }}"></label>
+    <label>Packaging ({{ cur|trim }})<input name="packaging_cost" class="money" inputmode="decimal" value="{{ '%.2f'|format(row.packaging_cost) if row and row.packaging_cost is not none else '' }}" placeholder="blank = listing/default"></label>
+    <label>Handling (labour) ({{ cur|trim }})<input name="handling_cost" class="money" inputmode="decimal" value="{{ '%.2f'|format(row.handling_cost) if row and row.handling_cost is not none else '' }}" placeholder="blank = listing/default"></label>
+    <label>Price paid ({{ cur|trim }}) <small class="muted">if not from inventory</small><input name="cost" class="money" inputmode="decimal" value="{{ '%.2f'|format(row.cost) if row and row.cost is not none else '' }}"></label>
     <label class="span3">Notes<input name="notes" value="{{ row.notes or '' if row else '' }}"></label>
     {% if not row %}<label class="check span3" id="ebayBox" {{ '' if ebay_stock else 'hidden' }}><input type="checkbox" name="update_ebay" value="1" checked>
       <span>Also take it off your other shops: lower the quantity on eBay, CardTrader and Shopify, or end the listing if none are left <small class="muted" id="ebayInfo"></small></span></label>{% endif %}

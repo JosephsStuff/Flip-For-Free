@@ -30,6 +30,27 @@
 </section>
 </div>
 
+<section class="card" id="market">
+  <h2>Market and currency</h2>
+  <form method="post" action="{{ url_for('settings_market') }}" class="stack">
+    <div class="grid2">
+      <label>eBay site you sell on
+        <select name="marketplace_id">{% for k, m in sites.items() %}<option value="{{ k }}" {{ 'selected' if k == market.id }}>{{ m.name }}{{ ' · tax summary' if m.tax }}</option>{% endfor %}</select>
+        <small class="muted">Sets your eBay links, distances ({{ 'miles' if market.unit == 'mi' else 'km' }}) and tax year.</small></label>
+      <label>Currency
+        <select name="currency">
+          <option value="" {{ 'selected' if not s.currency }}>Automatic ({{ sites[market.id].currency }})</option>
+          {% for code, c in currencies.items() %}<option value="{{ code }}" {{ 'selected' if s.currency == code }}>{{ code }} · {{ c[1] }}</option>{% endfor %}
+        </select>
+        <small class="muted">Changes the symbol only. eBay reports your sales in your account's own currency.</small></label>
+    </div>
+    <div><button class="btn">Save</button></div>
+  </form>
+  {% if tax_profile %}<p class="hint">{{ market.name }} gets a {{ tax_profile.name }} summary under Accounting.</p>
+  {% else %}<p class="hint">Tax summaries cover the five biggest eBay markets (US, UK, Germany, Australia, Canada). For
+    {{ market.name }} you still get profit &amp; loss, expenses and mileage to give your accountant.</p>{% endif %}
+</section>
+
 <section class="card">
   <h2>Preferences</h2>
   <form method="post" class="stack">
@@ -43,10 +64,10 @@
     <div class="grid2">
       <label>Financial year starts on
         <span class="row">
-          {% set fy = (s.fy_start or '04-06').split('-') %}
+          {% set fy = (s.fy_start or fy_default).split('-') %}
           <select name="fy_day">{% for d in range(1, 32) %}<option value="{{ d }}" {{ 'selected' if d == fy[1]|int }}>{{ d }}</option>{% endfor %}</select>
           <select name="fy_month">{% for m in ['January','February','March','April','May','June','July','August','September','October','November','December'] %}<option value="{{ loop.index }}" {{ 'selected' if loop.index == fy[0]|int }}>{{ m }}</option>{% endfor %}</select>
-        </span><small class="muted">UK sole traders: 6 April (the tax year). Used for "Financial year" views and the P&amp;L.</small></label>
+        </span><small class="muted">{% if tax_profile %}Your tax year starts on {{ fy_default_label }}. {% endif %}Used for "Financial year" views and the P&amp;L.</small></label>
       <label>Accountant's email<input type="email" name="accountant_email" value="{{ s.accountant_email or '' }}" placeholder="for emailing your P&amp;L"></label>
     </div>
     <div class="grid2">
@@ -66,25 +87,25 @@
     {# keep the other preferences when saving this card #}
     <input type="hidden" name="include_account_fees" value="{{ '1' if (s.include_account_fees or '1') == '1' else '' }}">
     <input type="hidden" name="profit_basis" value="{{ s.profit_basis or 'bought' }}">
-    {% set fy = (s.fy_start or '04-06').split('-') %}
+    {% set fy = (s.fy_start or fy_default).split('-') %}
     <input type="hidden" name="fy_month" value="{{ fy[0]|int }}"><input type="hidden" name="fy_day" value="{{ fy[1]|int }}">
     <input type="hidden" name="accountant_email" value="{{ s.accountant_email or '' }}">
     <input type="hidden" name="sync_interval_minutes" value="{{ sync_minutes }}">
     <input type="hidden" name="auto_update" value="{{ '1' if s.auto_update == '1' else '' }}">
     <input type="hidden" name="first_sync_days" value="{{ s.first_sync_days or 730 }}">
     <div class="grid3">
-      <label>Packaging per sale (£)<input name="default_packaging" class="money" inputmode="decimal" value="{{ s.default_packaging or '' }}" placeholder="e.g. 0.45"><small class="muted">Mailer, box, tape, labels, toploaders…</small></label>
-      <label>Handling (labour) per sale (£)<input name="default_handling" id="defHandling" class="money" inputmode="decimal" value="{{ s.default_handling or '' }}" placeholder="e.g. 1.00"><small class="muted">What you'd pay someone to pick, pack and label one sale.</small></label>
+      <label>Packaging per sale ({{ cur|trim }})<input name="default_packaging" class="money" inputmode="decimal" value="{{ s.default_packaging or '' }}" placeholder="e.g. 0.45"><small class="muted">Mailer, box, tape, labels, toploaders…</small></label>
+      <label>Handling (labour) per sale ({{ cur|trim }})<input name="default_handling" id="defHandling" class="money" inputmode="decimal" value="{{ s.default_handling or '' }}" placeholder="e.g. 1.00"><small class="muted">What you'd pay someone to pick, pack and label one sale.</small></label>
       <label>Apply defaults to sales from<input type="date" name="packing_defaults_from" value="{{ s.packing_defaults_from or today }}"><small class="muted">Pick an early date to apply them to past sales too.</small></label>
     </div>
     <div class="row" style="flex-wrap:wrap; align-items:flex-end; gap:8px">
       <label>Minutes per parcel<input name="labour_minutes" id="labMin" inputmode="decimal" value="{{ s.labour_minutes or '' }}" placeholder="5" style="width:110px"></label>
       <span style="padding-bottom:var(--s-2)">×</span>
-      <label>Hourly rate (£)<input name="labour_rate" id="labRate" inputmode="decimal" value="{{ s.labour_rate or '' }}" placeholder="12.71" style="width:110px"></label>
+      <label>Hourly rate ({{ cur|trim }})<input name="labour_rate" id="labRate" inputmode="decimal" value="{{ s.labour_rate or '' }}" placeholder="12.71" style="width:110px"></label>
       <button type="button" class="btn small ghost" onclick="(function(){const m=parseFloat(labMin.value)||0,r=parseFloat(labRate.value)||0;if(m&&r){defHandling.value=(m/60*r).toFixed(2);}})()">= Use as handling per sale</button>
     </div>
-    <p class="hint">UK National Living Wage is £12.71 an hour (age 21+, from April 2026). 5 minutes a parcel at that rate is £1.06.</p>
-    <label class="check"><input type="checkbox" name="labour_paid" value="1" {{ 'checked' if s.labour_paid == '1' }}> I actually pay someone to pack, so count handling as a business expense for tax (SA103S box 13)</label>
+    {% if market.id == 'EBAY_GB' %}<p class="hint">UK National Living Wage is £12.71 an hour (age 21+, from April 2026). 5 minutes a parcel at that rate is £1.06.</p>{% endif %}
+    <label class="check"><input type="checkbox" name="labour_paid" value="1" {{ 'checked' if s.labour_paid == '1' }}> I actually pay someone to pack, so count handling as a business expense for tax{% if market.id == 'EBAY_GB' %} (SA103S box 13){% endif %}</label>
     <p class="hint">If you pack yourself, handling still comes off your profit so you can see what each sale would make with paid help, but it's left out of your tax figures: your own time isn't an allowable expense. Packaging always counts (box 18).</p>
     <div><button class="btn">Save packing costs</button></div>
   </form>
@@ -111,7 +132,7 @@
   <form method="post" action="{{ url_for('update_check') }}" class="row" style="margin-top:var(--s-2)"><button class="btn small ghost">Check for updates</button>
     {% if upd.checked_at %}<span class="muted small" style="align-self:center">Checked {{ upd.checked_at|replace('T', ' ') }}</span>{% endif %}</form>
   <form method="post" class="stack" style="margin-top:var(--s-3)">
-    {% set fy = (s.fy_start or '04-06').split('-') %}
+    {% set fy = (s.fy_start or fy_default).split('-') %}
     <input type="hidden" name="include_account_fees" value="{{ '1' if (s.include_account_fees or '1') == '1' else '' }}">
     <input type="hidden" name="profit_basis" value="{{ s.profit_basis or 'bought' }}">
     <input type="hidden" name="fy_month" value="{{ fy[0]|int }}"><input type="hidden" name="fy_day" value="{{ fy[1]|int }}">

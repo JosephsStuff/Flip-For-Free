@@ -23,6 +23,7 @@ from flask import (Flask, Response, abort, flash, g, jsonify, redirect, render_t
 
 import automation
 import db
+import markets
 import updater
 import profit
 import sync
@@ -30,6 +31,7 @@ from common import (PERIODS, closed_guard, db_ready, login_required, parse_int, 
                     sales_where)
 from db import Settings, connect, write_lock
 from ebay_api import EbayClient, EbayError, new_state
+from markets import money as fmt_money
 
 APP_DIR = Path(__file__).resolve().parent
 app = Flask(__name__, template_folder=str(APP_DIR / "templates"),
@@ -43,11 +45,10 @@ app.config["SCHEME"] = "https"
 # Helpers
 # --------------------------------------------------------------------------- #
 @app.template_filter("gbp")
+@app.template_filter("money")
 def gbp(v, blank="—"):
-    if v is None:
-        return blank
-    sign = "-" if v < 0 else ""
-    return f"{sign}£{abs(v):,.2f}"
+    """Money in your currency (older templates still call the filter gbp)."""
+    return fmt_money(v, blank)
 
 
 @app.template_filter("pct")
@@ -106,7 +107,10 @@ def inject():
     from common import period_label, saved_ranges
     ctx = {"demo": app.config["DEMO"], "sync_status": sync.STATUS, "db_path": db.get_db_path(),
            "user_name": session.get("user_name"), "device_warning": None, "last_sync": None, "unread": 0,
-           "saved_ranges": [], "period_label": period_label, "beta": updater.installed_channel() == "beta"}
+           "saved_ranges": [], "period_label": period_label, "beta": updater.installed_channel() == "beta",
+           "cur": markets.symbol(), "market": markets.site(), "tax_profile": markets.tax(), "unit": markets.unit_word(),
+           "ebay_item_url": markets.listing_url,
+           "fee_defaults": markets.fee_defaults(), "all_sites": markets.SITES}
     try:
         ctx["saved_ranges"] = saved_ranges()
     except Exception:
@@ -621,8 +625,8 @@ def export_csv():
     buf = io.StringIO()
     w = csv.writer(buf)
     w.writerow([f"Sales — {label}"])
-    w.writerow([f"{tot['count']} sales", f"Buyers paid £{tot['gross']:,.2f}", f"eBay took £{tot['ebay']:,.2f}",
-                f"Money made £{tot['money_made']:,.2f}"])
+    w.writerow([f"{tot['count']} sales", f"Buyers paid {fmt_money(tot['gross'])}", f"eBay took {fmt_money(tot['ebay'])}",
+                f"Money made {fmt_money(tot['money_made'])}"])
     w.writerow([])
     w.writerow(["Sold", "Marketplace", "Order", "Item ID", "Title", "Qty", "Buyer paid", "eBay / platform deductions",
                 "Net received", "Your costs", "Money made", "Price paid", "Profit", "Bulk buy", "Fees estimated"])
@@ -961,6 +965,24 @@ def update_check():
     return redirect(url_for("settings_page") + "#updates")
 
 
+@app.route("/settings/market", methods=["POST"])
+@login_required
+def settings_market():
+    site = request.form.get("marketplace_id")
+    cur = request.form.get("currency") or ""
+    if site not in markets.SITES or (cur and cur not in markets.CURRENCIES):
+        abort(400)
+    st = Settings()
+    before = markets.site_id()
+    st.set_many({"marketplace_id": site, "currency": cur or None})
+    if site != before:
+        st.set("fy_start", None)          # back to the new market's tax year
+    m = markets.site()
+    flash(f"Now set up for {m['name']}: money in {markets.currency()}, distances in {markets.unit_word()}"
+          + (f", {markets.tax()['name']} summary under Accounting." if markets.tax() else "."), "ok")
+    return redirect(url_for("settings_page") + "#market")
+
+
 @app.route("/settings/update/channel", methods=["POST"])
 @login_required
 def update_channel():
@@ -1097,6 +1119,9 @@ def settings_page():
                            sync_choices=SYNC_CHOICES, sync_minutes=sync_interval_minutes(st),
                            version=updater.current_version(), upd=updater.STATE, repo=updater.repo(),
                            update_available=updater.update_available(), channel=updater.channel(),
+                           sites=markets.SITES, currencies=markets.CURRENCIES,
+                           fy_default="%02d-%02d" % markets.year_start(),
+                           fy_default_label="{0.day} {0:%B}".format(date(2001, *markets.year_start())),
                            installed_channel=updater.installed_channel(),
                            server_mode=bool(app.config.get("PUBLIC_URL")),
                            api_base=(app.config.get("PUBLIC_URL") or f"{request.scheme}://{request.host}") + api.PREFIX,
@@ -1363,6 +1388,7 @@ def main():
     ap.add_argument("--port", type=int, default=8765)
     ap.add_argument("--no-https", action="store_true", help="serve plain http")
     ap.add_argument("--demo", action="store_true", help="run with fake data (no eBay account)")
+    ap.add_argument("--market", default="", help="with --demo: pretend to be on this eBay site, e.g. EBAY_US")
     ap.add_argument("--no-browser", action="store_true")
     ap.add_argument("--public-url", default=os.environ.get("FLIP_PUBLIC_URL", ""),
                     help="server mode: the https address people use, e.g. https://flip.tailnet.ts.net "
@@ -1382,6 +1408,15 @@ def main():
         path = str(tmp / db.DB_FILENAME)
         demo.seed(path)
         db.set_db_path(path)
+        if args.market:
+            if args.market.upper() not in markets.SITES:
+                raise SystemExit(f"--market must be one of: {', '.join(markets.SITES)}")
+            Settings().set("marketplace_id", args.market.upper())
+            c = db.connect()          # the demo text was written in pounds; show it in this market's currency
+            for t, col in (("item_events", "detail"), ("notifications", "body"), ("automation_log", "detail")):
+                c.execute(f"UPDATE {t} SET {col} = REPLACE({col}, '£', ?)", (markets.symbol(),))
+            c.commit()
+            c.close()
         app.config["DEMO"] = True
         print(f"Demo database: {path}")
 

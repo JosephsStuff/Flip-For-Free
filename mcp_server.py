@@ -17,6 +17,7 @@ from pathlib import Path
 from urllib.parse import urlparse
 
 import requests
+from markets import money as fmt_money
 
 try:                                    # MCP Python SDK v2
     from mcp.server.mcpserver import MCPServer as _Server
@@ -287,6 +288,6 @@ if __name__ == "__main__":
     if "--check" in sys.argv:
         res = _call("GET", "/summary", {"period": "30d"})
         print(res if "error" in res else f"OK: connected to Flip for Free at {URL}. "
-                                          f"{res['sales']} sales in the last 30 days, money made £{res['money_made']:,.2f}.")
+                                          f"{res['sales']} sales in the last 30 days, money made {fmt_money(res['money_made'])}.")
         sys.exit(1 if "error" in res else 0)
     mcp.run()

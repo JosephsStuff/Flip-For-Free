@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.8.0-beta.1
+- Sell on eBay outside the UK. Settings → Market and currency sets your eBay site and currency; money shows as $, €,
+  A$, C$ and so on everywhere (pages, notifications, CSVs), eBay links go to your site, and distances use miles or km.
+- Tax summaries for the five biggest eBay markets, laid out like each country's form: US Schedule C, German EÜR,
+  Australian business schedule and Canadian T2125 (the UK keeps its full Self Assessment page). Each uses that
+  country's tax year, its mileage rate (IRS 72.5¢/mile for 2026, Germany €0.30/km, Australia 88¢/km up to 5,000 km;
+  Canada uses actual car costs instead), and shows how close you are to the key threshold (1099-K, Kleinunternehmer,
+  GST, GST/HST).
+- Every other eBay site gets profit and loss, expenses and mileage with no tax page, and a free choice of currency.
+- CardTrader and Shopify sales convert into your currency, not always pounds. Money boxes accept 12,50 as well as 12.50.
+- Try another market in the demo: `python app.py --demo --market EBAY_US`.
+- Record-keeping aid, not tax advice.
+
 ## 1.7.7
 - Beta channel: Settings → Updates → Release channel lets you choose the main release (the default) or the beta,
   which gets new features to try before they go into the main release. A "Beta" badge shows in the top bar while

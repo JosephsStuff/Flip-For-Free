@@ -10,11 +10,13 @@ from datetime import date, datetime, timedelta, timezone
 from flask import Response, abort, flash, jsonify, redirect, render_template, request, url_for
 
 import automation
+import markets
 import profit
 import taxcalc
 from common import (PERIODS, closed_guard, closed_years, login_required, parse_float, parse_int, parse_money,
                     period_range, sales_where, tax_year_label, tax_year_of)
 from db import Settings, add_event, connect, now_iso, write_lock
+from markets import money as fmt_money
 
 CHANNELS = ["eBay", "Vinted", "CardTrader", "Shopify", "Facebook Marketplace", "Depop", "Etsy", "Amazon", "Gumtree",
             "Market stall",
@@ -190,7 +192,7 @@ def register(app):  # noqa: C901  (one place to see every route)
                          f["restock_url"], now_iso(), now_iso()))
                     add_event(conn, cur.lastrowid, "created",
                               "Bought" + (f" from {f['source']}" if f["source"] else "")
-                              + (f" for £{f['cost']:,.2f}" if f["cost"] is not None else ""), at=f["purchased_at"])
+                              + (f" for {fmt_money(f['cost'])}" if f["cost"] is not None else ""), at=f["purchased_at"])
                 conn.commit()
         finally:
             conn.close()
@@ -226,7 +228,7 @@ def register(app):  # noqa: C901  (one place to see every route)
                                   now_iso(), item_id))
                     if (row["cost"] or None) != f["cost"]:
                         add_event(conn, item_id, "cost", "Cost set to " +
-                                  ("—" if f["cost"] is None else f"£{f['cost']:,.2f}"))
+                                  ("—" if f["cost"] is None else f"{fmt_money(f['cost'])}"))
                     if (row["location"] or None) != f["location"]:
                         add_event(conn, item_id, "location", f"Moved to {f['location'] or '—'}")
                     if row["bulk_buy_id"] != f["bulk_buy_id"]:
@@ -322,7 +324,7 @@ def register(app):  # noqa: C901  (one place to see every route)
                     (row["title"], row["sku"], qty, cost, request.form.get("source") or row["source"], bought,
                      row["location"], f"Restock of item #{item_id}", row["restock_url"], now_iso(), now_iso()))
                 new_id = cur.lastrowid
-                msg = f"Restocked {qty}" + (f" at £{cost:,.2f} each" if cost is not None else "")
+                msg = f"Restocked {qty}" + (f" at {fmt_money(cost)} each" if cost is not None else "")
                 add_event(conn, item_id, "restocked", f"{msg} (new stock entry #{new_id})")
                 add_event(conn, new_id, "created", f"{msg} from {request.form.get('source') or row['source'] or '—'}",
                           at=bought)
@@ -436,7 +438,7 @@ def register(app):  # noqa: C901  (one place to see every route)
                             'manual', 'GBP', :now)""", {**vals, "id": lid, "now": now_iso()})
                         if item_id:
                             add_event(conn, item_id, "sold",
-                                      f"Sold {vals['quantity']} on {vals['channel']} for £{vals['item_price']:,.2f}",
+                                      f"Sold {vals['quantity']} on {vals['channel']} for {fmt_money(vals['item_price'])}",
                                       at=vals["sold_at"])
                     conn.commit()
                 note = ""
@@ -778,6 +780,10 @@ def register(app):  # noqa: C901  (one place to see every route)
     @app.route("/tax")
     @login_required
     def tax():
+        if not markets.tax():
+            flash(f"Tax summaries cover the five biggest eBay markets; {markets.site()['name']} isn't one of them, so "
+                  "use the profit & loss and expenses here and give them to your accountant.", "ok")
+            return redirect(url_for("pnl_page"))
         year = parse_int(request.args.get("year")) or _current_tax_year()
         st = Settings()
         basis = request.args.get("basis") or st.get("tax_basis") or "cash"
@@ -791,6 +797,14 @@ def register(app):  # noqa: C901  (one place to see every route)
             conn.close()
         first_year = tax_year_of(first) or year
         years = list(range(_current_tax_year(), min(first_year, year) - 1, -1))
+        if markets.tax_code() != "UK":
+            conn = connect()
+            try:
+                r = taxcalc.summary(conn, year, basis)
+            finally:
+                conn.close()
+            return render_template("tax_summary.html", r=r, years=[(y, tax_year_label(y)) for y in years], year=year,
+                                   closed=year in closed_years())
         return render_template("tax.html", r=r, years=[(y, tax_year_label(y)) for y in years], year=year,
                                closed=year in closed_years(), box_labels=taxcalc.BOX_LABELS)
 
@@ -814,8 +828,9 @@ def register(app):  # noqa: C901  (one place to see every route)
         year = parse_int(request.args.get("year")) or _current_tax_year()
         basis = Settings().get("tax_basis") or "cash"
         conn = connect()
+        uk = markets.tax_code() == "UK"
         try:
-            r = taxcalc.compute(conn, year, basis)
+            r = taxcalc.compute(conn, year, basis) if uk or not markets.tax() else taxcalc.summary(conn, year, basis)
             expenses = [dict(e) for e in conn.execute("SELECT * FROM expenses WHERE date >= ? AND date < ? ORDER BY date",
                                                       (r["start"], r["end"]))]
             miles = [dict(m) for m in conn.execute("SELECT * FROM mileage WHERE date >= ? AND date < ? ORDER BY date",
@@ -824,15 +839,24 @@ def register(app):  # noqa: C901  (one place to see every route)
             conn.close()
         buf = io.StringIO()
         w = csv.writer(buf)
-        w.writerow([f"Self-employment summary {r['label']} ({basis} basis)"])
-        w.writerow(["Box", "Description", "Amount"])
-        w.writerow([9, "Turnover", r["box9"]])
-        w.writerow([10, "Other business income", r["box10"]])
-        for b in range(11, 20):
-            w.writerow([b, taxcalc.BOX_LABELS[b], r["boxes"][b]])
-        w.writerow([20, "Total allowable expenses", r["box20"]])
-        w.writerow([21, "Net profit", r["box21"]])
-        w.writerow([22, "Net loss", r["box22"]])
+        w.writerow([f"Self-employment summary {r['label']} ({basis} basis, {markets.currency()})"])
+        if uk or not markets.tax():
+            w.writerow(["Box", "Description", "Amount"])
+            w.writerow([9, "Turnover", r["box9"]])
+            w.writerow([10, "Other business income", r["box10"]])
+            for b in range(11, 20):
+                w.writerow([b, taxcalc.BOX_LABELS[b], r["boxes"][b]])
+            w.writerow([20, "Total allowable expenses", r["box20"]])
+            w.writerow([21, "Net profit", r["box21"]])
+            w.writerow([22, "Net loss", r["box22"]])
+        else:
+            w.writerow([r["profile"]["form"]])
+            w.writerow(["Line", "Amount"])
+            w.writerow([r["profile"]["income"], r["income"]])
+            for row in r["rows"]:
+                w.writerow([row["line"], row["amount"]])
+            w.writerow(["Total expenses", r["total_expenses"]])
+            w.writerow(["Net profit (loss)", r["profit"]])
         w.writerow([])
         w.writerow(["SALES"])
         w.writerow(["Date", "Channel", "Order", "Title", "Qty", "Buyer paid", "Refunds", "Fees & charges",
@@ -845,18 +869,18 @@ def register(app):  # noqa: C901  (one place to see every route)
                         "" if s["profit"] is None else s["profit"], s.get("status") or ""])
         w.writerow([])
         w.writerow(["EXPENSES"])
-        w.writerow(["Date", "Category", "SA103S box", "Description", "Amount"])
+        w.writerow(["Date", "Category", "SA103S box" if uk else "Group", "Description", "Amount"])
         for e in expenses:
             w.writerow([e["date"], taxcalc.CATEGORY_LABEL.get(e["category"], e["category"]),
                         taxcalc.CATEGORY_BOX.get(e["category"], 19), e["description"], e["amount"]])
         w.writerow([])
         w.writerow(["MILEAGE"])
-        w.writerow(["Date", "Vehicle", "Miles", "Purpose", "Route"])
+        w.writerow(["Date", "Vehicle", markets.unit_word().capitalize(), "Purpose", "Route"])
         for m in miles:
             w.writerow([m["date"], m["vehicle"], m["miles"], m["purpose"], m["route"]])
         w.writerow(["", "", r["mileage"]["miles"], "Allowance", r["mileage"]["total"]])
         return Response(buf.getvalue(), mimetype="text/csv", headers={
-            "Content-Disposition": f"attachment; filename=self_assessment_{r['label'].replace('/', '-')}.csv"})
+            "Content-Disposition": f"attachment; filename={'self_assessment' if uk else 'tax_summary'}_{r['label'].replace('/', '-')}.csv"})
 
     @app.route("/expenses", methods=["GET", "POST"])
     @login_required

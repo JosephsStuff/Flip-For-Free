@@ -1,0 +1,6 @@
+<nav class="tabs noprint">
+  <a href="{{ url_for('pnl_page') }}" class="{{ 'on' if request.endpoint == 'pnl_page' }}">Profit &amp; loss</a>
+  {% if tax_profile %}<a href="{{ url_for('tax') }}" class="{{ 'on' if request.endpoint == 'tax' }}">{{ tax_profile.name }}</a>{% endif %}
+  <a href="{{ url_for('expenses') }}" class="{{ 'on' if request.endpoint == 'expenses' }}">Expenses &amp; receipts</a>
+  <a href="{{ url_for('mileage') }}" class="{{ 'on' if request.endpoint == 'mileage' }}">Mileage</a>
+</nav>

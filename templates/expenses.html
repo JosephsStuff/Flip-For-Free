@@ -1,12 +1,7 @@
 {% extends "base.html" %}
 {% block title %}Expenses {{ label }} · Flip for Free{% endblock %}
 {% block content %}
-<nav class="tabs noprint">
-  <a href="{{ url_for('pnl_page') }}">Profit &amp; loss</a>
-  <a href="{{ url_for('tax') }}" class="{{ 'on' if request.endpoint == 'tax' }}">Self Assessment</a>
-  <a href="{{ url_for('expenses') }}" class="{{ 'on' if request.endpoint == 'expenses' }}">Expenses &amp; receipts</a>
-  <a href="{{ url_for('mileage') }}" class="{{ 'on' if request.endpoint == 'mileage' }}">Mileage</a>
-</nav>
+{% include "_acct_tabs.html" %}
 <p class="crumbs"><a href="{{ url_for('tax', year=year) }}">← Tax {{ label }}</a></p>
 <div class="pagehead">
   <div><h1>Business expenses</h1><p class="muted">Costs that aren't eBay fees or the items themselves: storage, packaging, printer ink, software… eBay fees and postage labels come in automatically. Receipts are saved in a "Profit Tracker receipts" folder next to your database, so they sync with it.</p></div>
@@ -20,7 +15,7 @@
     <label class="span2">Category
       <select name="category">{% for k, l, b in cats %}<option value="{{ k }}">{{ l }} (box {{ b }})</option>{% endfor %}</select></label>
     <label class="span2">Description<input name="description" placeholder="e.g. 200 bubble mailers" required></label>
-    <label>Amount (£)<input name="amount" class="money" inputmode="decimal" required></label>
+    <label>Amount ({{ cur|trim }})<input name="amount" class="money" inputmode="decimal" required></label>
     <label class="span2">For a specific item <small class="muted">(optional)</small>
       <select name="item_id"><option value="">—</option>{% for i in items %}<option value="{{ i.id }}">{{ i.title }}</option>{% endfor %}</select></label>
     <label>Receipt <small class="muted">(photo or PDF)</small><input type="file" name="receipt" accept="image/*,.pdf,.heic" capture="environment"></label>

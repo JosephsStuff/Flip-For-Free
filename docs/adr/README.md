@@ -14,3 +14,4 @@ Don't delete old ones; mark them *Superseded by ADR-00N* instead.
 | [0006](0006-tailscale-for-servers.md) | Servers are reached through Tailscale, not open ports |
 | [0007](0007-server-rendered-no-build-step.md) | Server-rendered pages with no front-end build step |
 | [0008](0008-main-and-beta-channels.md) | Main and beta release channels from two branches |
+| [0009](0009-markets-and-tax-summaries.md) | Other eBay markets: tax summaries for the top five, profit tracking for the rest |

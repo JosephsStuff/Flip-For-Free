@@ -2,12 +2,7 @@
 {% from "macros.html" import cls %}
 {% block title %}Tax {{ r.label }} · Flip for Free{% endblock %}
 {% block content %}
-<nav class="tabs noprint">
-  <a href="{{ url_for('pnl_page') }}">Profit &amp; loss</a>
-  <a href="{{ url_for('tax') }}" class="{{ 'on' if request.endpoint == 'tax' }}">Self Assessment</a>
-  <a href="{{ url_for('expenses') }}" class="{{ 'on' if request.endpoint == 'expenses' }}">Expenses &amp; receipts</a>
-  <a href="{{ url_for('mileage') }}" class="{{ 'on' if request.endpoint == 'mileage' }}">Mileage</a>
-</nav>
+{% include "_acct_tabs.html" %}
 <div class="pagehead">
   <div>
     <h1>Self Assessment {{ r.label }}</h1>

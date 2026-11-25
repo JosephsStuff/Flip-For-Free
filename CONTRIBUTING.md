@@ -33,6 +33,7 @@ once-only stock sync, error-report scrubbing, and the sync not locking the datab
 | `app.py` | Flask app, setup, eBay sign-in, access rules, start-up |
 | `sync.py`, `ebay_api.py` | eBay orders, money movements and listings |
 | `profit.py` | True profit per sale, bulk-buy cost splitting |
+| `markets.py`, `taxcalc.py` | eBay sites, currency, tax years, mileage rates; UK Self Assessment and other markets' tax summaries |
 | `features.py`, `features2.py` | Inventory, bulk buys, insights, tax, P&L, tools |
 | `automation.py` | Relist and delayed promotion |
 | `crosslist.py` | Copy to Vinted; eBay stock updates after sales elsewhere |
@@ -63,7 +64,8 @@ If you add an API endpoint, add it to `api.ENDPOINTS` and an example call to `to
 - Use the tokens in `static/style.css` (`--s-*` spacing, `--t-*` type, `--r-*` radius) rather than new values.
 - Every control needs a visible label or an `aria-label`; check new pages with axe-core.
 - Never automate a marketplace whose terms forbid it (see ADR-0004).
-- Money is GBP in the database; convert on the way in (`fx.py`).
+- Money is stored in your own currency (Settings → Market and currency); convert other shops' money on the way in
+  (`fx.to_home`). Show money with the `money` filter or `markets.money()`, never a hard-coded symbol.
 
 ## Releasing: main and beta
 

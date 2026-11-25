@@ -237,6 +237,9 @@ td.cb, th.cb { width: 40px; }
 .toplist li { display: flex; justify-content: space-between; gap: var(--s-3); padding: var(--s-2) 0; border-bottom: 1px solid var(--line); font-size: 15px; }
 .toplist li a { color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 ul.plain { padding-left: var(--s-5); margin: 0; }
+ul.plain li + li { margin-top: var(--s-2); }
+.meter { height: 10px; border-radius: var(--r-pill); background: var(--chip); overflow: hidden; }
+.meter > span { display: block; height: 100%; background: var(--accent); }
 
 @media (max-width: 900px) {
   .cols { grid-template-columns: minmax(0, 1fr); }
