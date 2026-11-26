@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.8.0-beta.8
+- Phones: the date-range box is now full width, lining up with the True profit, Buyers paid and other boxes.
+
 ## 1.8.0-beta.7
 - Urgent update alerts: if a release fixes a security problem (or anything else that can't wait), Flip shows a banner
   on every page with an Update now button, plus a notification, until you're on the fixed version. Flip checks for

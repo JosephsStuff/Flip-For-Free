@@ -400,6 +400,7 @@ fieldset.choices legend { padding: 0; margin-bottom: var(--s-1); }
 @media (max-width: 700px) { .periods { align-items: stretch; } .periods .custom { justify-content: flex-start; } }
 /* phones: date ranges in an even three-column grid; a leftover last button fills the rest of its row */
 @media (max-width: 700px) {
+  .periods { width: 100%; flex-basis: 100%; }
   .periods .seg { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 2px; }
   .periods .seg button { padding: 0 var(--s-1); text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .periods .seg button:last-child:nth-child(3n+1) { grid-column: 1 / -1; }
