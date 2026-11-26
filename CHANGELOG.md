@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.8.0-beta.10
+- Keeps your place: Flip remembers the last 3 pages you looked at, including the filters or search you'd set and how
+  far down you'd scrolled. Go back to one from the menu and you're where you left off. Remembered in that browser
+  tab only, for up to 2 hours.
+
 ## 1.8.0-beta.9
 - Check for updates sees a new release within about a minute: Flip now reads the version from GitHub's API instead
   of a file copy that GitHub can cache for up to 5 minutes (it falls back to that copy if the API is busy).

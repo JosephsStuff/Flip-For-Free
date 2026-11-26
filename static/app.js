@@ -309,3 +309,43 @@ document.addEventListener('keydown', e => {
   const btn = panel.querySelector(want);
   if (btn) btn.click();
 });
+
+/* Keep your place: for the last 3 pages you looked at, remember the filters you'd set and how far down you'd
+   scrolled. Clicking that page in the menu takes you back to the same view at the same spot. Stored only in this
+   browser tab (sessionStorage); clears when the tab closes. */
+(function () {
+  var KEY = 'flip-places', MAX = 3, here = location.pathname, full = location.pathname + location.search;
+  function load() { try { return JSON.parse(sessionStorage.getItem(KEY)) || []; } catch (e) { return []; } }
+  function save(list) { try { sessionStorage.setItem(KEY, JSON.stringify(list.slice(0, MAX))); } catch (e) { /* private mode: no memory */ } }
+  function remember() {
+    var list = load().filter(function (p) { return p.path !== here; });
+    list.unshift({path: here, url: full, y: Math.round(window.scrollY), at: Date.now()});
+    save(list);
+  }
+  var places = load(), mine = null;
+  places.forEach(function (p) { if (p.path === here) mine = p; });
+
+  // Coming back from another page (not reloading, not a form posting back to itself): scroll to where you were.
+  var from = '';
+  try { from = document.referrer ? new URL(document.referrer).pathname : ''; } catch (e) { /* ignore */ }
+  var nav = (performance.getEntriesByType && performance.getEntriesByType('navigation')[0] || {}).type;
+  if (mine && mine.url === full && from && from !== here && nav !== 'reload' && nav !== 'back_forward' && !location.hash
+      && Date.now() - mine.at < 2 * 3600 * 1000 && mine.y > 0) {
+    var go = function () { window.scrollTo(0, Math.min(mine.y, document.documentElement.scrollHeight)); };
+    if (document.readyState === 'complete') go(); else window.addEventListener('load', go);
+  }
+
+  // Menu links (top menu and the tabs on each page) go back to the view you had, filters and all.
+  document.addEventListener('click', function (e) {
+    var a = e.target.closest && e.target.closest('nav a[href], .tabs a[href]');
+    if (!a || a.target || e.metaKey || e.ctrlKey || e.shiftKey) return;
+    var u = new URL(a.href, location.href);
+    if (u.origin !== location.origin || u.search || u.hash || u.pathname === here) return;
+    load().forEach(function (p) { if (p.path === u.pathname && p.url !== u.pathname) a.href = p.url; });
+  }, true);
+
+  var t = null;
+  window.addEventListener('scroll', function () { clearTimeout(t); t = setTimeout(remember, 250); }, {passive: true});
+  window.addEventListener('pagehide', remember);
+  remember();
+})();
