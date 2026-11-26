@@ -57,3 +57,13 @@ def test_server_mode_trusts_the_proxy(flask_app, client):
     flask_app.config.update(DEMO=False, PUBLIC_URL="https://flip.example.ts.net")
     r = client.get("/", environ_base={"REMOTE_ADDR": "100.70.0.50"})
     assert r.status_code != 403
+
+
+def test_dismissed_notifications_stay_gone(client, conn):
+    n = conn.execute("SELECT id, title FROM notifications WHERE COALESCE(dismissed, 0)=0 ORDER BY id DESC LIMIT 1").fetchone()
+    assert n["title"] in client.get("/notifications").get_data(as_text=True)
+    r = client.post(f"/notifications/{n['id']}/dismiss", headers={"X-Requested-With": "fetch"})
+    assert r.get_json()["ok"]
+    row = conn.execute("SELECT dismissed, read FROM notifications WHERE id=?", (n["id"],)).fetchone()
+    assert (row["dismissed"], row["read"]) == (1, 1)
+    assert f'data-id="{n["id"]}"' not in client.get("/notifications").get_data(as_text=True)

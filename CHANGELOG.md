@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.8.0-beta.6
+- Notifications on phones: one line each (the start of the title); tap one to read it all. Swipe a notification left
+  or right to dismiss it, or use the × (on any screen). Dismissed notifications stay gone and count as read.
+
 ## 1.8.0-beta.5
 - Phones: the date ranges (Today, This week, 31 days…) sit in a tidy three-column grid instead of uneven rows, and
   the Custom range panel lines up From and To side by side with a full-width Apply button.

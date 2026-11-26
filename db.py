@@ -446,6 +446,7 @@ MIGRATIONS = {
               ("ship_country", "TEXT"), ("ship_outcode", "TEXT"), ("ship_city", "TEXT"),
               ("manual_fees", "REAL"), ("shipped_at", "TEXT"), ("handling_cost", "REAL")],
     "mileage": [("dispatch_date", "TEXT"), ("drop_off_id", "INTEGER")],
+    "notifications": [("dismissed", "INTEGER DEFAULT 0")],
     "bulk_buys": [("source", "TEXT"), ("location", "TEXT"), ("split_method", "TEXT DEFAULT 'even'")],
     "items": [("restock_url", "TEXT"), ("packaging_cost", "REAL"), ("handling_cost", "REAL"), ("written_off_at", "TEXT"), ("write_off_reason", "TEXT"), ("relist_exclude", "INTEGER DEFAULT 0"),
               ("relist_floor", "REAL"), ("vinted_listed_at", "TEXT"), ("vinted_url", "TEXT")],

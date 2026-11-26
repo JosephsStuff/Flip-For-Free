@@ -1111,10 +1111,11 @@ def register(app):  # noqa: C901  (one place to see every route)
         kind = request.args.get("kind", "")
         conn = connect()
         try:
-            q = "SELECT * FROM notifications" + (" WHERE kind=?" if kind else "") + " ORDER BY at DESC, id DESC LIMIT 300"
+            q = ("SELECT * FROM notifications WHERE COALESCE(dismissed, 0)=0" + (" AND kind=?" if kind else "")
+                 + " ORDER BY at DESC, id DESC LIMIT 300")
             rows = [dict(r) for r in conn.execute(q, (kind,) if kind else ())]
             counts = {r["kind"]: r["n"] for r in conn.execute(
-                "SELECT kind, COUNT(*) n FROM notifications WHERE read=0 GROUP BY kind")}
+                "SELECT kind, COUNT(*) n FROM notifications WHERE read=0 AND COALESCE(dismissed, 0)=0 GROUP BY kind")}
         finally:
             conn.close()
         return render_template("notifications.html", rows=rows, kind=kind, counts=counts)
@@ -1133,6 +1134,22 @@ def register(app):  # noqa: C901  (one place to see every route)
                 conn.commit()
         finally:
             conn.close()
+        return redirect(request.form.get("back") or url_for("notifications"))
+
+    @app.route("/notifications/<int:nid>/dismiss", methods=["POST"])
+    @login_required
+    def notification_dismiss(nid):
+        """Swipe away (or ×): hidden for good and counted as read. The key stays, so it never comes back."""
+        conn = connect()
+        try:
+            with write_lock():
+                conn.execute("UPDATE notifications SET dismissed=1, read=1 WHERE id=?", (nid,))
+                conn.commit()
+            unread = conn.execute("SELECT COUNT(*) FROM notifications WHERE read=0").fetchone()[0]
+        finally:
+            conn.close()
+        if request.headers.get("X-Requested-With") == "fetch":
+            return jsonify({"ok": True, "unread": unread})
         return redirect(request.form.get("back") or url_for("notifications"))
 
     @app.route("/notifications/latest")

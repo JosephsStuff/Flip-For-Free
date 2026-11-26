@@ -343,6 +343,25 @@ fieldset.choices legend { padding: 0; margin-bottom: var(--s-1); }
 .notif .ico { width: 32px; height: 32px; border-radius: var(--r-sm); color: var(--muted); display: grid; place-items: center; background: var(--chip); flex-shrink: 0; }
 .notif .txt { flex: 1; min-width: 0; }
 .notif .txt b { display: block; }
+.notif .acts { display: flex; align-items: center; gap: var(--s-1); }
+.notif { transition: transform .22s ease, opacity .22s ease; background-clip: padding-box; touch-action: pan-y; }
+.notif.gone { opacity: 0; }
+.swipe-hint { display: none; }
+/* phones: one line per notification (tap to open it); swipe or × to dismiss */
+@media (max-width: 640px) {
+  .swipe-hint { display: block; margin: 0 0 var(--s-2); }
+  .notif-list { padding: 0; overflow: hidden; }
+  .notif { align-items: center; gap: var(--s-2); padding: var(--s-2) var(--s-3); }
+  .notif .ico { width: 28px; height: 28px; }
+  .notif .txt b { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 600; }
+  .notif .txt .body { display: none; }
+  .notif.open { align-items: flex-start; }
+  .notif.open .txt b { white-space: normal; }
+  .notif.open .txt .body { display: block; margin-top: 2px; }
+  .notif .when { font-size: var(--t-label); }
+  .notif .acts form:not(.dismiss) { display: none; }
+}
+@media (prefers-reduced-motion: reduce) { .notif { transition: none; } }
 .subnav { display: flex; gap: var(--s-2); flex-wrap: wrap; margin-bottom: var(--s-4); }
 @media (max-width: 900px) { .kpis.five { grid-template-columns: repeat(2, minmax(0, 1fr)); } .kpis.three { grid-template-columns: minmax(0, 1fr); } }
 @media (max-width: 560px) { .kpis.five { grid-template-columns: minmax(0, 1fr); } }

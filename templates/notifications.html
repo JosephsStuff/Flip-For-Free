@@ -13,15 +13,52 @@
   <a href="{{ url_for('notifications', kind=k) }}" class="{{ 'on' if kind == k }}">{{ l }}{% if k and counts.get(k) %}<span class="count">{{ counts[k] }} new</span>{% endif %}</a>
   {% endfor %}
 </nav>
-<section class="card">
+<p class="hint swipe-hint">Tap a notification to read it all. Swipe it left or right to dismiss it.</p>
+<section class="card notif-list">
   {% for n in rows %}
-    <div class="notif {{ 'unread' if not n.read }}">
+    <div class="notif {{ 'unread' if not n.read }}" data-id="{{ n.id }}">
       <span class="ico">{{ icon({'sale': 'sale', 'issue': 'alert', 'automation': 'repeat'}.get(n.kind, 'info')) }}</span>
       <div class="txt"><b>{% if n.link %}<a href="{{ n.link }}">{{ n.title }}</a>{% else %}{{ n.title }}{% endif %}</b>
-        <span class="muted small">{{ n.body }}</span></div>
-      <span class="muted small nowrap">{{ n.at|ago }}</span>
-      {% if not n.read %}<form method="post" action="{{ url_for('notifications_read') }}" class="inline"><input type="hidden" name="id" value="{{ n.id }}"><input type="hidden" name="back" value="{{ request.full_path }}"><button class="linkbtn" title="Mark read" aria-label="Mark read">{{ icon('check') }}</button></form>{% endif %}
+        <span class="muted small body">{{ n.body }}</span></div>
+      <span class="muted small nowrap when">{{ n.at|ago }}</span>
+      <span class="acts">
+        {% if not n.read %}<form method="post" action="{{ url_for('notifications_read') }}" class="inline"><input type="hidden" name="id" value="{{ n.id }}"><input type="hidden" name="back" value="{{ request.full_path }}"><button class="linkbtn" title="Mark read" aria-label="Mark read">{{ icon('check') }}</button></form>{% endif %}
+        <form method="post" action="{{ url_for('notification_dismiss', nid=n.id) }}" class="inline dismiss"><input type="hidden" name="back" value="{{ request.full_path }}"><button class="linkbtn" title="Dismiss" aria-label="Dismiss: {{ n.title }}">{{ icon('x') }}</button></form>
+      </span>
     </div>
-  {% else %}<p class="muted">No notifications yet. New sales, problems eBay charged you for, and automation results show up here.</p>{% endfor %}
+  {% else %}<p class="muted">No notifications. New sales, problems eBay charged you for, and automation results show up here.</p>{% endfor %}
 </section>
 {% endblock %}
+{% block scripts %}<script>
+(function () {
+  // Dismiss with ×, or by swiping a row sideways on a touch screen. Tapping a row opens the full text on phones.
+  function dismiss(row) {
+    var f = row.querySelector('form.dismiss');
+    row.classList.add('gone');
+    fetch(f.action, {method: 'POST', headers: {'X-Requested-With': 'fetch'}, body: new FormData(f)})
+      .then(function (r) { return r.json(); })
+      .then(function (d) { var b = document.querySelector('.badge'); if (b) { if (d.unread) b.textContent = d.unread; else b.remove(); } })
+      .catch(function () { f.submit(); });
+    setTimeout(function () { row.remove(); }, 260);
+  }
+  document.querySelectorAll('.notif-list .notif').forEach(function (row) {
+    row.querySelector('form.dismiss').addEventListener('submit', function (e) { e.preventDefault(); dismiss(row); });
+    row.addEventListener('click', function (e) { if (!e.target.closest('a, button, form')) row.classList.toggle('open'); });
+    var x0 = null, y0 = 0, dx = 0, sideways = false;
+    row.addEventListener('touchstart', function (e) { x0 = e.touches[0].clientX; y0 = e.touches[0].clientY; dx = 0; sideways = false; row.style.transition = 'none'; }, {passive: true});
+    row.addEventListener('touchmove', function (e) {
+      if (x0 === null) return;
+      dx = e.touches[0].clientX - x0;
+      var dy = e.touches[0].clientY - y0;
+      if (!sideways && Math.abs(dx) > 10 && Math.abs(dx) > Math.abs(dy) * 1.5) sideways = true;
+      if (sideways) { row.style.transform = 'translateX(' + dx + 'px)'; row.style.opacity = String(1 - Math.min(Math.abs(dx) / row.offsetWidth, 1) * 0.8); }
+    }, {passive: true});
+    row.addEventListener('touchend', function () {
+      row.style.transition = '';
+      if (sideways && Math.abs(dx) > row.offsetWidth * 0.35) { row.style.transform = 'translateX(' + (dx > 0 ? '' : '-') + '110%)'; dismiss(row); }
+      else { row.style.transform = ''; row.style.opacity = ''; }
+      x0 = null;
+    });
+  });
+})();
+</script>{% endblock %}
