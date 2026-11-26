@@ -1,9 +1,12 @@
-"""Set VERSION to today's dated version and add a CHANGELOG heading for it.
+"""Set VERSION to the next year.month.number and add a CHANGELOG heading for it.
 
-    python tools/bump_version.py beta     # 26.11.2026.1, then .2, .3 … for each beta that day
-    python tools/bump_version.py main     # 26.11.2026 (a second main release that day gets .1)
+    python tools/bump_version.py           # next number this month, e.g. 2026.11.4
+
+One counter per month, shared by beta and main (it looks at both branches on GitHub), so every release has its own
+number. When a beta becomes the main release, merge it and keep its number: it's the same code.
 """
 import re
+import subprocess
 import sys
 from datetime import date
 from pathlib import Path
@@ -11,23 +14,27 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 
 
-def next_version(channel: str, current: str, today: date | None = None) -> str:
+def next_version(seen: list[str], today: date | None = None) -> str:
+    """The next number this month after every version already used (on any branch)."""
     today = today or date.today()
-    stem = f"{today.day}.{today.month}.{today.year}"
-    m = re.fullmatch(re.escape(stem) + r"(?:\.(\d+))?", current.strip())
-    if channel == "beta":
-        return f"{stem}.{int(m.group(1) or 0) + 1 if m else 1}"
-    if not m:
-        return stem
-    return f"{stem}.{int(m.group(1) or 0) + 1}"
+    used = [int(m.group(1)) for v in seen
+            if (m := re.fullmatch(rf"{today.year}\.{today.month}\.(\d+)", v.strip()))]
+    return f"{today.year}.{today.month}.{max(used, default=0) + 1}"
+
+
+def _branch_version(branch: str) -> str:
+    try:
+        subprocess.run(["git", "-C", str(ROOT), "fetch", "-q", "origin", branch], check=False, timeout=60)
+        return subprocess.run(["git", "-C", str(ROOT), "show", f"origin/{branch}:VERSION"], capture_output=True,
+                              text=True, timeout=30).stdout.strip()
+    except (OSError, subprocess.SubprocessError):
+        return ""
 
 
 def main():
-    channel = (sys.argv[1:] or ["beta"])[0]
-    if channel not in ("beta", "main"):
-        raise SystemExit("usage: bump_version.py beta|main")
     vfile, log = ROOT / "VERSION", ROOT / "CHANGELOG.md"
-    v = next_version(channel, vfile.read_text())
+    seen = [vfile.read_text(), _branch_version("main"), _branch_version("beta")]
+    v = next_version(seen)
     vfile.write_text(v + "\n")
     text = log.read_text()
     if f"## {v}\n" not in text:
@@ -35,5 +42,5 @@ def main():
     print(v)
 
 
-if __name__ == "__main__":
+if __name__ == "__main__" and len(sys.argv) <= 2:
     main()

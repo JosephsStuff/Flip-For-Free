@@ -69,23 +69,24 @@ If you add an API endpoint, add it to `api.ENDPOINTS` and an example call to `to
 
 ## Releasing: main and beta
 
-Versions are dates: **day.month.year**. Users pick a channel in Settings → Updates → Release channel.
+Versions are **year.month.number**, e.g. `2026.11.4`. The number counts up through the month and is shared by both
+channels, so every release has its own number; it starts again at 1 each month. Users pick a channel in
+Settings → Updates → Release channel.
 
-| Channel | Branch | Versions | Who it's for |
-|---|---|---|---|
-| Main release | `main` | `26.11.2026` (a second release that day: `26.11.2026.1`) | Everyone (the default) |
-| Beta | `beta` | `26.11.2026.1`, `26.11.2026.2` … (numbered from 1 each day) | People who want to try new features first |
+| Channel | Branch | Who it's for |
+|---|---|---|
+| Main release | `main` | Everyone (the default) |
+| Beta | `beta` | People who want to try new features first |
 
-Flip compares versions as real dates (so `1.12.2026` is newer than `30.11.2026`), and every dated version counts as
-newer than the old `1.x` numbers.
+1. **New feature:** commit it to `beta`, run `python tools/bump_version.py` (it checks both branches and sets
+   `VERSION` to the next number, with a `CHANGELOG.md` heading), write the changelog entry, push.
+2. **Happy with it:** merge `beta` into `main` as it is. The main release takes the beta's number, because it's the
+   same code, so beta users see no extra update.
+3. **Fixes for main** that can't wait go straight to `main` with the next number; then merge `main` into `beta`.
 
-1. **New feature:** commit it to `beta`, run `python tools/bump_version.py beta` (sets `VERSION` to today's next beta
-   and adds a `CHANGELOG.md` heading), write the changelog entry, push.
-2. **Happy with it:** merge `beta` into `main`, run `python tools/bump_version.py main`, tidy the changelog, push.
-3. **Fixes for main** that can't wait go straight to `main` the same way; then merge `main` into `beta`.
-
-Switching back from beta to main installs the latest main release even if it's older than your beta. The database
-is backed up first; new tables or columns a beta added are simply ignored by older code (see ADR-0008).
+Older schemes still sort correctly: `2026.11.1` is newer than the one-day `26.11.2026.1` and than every `1.x`.
+Switching back from beta to main installs the latest main release even if it's older than your beta; the database
+is backed up first (see ADR-0008).
 
 ## Urgent update alerts (security fixes)
 

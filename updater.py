@@ -75,14 +75,19 @@ def switching() -> bool:
     return channel() != installed_channel()
 
 
-DATE_VERSION = re.compile(r"(\d{1,2})\.(\d{1,2})\.(\d{4})(?:\.(\d+))?")
+CAL_VERSION = re.compile(r"(\d{4})\.(\d{1,2})\.(\d+)")                     # 2026.11.4 (current scheme)
+DATE_VERSION = re.compile(r"(\d{1,2})\.(\d{1,2})\.(\d{4})(?:\.(\d+))?")    # 26.11.2026.1 (one day only)
 
 
 def _vtuple(v):
-    """Sortable version. Dated versions (day.month.year, plus .N for each beta or extra release that day) come
-    after every older 1.x number, and sort by real date: 1.12.2026 > 30.11.2026.3 > 30.11.2026.1 > 30.11.2026.
-    Older numbers: '1.8.0' > '1.8.0-beta.2' > '1.8.0-beta.1' > '1.7.6'."""
+    """Sortable version. Current scheme: year.month.number, e.g. 2026.12.1 > 2026.11.9 > 2026.11.3; the number
+    counts up through the month across beta and main. These come after the short-lived day.month.year versions,
+    which come after the original 1.x numbers ('1.8.0' > '1.8.0-beta.2' > '1.7.6')."""
     v = str(v).strip().lstrip("v")
+    m = CAL_VERSION.fullmatch(v)
+    if m:
+        y, mo, n = m.groups()
+        return (2, int(y), int(mo), int(n))
     m = DATE_VERSION.fullmatch(v)
     if m:
         d, mo, y, n = m.groups()

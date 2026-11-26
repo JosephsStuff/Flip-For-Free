@@ -123,17 +123,19 @@ def test_falls_back_to_raw_github_when_the_api_is_busy(chan, monkeypatch):
     assert updater.check()["latest"] == "1.9.0"
 
 
-@pytest.mark.parametrize("newer,older", [("26.11.2026", "1.8.0-beta.10"), ("1.12.2026", "30.11.2026.3"),
-                                         ("26.11.2026.2", "26.11.2026.1"), ("26.11.2026.1", "26.11.2026"),
-                                         ("1.1.2027", "31.12.2026.9"), ("5.1.2027", "1.7.7")])
-def test_dated_versions_sort_by_date(newer, older):
+@pytest.mark.parametrize("newer,older", [("2026.11.2", "2026.11.1"), ("2026.11.10", "2026.11.9"),
+                                         ("2026.12.1", "2026.11.40"), ("2027.1.1", "2026.12.9"),
+                                         ("2026.11.1", "26.11.2026.1"), ("2026.11.1", "1.8.0-beta.10"),
+                                         ("2026.11.1", "1.7.7"), ("1.12.2026", "30.11.2026.3"),
+                                         ("26.11.2026.1", "1.8.0-beta.10")])
+def test_version_order_across_schemes(newer, older):
     assert updater.is_newer(newer, older) and not updater.is_newer(older, newer)
 
 
 def test_changelog_finds_the_exact_version():
-    log = "# Changelog\n\n## 26.11.2026.10\n- ten\n\n## 26.11.2026.1\n- one\n"
-    assert updater._section(log, "26.11.2026.1") == "- one"
-    assert updater._section(log, "26.11.2026.10") == "- ten"
+    log = "# Changelog\n\n## 2026.11.10\n- ten\n\n## 2026.11.1\n- one\n"
+    assert updater._section(log, "2026.11.1") == "- one"
+    assert updater._section(log, "2026.11.10") == "- ten"
 
 
 def test_bump_version():
@@ -143,8 +145,6 @@ def test_bump_version():
     bump = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(bump)
     d = date(2026, 11, 26)
-    assert bump.next_version("beta", "1.8.0-beta.10", d) == "26.11.2026.1"
-    assert bump.next_version("beta", "26.11.2026.1", d) == "26.11.2026.2"
-    assert bump.next_version("beta", "25.11.2026.4", d) == "26.11.2026.1"
-    assert bump.next_version("main", "1.7.7", d) == "26.11.2026"
-    assert bump.next_version("main", "26.11.2026", d) == "26.11.2026.1"
+    assert bump.next_version(["26.11.2026.1", "1.7.7"], d) == "2026.11.1"
+    assert bump.next_version(["2026.11.3", "2026.11.5", "1.7.7"], d) == "2026.11.6"     # shared by main and beta
+    assert bump.next_version(["2026.10.9"], d) == "2026.11.1"                            # new month starts at 1
