@@ -75,16 +75,26 @@ def switching() -> bool:
     return channel() != installed_channel()
 
 
+DATE_VERSION = re.compile(r"(\d{1,2})\.(\d{1,2})\.(\d{4})(?:\.(\d+))?")
+
+
 def _vtuple(v):
-    """'1.8.0' > '1.8.0-beta.2' > '1.8.0-beta.1' > '1.7.6'."""
-    core, _, pre = str(v).strip().lstrip("v").partition("-")
+    """Sortable version. Dated versions (day.month.year, plus .N for each beta or extra release that day) come
+    after every older 1.x number, and sort by real date: 1.12.2026 > 30.11.2026.3 > 30.11.2026.1 > 30.11.2026.
+    Older numbers: '1.8.0' > '1.8.0-beta.2' > '1.8.0-beta.1' > '1.7.6'."""
+    v = str(v).strip().lstrip("v")
+    m = DATE_VERSION.fullmatch(v)
+    if m:
+        d, mo, y, n = m.groups()
+        return (1, int(y), int(mo), int(d), int(n or 0))
+    core, _, pre = v.partition("-")
     nums = []
     for p in core.split(".")[:3]:
         nums.append(int("".join(ch for ch in p if ch.isdigit()) or 0))
     nums += [0] * (3 - len(nums))
     if not pre:
-        return (*nums, 1, 0)
-    return (*nums, 0, int("".join(ch for ch in pre if ch.isdigit()) or 0))
+        return (0, *nums, 1, 0)
+    return (0, *nums, 0, int("".join(ch for ch in pre if ch.isdigit()) or 0))
 
 
 def is_newer(latest, current=None) -> bool:
@@ -215,7 +225,7 @@ def _section(changelog: str, version: str) -> str | None:
         if line.startswith("## "):
             if on:
                 break
-            on = version in line
+            on = line[3:].split()[0:1] == [version] if line[3:].strip() else False
             continue
         if on:
             out.append(line)

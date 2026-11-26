@@ -11,8 +11,9 @@ the app updates itself from GitHub, so anything pushed to `main` reaches every u
 - Two branches: `main` (the release) and `beta` (features being tried). Settings → Updates → Release channel picks
   which one the app follows; the default is main. The installed channel is remembered in `.flip-channel` in the app
   folder, so a "BETA" badge shows in the top bar and a switch is offered when the choice and the code differ.
-- Beta versions are `X.Y.Z-beta.N`. Version comparison puts `1.8.0` above `1.8.0-beta.N`, so beta users rejoin the
-  release automatically when a beta is merged.
+- Versions are dates (from November 2026): main `day.month.year`, beta `day.month.year.N`. They're compared as
+  real dates and always count as newer than the earlier `1.x` numbers. Each channel only compares against its own
+  branch, so the same date on both is fine.
 - Switching channel installs that branch's latest code even when its version number is lower; the database is
   backed up first. Git installs fetch and check out the branch; zip installs download that branch's zip.
 

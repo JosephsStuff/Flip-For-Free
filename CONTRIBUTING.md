@@ -69,22 +69,23 @@ If you add an API endpoint, add it to `api.ENDPOINTS` and an example call to `to
 
 ## Releasing: main and beta
 
-There are two release channels. Users pick one in Settings → Updates → Release channel.
+Versions are dates: **day.month.year**. Users pick a channel in Settings → Updates → Release channel.
 
 | Channel | Branch | Versions | Who it's for |
 |---|---|---|---|
-| Main release | `main` | `1.8.0` | Everyone (the default) |
-| Beta | `beta` | `1.8.0-beta.1`, `1.8.0-beta.2` … | People who want to try new features first |
+| Main release | `main` | `26.11.2026` (a second release that day: `26.11.2026.1`) | Everyone (the default) |
+| Beta | `beta` | `26.11.2026.1`, `26.11.2026.2` … (numbered from 1 each day) | People who want to try new features first |
 
-1. **New feature:** commit it to `beta`, set `VERSION` to the next version with a beta number (`1.8.0-beta.1`, then
-   `-beta.2` for each fix) and add a `CHANGELOG.md` entry with that exact version as its heading. Beta users get it
-   from Settings → Updates (or automatically, if they've turned that on).
-2. **Happy with it:** merge `beta` into `main`, set `VERSION` to `1.8.0` (no beta number), tidy the changelog entry
-   and push. Main users get it; beta users get it too, because `1.8.0` counts as newer than `1.8.0-beta.N`.
-3. **Fixes for main** that can't wait go straight to `main` as `1.7.x`; then merge `main` into `beta` so beta has them.
+Flip compares versions as real dates (so `1.12.2026` is newer than `30.11.2026`), and every dated version counts as
+newer than the old `1.x` numbers.
 
-Switching back from beta to main installs the latest main release even if its version number is lower. The
-database is backed up first; new tables or columns a beta added are simply ignored by older code (see ADR-0008).
+1. **New feature:** commit it to `beta`, run `python tools/bump_version.py beta` (sets `VERSION` to today's next beta
+   and adds a `CHANGELOG.md` heading), write the changelog entry, push.
+2. **Happy with it:** merge `beta` into `main`, run `python tools/bump_version.py main`, tidy the changelog, push.
+3. **Fixes for main** that can't wait go straight to `main` the same way; then merge `main` into `beta`.
+
+Switching back from beta to main installs the latest main release even if it's older than your beta. The database
+is backed up first; new tables or columns a beta added are simply ignored by older code (see ADR-0008).
 
 ## Urgent update alerts (security fixes)
 

@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.2026.1
+- Version numbers are now dates: day.month.year for the main release, plus .1, .2 … for each beta that day (so this
+  is the first beta on 26.11.2026). Flip compares them as real dates, and they count as newer than the old 1.x numbers.
+
 ## 1.8.0-beta.10
 - Keeps your place: Flip remembers the last 3 pages you looked at, including the filters or search you'd set and how
   far down you'd scrolled. Go back to one from the menu and you're where you left off. Remembered in that browser
