@@ -85,3 +85,35 @@ There are two release channels. Users pick one in Settings → Updates → Relea
 
 Switching back from beta to main installs the latest main release even if its version number is lower. The
 database is backed up first; new tables or columns a beta added are simply ignored by older code (see ADR-0008).
+
+## Urgent update alerts (security fixes)
+
+If a release fixes something users must install quickly, add an entry to `ALERTS.json` **on the `main` branch**.
+Every copy of Flip checks that file every 3 hours (and whenever someone clicks Check for updates). Anyone running an
+affected version sees a banner on every page with an **Update now** button, plus a notification. The banner
+disappears by itself once they're on the fixed version.
+
+```json
+{
+  "alerts": [
+    {
+      "id": "sec-2026-01",
+      "level": "critical",
+      "title": "Security fix: please update today.",
+      "body": "A bug could let someone on your network see your eBay sign-in.",
+      "fixed_in": {"main": "1.7.8", "beta": "1.8.0-beta.7"},
+      "since": "1.5.0",
+      "expires": "2027-06-30"
+    }
+  ]
+}
+```
+
+- `id`: letters, numbers, `.`, `_`, `-`; it's also used so each user gets one notification per alert.
+- `level`: `critical` (red banner) or `warning` (amber).
+- `fixed_in`: the first fixed version, either one version for both channels or one per channel.
+- `since` (optional): the first affected version; older versions don't see the alert.
+- `expires` (optional): stop showing it after this date.
+- Title and body are shown as plain text (no HTML or links); keep them short and say what to do.
+
+Release the fix first, then publish the alert, so the Update now button installs the fixed version.

@@ -173,7 +173,8 @@ def same_origin_check():
 @app.context_processor
 def inject():
     from common import period_label, saved_ranges
-    ctx = {"demo": demo_active(), "showcase": g.get("showcase", False), "sync_status": sync.STATUS, "db_path": db.get_db_path(),
+    ctx = {"demo": demo_active(), "showcase": g.get("showcase", False),
+           "update_alerts": [] if demo_active() else updater.active_alerts(), "sync_status": sync.STATUS, "db_path": db.get_db_path(),
            "user_name": session.get("user_name"), "device_warning": None, "last_sync": None, "unread": 0,
            "saved_ranges": [], "period_label": period_label, "beta": updater.installed_channel() == "beta",
            "cur": markets.symbol(), "market": markets.site(), "tax_profile": markets.tax(), "unit": markets.unit_word(),
@@ -1021,6 +1022,10 @@ def _money_str(v):
 @login_required
 def update_check():
     st = updater.check()
+    try:
+        updater.fetch_alerts()
+    except Exception as e:  # noqa: BLE001
+        errors.record("Update alert check", e)
     if st.get("error"):
         flash(st["error"], "error")
     elif updater.switching():
@@ -1330,6 +1335,33 @@ def auto_sync_loop():
         time.sleep(60)
 
 
+def alerts_loop():
+    """Check for urgent update alerts every 3 hours (much more often than the daily version check)."""
+    time.sleep(60)
+    while True:
+        try:
+            if db_ready() and not app.config["DEMO"]:
+                updater.fetch_alerts()
+                active = updater.active_alerts()
+                if active:
+                    c = db.connect()
+                    try:
+                        with db.write_lock():
+                            for a in active:
+                                db.notify(c, "issue", a["title"], a["body"] + f" Update to {a['fix']} or later: "
+                                          "Settings → Updates.", url_for_updates(), key=f"alert:{a['id']}")
+                            c.commit()
+                    finally:
+                        c.close()
+        except Exception as e:  # noqa: BLE001
+            errors.record("Update alert check", e)
+        time.sleep(3 * 3600)
+
+
+def url_for_updates() -> str:
+    return "/settings#updates"
+
+
 def update_loop():
     """Check GitHub for a new version once a day; install it automatically if you've switched that on."""
     time.sleep(120)
@@ -1505,6 +1537,7 @@ def main():
     threading.Thread(target=auto_sync_loop, daemon=True).start()
     threading.Thread(target=automation_loop, daemon=True).start()
     threading.Thread(target=update_loop, daemon=True).start()
+    threading.Thread(target=alerts_loop, daemon=True).start()
 
     if args.local_only:
         args.lan = False

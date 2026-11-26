@@ -96,6 +96,11 @@ nav a.on { color: var(--ink); background: var(--chip); }
 .banner { padding: var(--s-2) var(--s-5); font-size: var(--t-small); text-align: center; }
 .banner.info { background: var(--info-bg); }
 .banner.warn { background: var(--warn-bg); color: var(--warn); }
+.banner.urgent { display: flex; align-items: center; justify-content: center; gap: var(--s-3); flex-wrap: wrap; text-align: left; }
+.banner.urgent.critical { background: var(--neg); color: #fff; }
+.banner.urgent.critical .btn { background: #fff; color: var(--neg); border-color: #fff; }
+.banner.urgent.warning { background: var(--warn-bg); color: var(--warn); }
+@media (max-width: 640px) { .banner.urgent { justify-content: flex-start; padding: var(--s-2) var(--s-4); } }
 .flash { padding: var(--s-3) var(--s-4); border-radius: var(--r-sm); margin-bottom: var(--s-4); background: var(--info-bg); font-size: var(--t-body); }
 .flash.ok { background: var(--accent-soft); }
 .flash.error { background: var(--neg-soft); color: var(--neg); }

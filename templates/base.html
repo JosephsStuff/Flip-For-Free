@@ -42,6 +42,10 @@
 </header>
 {% endif %}
 
+{% for a in update_alerts %}<div class="banner urgent {{ a.level }}" role="alert">
+  <span>{{ icon('alert', 'sm') }} <b>{{ a.title }}</b>{% if a.body %} {{ a.body }}{% endif %} Fixed in version {{ a.fix }}.</span>
+  {% if request.endpoint != 'settings_page' %}<a class="btn small" href="{{ url_for('settings_page') }}#updates">Update now</a>{% endif %}
+</div>{% endfor %}
 {% if demo and not showcase %}<div class="banner info">Demo mode — this is fake data. Run <code>python app.py</code> without <code>--demo</code> to use your eBay account.</div>{% endif %}
 {% if device_warning %}<div class="banner warn">This database was used on <b>{{ device_warning }}</b> in the last few minutes. Close the app there first — editing from two devices at once can make Google Drive create conflicting copies.</div>{% endif %}
 

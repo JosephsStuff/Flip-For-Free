@@ -12,6 +12,7 @@ Before every update it saves a backup of your database and a copy of the current
 Then it restarts itself (works under run.bat / run.command / run.sh, systemd on a server, or plain python).
 """
 import io
+import json
 import os
 import shutil
 import subprocess
@@ -20,7 +21,8 @@ import tempfile
 import threading
 import time
 import zipfile
-from datetime import datetime
+import re
+from datetime import date, datetime
 from pathlib import Path
 
 import requests
@@ -113,6 +115,84 @@ def check() -> dict:
     finally:
         STATE["checking"] = False
     return STATE
+
+
+# --------------------------------------------------------------------------- #
+# Urgent update alerts (e.g. a security fix). The maintainer adds an entry to ALERTS.json on the main branch;
+# every copy of Flip checks it every few hours and shows a banner until it's on a fixed version.
+# --------------------------------------------------------------------------- #
+ALERT_LEVELS = ("critical", "warning")
+
+
+def _clean_alert(a: dict) -> dict | None:
+    """Keep only well-formed alerts, as plain text (nothing from the file is ever treated as HTML or a link)."""
+    try:
+        aid = str(a["id"])
+        if not re.fullmatch(r"[A-Za-z0-9._-]{1,60}", aid):
+            return None
+        fixed = a["fixed_in"]
+        if isinstance(fixed, str):
+            fixed = {"main": fixed, "beta": fixed}
+        fixed = {k: str(v) for k, v in fixed.items() if k in CHANNELS}
+        if not fixed:
+            return None
+        out = {"id": aid, "level": a.get("level") if a.get("level") in ALERT_LEVELS else "critical",
+               "title": str(a.get("title") or "Please update Flip for Free")[:120],
+               "body": str(a.get("body") or "")[:600], "fixed_in": fixed,
+               "since": str(a["since"]) if a.get("since") else None,
+               "expires": str(a["expires"])[:10] if a.get("expires") else None}
+        if out["expires"]:
+            date.fromisoformat(out["expires"])
+        return out
+    except (KeyError, TypeError, ValueError):
+        return None
+
+
+def fetch_alerts() -> list:
+    """Download ALERTS.json from the main branch and remember it (so the banner survives restarts and offline)."""
+    r = requests.get(f"https://raw.githubusercontent.com/{repo()}/main/ALERTS.json", timeout=20)
+    if r.status_code == 404:
+        alerts = []
+    elif r.status_code != 200:
+        raise RuntimeError(f"GitHub replied {r.status_code} for ALERTS.json")
+    else:
+        data = r.json()
+        raw = data.get("alerts", []) if isinstance(data, dict) else []
+        alerts = [c for c in (_clean_alert(a) for a in raw if isinstance(a, dict)) if c][:5]
+    db.Settings().set("update_alerts", json.dumps(alerts))
+    _alerts_cache.update(at=time.monotonic(), path=db.get_db_path(), alerts=alerts)
+    return alerts
+
+
+_alerts_cache = {"at": -1e9, "path": None, "alerts": []}
+
+
+def _stored_alerts() -> list:
+    if time.monotonic() - _alerts_cache["at"] < 60 and _alerts_cache["path"] == db.get_db_path():
+        return _alerts_cache["alerts"]
+    try:
+        raw = db.Settings().get("update_alerts") if db.get_db_path() else None
+        alerts = [c for c in (_clean_alert(a) for a in json.loads(raw or "[]")) if c]
+    except (ValueError, TypeError, OSError):
+        alerts = []
+    _alerts_cache.update(at=time.monotonic(), path=db.get_db_path(), alerts=alerts)
+    return alerts
+
+
+def active_alerts(version: str | None = None) -> list:
+    """Alerts that apply to the version running here: older than the fix for its channel, and not expired."""
+    version = version or current_version()
+    ch = installed_channel()
+    out = []
+    for a in _stored_alerts():
+        fixed = a["fixed_in"].get(ch) or a["fixed_in"].get("main")
+        if a["expires"] and date.fromisoformat(a["expires"]) < date.today():
+            continue
+        if a["since"] and is_newer(a["since"], version):
+            continue                                   # the problem came in after this version
+        if fixed and is_newer(fixed, version):
+            out.append({**a, "fix": fixed})
+    return out
 
 
 def _section(changelog: str, version: str) -> str | None:

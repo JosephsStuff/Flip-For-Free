@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.8.0-beta.7
+- Urgent update alerts: if a release fixes a security problem (or anything else that can't wait), Flip shows a banner
+  on every page with an Update now button, plus a notification, until you're on the fixed version. Flip checks for
+  alerts every 3 hours. The alert text comes from the project's own GitHub (ALERTS.json) and is shown as plain text.
+
 ## 1.8.0-beta.6
 - Notifications on phones: one line each (the start of the title); tap one to read it all. Swipe a notification left
   or right to dismiss it, or use the × (on any screen). Dismissed notifications stay gone and count as read.
