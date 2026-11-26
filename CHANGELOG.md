@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.8.0-beta.5
+- Phones: the date ranges (Today, This week, 31 days…) sit in a tidy three-column grid instead of uneven rows, and
+  the Custom range panel lines up From and To side by side with a full-width Apply button.
+
 ## 1.8.0-beta.4
 - Sales and inventory never need side-scrolling: long bulk-buy names wrap onto more lines, column headings and dates
   wrap on laptop screens, and tablets get the card layout phones use (four figures per row). Checked from 360px to

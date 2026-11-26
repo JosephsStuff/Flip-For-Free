@@ -374,6 +374,21 @@ fieldset.choices legend { padding: 0; margin-bottom: var(--s-1); }
 .seg button.saved { color: var(--link); }
 .seg button.saved.on { color: var(--ink); }
 @media (max-width: 700px) { .periods { align-items: stretch; } .periods .custom { justify-content: flex-start; } }
+/* phones: date ranges in an even three-column grid; a leftover last button fills the rest of its row */
+@media (max-width: 700px) {
+  .periods .seg { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 2px; }
+  .periods .seg button { padding: 0 var(--s-1); text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .periods .seg button:last-child:nth-child(3n+1) { grid-column: 1 / -1; }
+  .periods .seg button:last-child:nth-child(3n+2) { grid-column: span 2; }
+  .periods .custom { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: end; }
+  .periods .custom label { min-width: 0; }
+  .periods .custom[hidden] { display: none; }
+  .periods .custom label input { width: 100%; min-width: 0; }
+  .periods .custom .sep { display: none; }
+  .periods .custom .apply-range, .periods .custom input[name=range_name], .periods .custom .saved-list { grid-column: 1 / -1; }
+  .periods .custom .apply-range { min-height: var(--control); }
+  .periods .custom .save-range { grid-column: 1 / -1; justify-self: start; }
+}
 .linkbox { margin: var(--s-1) 0 var(--s-3); border: 1px dashed var(--line); border-radius: var(--r-md); padding: var(--s-2) var(--s-3); }
 .linkbox summary { font-weight: 600; }
 
