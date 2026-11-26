@@ -31,10 +31,10 @@ def test_switching_back_to_main_offers_the_lower_version(chan, monkeypatch):
     (chan / ".flip-channel").write_text("beta")
     db.Settings().set("update_channel", "main")
     asked = []
-    monkeypatch.setattr(updater.requests, "get", lambda url, timeout: asked.append(url) or
+    monkeypatch.setattr(updater.requests, "get", lambda url, timeout, params=None, headers=None: asked.append((url, params)) or
                         Resp(200, "1.7.9" if url.endswith("VERSION") else "## 1.7.9\n- fixes\n"))
     updater.check()
-    assert "/main/VERSION" in asked[0]
+    assert asked[0] == (f"https://api.github.com/repos/{updater.repo()}/contents/VERSION", {"ref": "main"})
     assert updater.switching() and updater.update_available()          # 1.7.9 < 1.8.0-beta.1, but it's a switch
 
 
@@ -45,8 +45,8 @@ def test_beta_channel_checks_and_installs_the_beta_branch(chan, monkeypatch):
         z.writestr("Flip-For-Free-beta/app.py", "")
     urls = []
 
-    def get(url, timeout):
-        urls.append(url)
+    def get(url, timeout, params=None, headers=None):
+        urls.append((url, params))
         return Resp(200, "1.8.0-beta.2") if url.endswith("VERSION") else Resp(200, content=buf.getvalue())
 
     monkeypatch.setattr(updater.requests, "get", get)
@@ -54,9 +54,9 @@ def test_beta_channel_checks_and_installs_the_beta_branch(chan, monkeypatch):
     monkeypatch.setattr(updater, "APP_DIR", chan / "app")
     (chan / "app").mkdir()
     updater.check()
-    assert "/beta/VERSION" in urls[0] and updater.update_available()
+    assert urls[0][1] == {"ref": "beta"} and updater.update_available()
     updater.apply_update()
-    assert urls[-1].endswith("/zip/refs/heads/beta") and updater.installed_channel() == "beta"
+    assert urls[-1][0].endswith("/zip/refs/heads/beta") and updater.installed_channel() == "beta"
     assert not updater.switching()
 
 
@@ -77,8 +77,8 @@ ALERTS = {"alerts": [
 
 @pytest.fixture()
 def alerts(chan, monkeypatch):
-    monkeypatch.setattr(updater.requests, "get", lambda url, timeout: Resp(200, json.dumps(ALERTS)) if url.endswith(
-        "main/ALERTS.json") else Resp(404))
+    monkeypatch.setattr(updater.requests, "get", lambda url, timeout, params=None, headers=None: Resp(
+        200, json.dumps(ALERTS)) if url.endswith("ALERTS.json") and params == {"ref": "main"} else Resp(404))
     Resp.json = lambda self: json.loads(self.text)
     updater.fetch_alerts()
     return chan
@@ -110,5 +110,14 @@ def test_alert_banner_is_plain_text_on_every_page(alerts, monkeypatch, client):
 
 
 def test_no_alerts_file_means_no_banner(chan, monkeypatch):
-    monkeypatch.setattr(updater.requests, "get", lambda url, timeout: Resp(404))
+    monkeypatch.setattr(updater.requests, "get", lambda url, timeout, params=None, headers=None: Resp(404))
     assert updater.fetch_alerts() == [] and updater.active_alerts() == []
+
+
+def test_falls_back_to_raw_github_when_the_api_is_busy(chan, monkeypatch):
+    def get(url, timeout, params=None, headers=None):
+        if "api.github.com" in url:
+            return Resp(403)                                   # hourly limit used up
+        return Resp(200, "1.9.0" if url.endswith("main/VERSION") else "")
+    monkeypatch.setattr(updater.requests, "get", get)
+    assert updater.check()["latest"] == "1.9.0"

@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.8.0-beta.9
+- Check for updates sees a new release within about a minute: Flip now reads the version from GitHub's API instead
+  of a file copy that GitHub can cache for up to 5 minutes (it falls back to that copy if the API is busy).
+
 ## 1.8.0-beta.8
 - Phones: the date-range box is now full width, lining up with the True profit, Buyers paid and other boxes.
 

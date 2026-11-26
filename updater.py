@@ -96,17 +96,30 @@ def update_available() -> bool:
     return bool(STATE.get("latest")) and STATE.get("channel") == channel() and (switching() or is_newer(STATE["latest"]))
 
 
+def _github_file(path: str, branch: str):
+    """Read a file from the repo. The GitHub API answers with the newest copy; raw.githubusercontent.com (the
+    fallback, e.g. if the API's hourly limit is used up) can serve a copy up to 5 minutes old."""
+    try:
+        r = requests.get(f"https://api.github.com/repos/{repo()}/contents/{path}", params={"ref": branch},
+                         headers={"Accept": "application/vnd.github.raw"}, timeout=20)
+        if r.status_code in (200, 404):
+            return r
+    except requests.RequestException:
+        pass
+    return requests.get(f"https://raw.githubusercontent.com/{repo()}/{branch}/{path}", timeout=20)
+
+
 def check() -> dict:
     """Ask GitHub for the latest version number and its notes on your channel."""
     STATE.update(checking=True, error=None, channel=channel())
     try:
-        base = f"https://raw.githubusercontent.com/{repo()}/{CHANNELS[channel()]}"
-        r = requests.get(f"{base}/VERSION", timeout=20)
+        branch = CHANNELS[channel()]
+        r = _github_file("VERSION", branch)
         if r.status_code != 200:
             raise RuntimeError(f"GitHub replied {r.status_code} for {repo()}")
         latest = r.text.strip()
         notes = None
-        c = requests.get(f"{base}/CHANGELOG.md", timeout=20)
+        c = _github_file("CHANGELOG.md", branch)
         if c.status_code == 200:
             notes = _section(c.text, latest)
         STATE.update(latest=latest, notes=notes, checked_at=datetime.now().isoformat(timespec="minutes"))
@@ -150,7 +163,7 @@ def _clean_alert(a: dict) -> dict | None:
 
 def fetch_alerts() -> list:
     """Download ALERTS.json from the main branch and remember it (so the banner survives restarts and offline)."""
-    r = requests.get(f"https://raw.githubusercontent.com/{repo()}/main/ALERTS.json", timeout=20)
+    r = _github_file("ALERTS.json", "main")
     if r.status_code == 404:
         alerts = []
     elif r.status_code != 200:
