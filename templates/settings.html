@@ -30,6 +30,7 @@
 </section>
 </div>
 
+<form id="tzform" method="post" action="{{ url_for('settings_timezone') }}" hidden></form>
 <section class="card" id="showcase">
   <h2>Showcase mode</h2>
   {% if showcase %}
@@ -69,7 +70,7 @@
     {{ market.name }} you still get profit &amp; loss, expenses and mileage to give your accountant.</p>{% endif %}
 </section>
 
-<section class="card">
+<section class="card" id="preferences">
   <h2>Preferences</h2>
   <form method="post" class="stack">
     <label class="check"><input type="checkbox" name="include_account_fees" value="1" {{ 'checked' if (s.include_account_fees or '1') == '1' }}>
@@ -86,6 +87,11 @@
           <select name="fy_day">{% for d in range(1, 32) %}<option value="{{ d }}" {{ 'selected' if d == fy[1]|int }}>{{ d }}</option>{% endfor %}</select>
           <select name="fy_month">{% for m in ['January','February','March','April','May','June','July','August','September','October','November','December'] %}<option value="{{ loop.index }}" {{ 'selected' if loop.index == fy[0]|int }}>{{ m }}</option>{% endfor %}</select>
         </span><small class="muted">{% if tax_profile %}Your tax year starts on {{ fy_default_label }}. {% endif %}Used for "Financial year" views and the P&amp;L.</small></label>
+      <label>Time zone
+        <select name="timezone" form="tzform" onchange="this.form.submit()" aria-describedby="tzhint">
+          {% for z in tz_choices %}<option value="{{ z }}" {{ 'selected' if z == tz_current }}>{{ z.replace('_', ' ') }}</option>{% endfor %}
+        </select>
+        <small class="muted" id="tzhint">{% if tz_saved %}Decides what "today" is and when automations run.{% else %}Taken from this computer until you choose one; your browser will set it on your next visit.{% endif %}</small></label>
       <label>Accountant's email<input type="email" name="accountant_email" value="{{ s.accountant_email or '' }}" placeholder="for emailing your P&amp;L"></label>
     </div>
     <div class="grid2">

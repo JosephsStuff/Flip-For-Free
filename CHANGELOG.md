@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026.11.2
+- Time zone from your browser: in Docker or on a server (where the machine's clock is often UTC), Flip asks your
+  browser which time zone you're in the first time you sign in, saves it, and uses it for "today", tax years and
+  automation times. Change it any time in Settings → Preferences. On your own computer it keeps using the
+  computer's time zone until you pick one. docker-compose.yml no longer fixes the time zone to London.
+
 ## 2026.11.1
 - Version numbers are now year.month.number (this is the first: 2026.11.1). The number counts up through the month across
   beta and main releases, so a newer release always has a bigger number. A beta that becomes the main release keeps

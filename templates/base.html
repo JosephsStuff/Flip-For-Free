@@ -58,6 +58,13 @@
 </main>
 <div id="toasts" class="toasts" aria-live="polite"></div>
 <script src="{{ url_for('static', filename='app.js') }}"></script>
+{% if detect_tz %}<script>
+try {   // first visit: tell Flip which time zone this browser is in (only used until you choose one in Settings)
+  var z = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  if (z) fetch({{ url_for('settings_timezone')|tojson }}, {method: 'POST', headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({timezone: z, auto: true})});
+} catch (e) { /* older browser: stays on the computer's time zone */ }
+</script>{% endif %}
 {% block scripts %}{% endblock %}
 </body>
 </html>

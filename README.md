@@ -185,6 +185,8 @@ It's also printed at the top of the container's log (`docker compose logs flip`,
   Tailscale on the computer running Docker, run `tailscale serve --bg 8765`, and set `FLIP_PUBLIC_URL` in
   `docker-compose.yml` to the `https://….ts.net` address it gives (then use that address in your eBay RuName).
   The phone pairing in **Settings → Use on your phone** is for the normal install; use Tailscale instead in Docker.
+- **Time zone:** Flip asks your browser the first time you sign in and uses that zone from then on; change it in
+  **Settings → Preferences**. (Setting `TZ` in `docker-compose.yml` still works until a zone is chosen.)
 - **Stop or restart:** `docker compose stop`, `docker compose start`, `docker compose logs -f`.
 - Keep the database inside `flip-data` rather than a Google Drive folder: Drive's sync and a running container don't
   mix well. Use **Download database** (or the nightly backups in `flip-data/backups`) for copies.

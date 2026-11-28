@@ -24,6 +24,7 @@ from flask import (Flask, Response, abort, flash, g, jsonify, redirect, render_t
 import automation
 import db
 import markets
+import tz
 import updater
 import profit
 import sync
@@ -174,7 +175,8 @@ def same_origin_check():
 def inject():
     from common import period_label, saved_ranges
     ctx = {"demo": demo_active(), "showcase": g.get("showcase", False),
-           "update_alerts": [] if demo_active() else updater.active_alerts(), "sync_status": sync.STATUS, "db_path": db.get_db_path(),
+           "update_alerts": [] if demo_active() else updater.active_alerts(),
+           "detect_tz": bool(session.get("user_id")) and not demo_active() and db_ready() and tz.needs_detecting(), "sync_status": sync.STATUS, "db_path": db.get_db_path(),
            "user_name": session.get("user_name"), "device_warning": None, "last_sync": None, "unread": 0,
            "saved_ranges": [], "period_label": period_label, "beta": updater.installed_channel() == "beta",
            "cur": markets.symbol(), "market": markets.site(), "tax_profile": markets.tax(), "unit": markets.unit_word(),
@@ -1038,6 +1040,25 @@ def update_check():
     return redirect(url_for("settings_page") + "#updates")
 
 
+@app.route("/settings/timezone", methods=["POST"])
+@login_required
+def settings_timezone():
+    """Save your time zone: sent once by your browser automatically, or chosen in Settings."""
+    name = (request.form.get("timezone") or (request.get_json(silent=True) or {}).get("timezone") or "").strip()
+    auto = request.form.get("auto") or (request.get_json(silent=True) or {}).get("auto")
+    if auto and not tz.needs_detecting():
+        return jsonify({"ok": True, "timezone": tz.current(), "kept": True})   # never overwrite a choice
+    if not tz.save(name):
+        if request.is_json:
+            return jsonify({"ok": False, "error": "Unknown time zone"}), 400
+        flash("That isn't a time zone Flip recognises.", "error")
+        return redirect(url_for("settings_page") + "#preferences")
+    if request.is_json:
+        return jsonify({"ok": True, "timezone": name})
+    flash(f"Time zone set to {name.replace('_', ' ')}.", "ok")
+    return redirect(url_for("settings_page") + "#preferences")
+
+
 @app.route("/settings/market", methods=["POST"])
 @login_required
 def settings_market():
@@ -1193,6 +1214,7 @@ def settings_page():
                            version=updater.current_version(), upd=updater.STATE, repo=updater.repo(),
                            update_available=updater.update_available(), channel=updater.channel(),
                            sites=markets.SITES, currencies=markets.CURRENCIES,
+                           tz_current=tz.current(), tz_saved=tz.saved(), tz_choices=tz.choices(),
                            fy_default="%02d-%02d" % markets.year_start(),
                            fy_default_label="{0.day} {0:%B}".format(date(2001, *markets.year_start())),
                            installed_channel=updater.installed_channel(),
@@ -1559,6 +1581,9 @@ def main():
     threading.Thread(target=_announce_ready, args=(url, args, ip), daemon=True).start()
     app.run(host="0.0.0.0" if (args.lan or args.docker) else "127.0.0.1", port=args.port, ssl_context=ssl_ctx, debug=False,
             threaded=True)
+
+
+tz.apply()          # your saved time zone, if you've chosen one (see tz.py)
 
 
 if __name__ == "__main__":

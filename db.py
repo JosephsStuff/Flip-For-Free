@@ -104,7 +104,9 @@ def set_db_path(path: str) -> None:
     cfg["recent_db_paths"] = [path] + recent[:4]
     save_config(cfg)
     import markets
+    import tz
     markets.invalidate()
+    tz.apply()
 
 
 def device_name() -> str:

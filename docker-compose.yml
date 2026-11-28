@@ -15,7 +15,8 @@ services:
     volumes:
       - ./flip-data:/data
     environment:
-      TZ: Europe/London
+      # Time zone: Flip asks your browser the first time you use it (change it in Settings → Preferences).
+      # TZ: Europe/London
       FLIP_HOST_PORT: "8765"   # if you change the port on the left of "8765:8765" above, change this to match
       # Server mode behind Tailscale Serve or Cloudflare Tunnel (they add the https):
       # FLIP_PUBLIC_URL: https://flip.your-tailnet.ts.net
